@@ -1,3 +1,4 @@
+#ifdef __GENIE_INCL_ENABLED_Liang__
 #include "Framework/Conventions/GBuild.h"
 #ifdef __GENIE_INCL_ENABLED__
 
@@ -959,4 +960,5 @@ void HINCLCascadeIntranuke::Configure(string param_set) {
 
 }
 
+#endif // __GENIE_INCL_ENABLED__
 #endif // __GENIE_INCL_ENABLED__
