@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::NucleusGen
+\class    genie::NucleusGenTraditional
 
 \brief    It visits the event record & computes a Fermi motion momentum for
           initial state nucleons bound in nuclei.
@@ -18,8 +18,6 @@
 */
 //____________________________________________________________________________
 
-#include "Framework/Conventions/GBuild.h"
-#ifdef __GENIE_INCL_ENABLED__
 #include <cstdlib>
 
 #include <TLorentzVector.h>
@@ -31,7 +29,7 @@
 #include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Conventions/Constants.h"
 #include "Framework/Conventions/Units.h"
-#include "Physics/NuclearState/NucleusGen.h"
+#include "Physics/NuclearState/NucleusGenTraditional.h"
 
 #include "Physics/NuclearState/NuclearModel.h"
 #include "Physics/NuclearState/NuclearModelI.h"
@@ -50,102 +48,64 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Physics/NuclearState/NuclearUtils.h"
+#include "Physics/NuclearState/INCLNucleus.h"
 
 using namespace genie;
 using namespace genie::constants;
 
 //___________________________________________________________________________
-NucleusGen::NucleusGen() :
-EventRecordVisitorI("genie::NucleusGen")
+NucleusGenTraditional::NucleusGenTraditional() :
+EventRecordVisitorI("genie::NucleusGenTraditional")
 {
 
 }
 //___________________________________________________________________________
-NucleusGen::NucleusGen(string config) :
-EventRecordVisitorI("genie::NucleusGen", config)
+NucleusGenTraditional::NucleusGenTraditional(string config) :
+EventRecordVisitorI("genie::NucleusGenTraditional", config)
 {
 
 }
 //___________________________________________________________________________
-NucleusGen::~NucleusGen()
+NucleusGenTraditional::~NucleusGenTraditional()
 {
 
 }
 
 //___________________________________________________________________________
-void NucleusGen::ProcessEventRecord(GHepRecord * evrec) const
+void NucleusGenTraditional::ProcessEventRecord(GHepRecord * evrec) const
 {
   // skip if not a nuclear target
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
 
-  // skip if no hit nucleon is set
-  if(! evrec->HitNucleon()) return;
+  LOG("NucleusGenTraditional", pINFO) << "Adding final state nucleus";
 
+  fVertexGenerator->ProcessEventRecord(evrec);
+  fFermiMover->ProcessEventRecord(evrec);
 
-  // give hit nucleon a vertex
-  this->setInitialStateVertex(evrec);
-  // give hit nucleon a Fermi momentum
-  this->setInitialStateMomentum(evrec);
-
-  // handle the addition of the recoil nucleon
-  // TODO:  INCL has it own SRC model
-//  if ( fSecondEmitter ) fSecondEmitter -> ProcessEventRecord( evrec ) ;
-
-  // add a recoiled nucleus remnant
-  this->setTargetNucleusRemnant(evrec);
 }
 
 //___________________________________________________________________________
-//  using INCL model to get the position and momentum of 
-//  Hit  nucleon
-void NucleusGen::setInitialStateVertex(GHepRecord * evrec) const{
-
-}
-
-void NucleusGen::setInitialStateMomentum(GHepRecord * evrec) const{
-
-}
-
-void NucleusGen::setTargetNucleusRemnant(GHepRecord * evrec)const{
-
-}
-
-
-//___________________________________________________________________________
-void NucleusGen::Configure(const Registry & config)
+void NucleusGenTraditional::Configure(const Registry & config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NucleusGen::Configure(string config)
+void NucleusGenTraditional::Configure(string config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NucleusGen::LoadConfig(void)
+void NucleusGenTraditional::LoadConfig(void)
 {
 
-//  RgKey nuclkey = "NuclearModel";
-//  fNuclModel = 0;
-//  fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-//  assert(fNuclModel);
 
-//  this->GetParamDef("KeepHitNuclOnMassShell", fKeepNuclOnMassShell, false);
-//
-//  bool mom_dep_energy_removal_def = false;
-//  this->GetParamDef("LFG-MomentumDependentErmv", mom_dep_energy_removal_def, false ) ;
-//  // it defaults to whatever the nuclear model sets. Since only the LFG has this option
-//  // this simple search is enough.
-//
-//  this->GetParamDef("MomentumDependentErmv", fMomDepErmv, mom_dep_energy_removal_def);
-//
-//  RgKey nuclearrecoilkey = "SecondNucleonEmitter" ;
-//  fSecondEmitter = dynamic_cast<const SecondNucleonEmissionI *> (this->SubAlg(nuclearrecoilkey));
+  fFermiMover = nullptr;
+  fVertexGenerator = nullptr;
+  fFermiMover = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg("FermiMover"));
+  fVertexGenerator = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg("VertexGenerator"));
 
 }
 //____________________________________________________________________________
 
-
-#endif // end  __GENIE_INCL_ENABLED__

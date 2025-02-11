@@ -35,6 +35,18 @@
 #include "G4INCLNucleus.hh"
 // GENIE
 #include "Framework/GHEP/GHepRecord.h"
+#include "G4INCLParticle.hh"
+#include "G4INCLNucleus.hh"
+#include "G4INCLIPropagationModel.hh"
+#include "G4INCLStandardPropagationModel.hh"
+#include "G4INCLCascadeAction.hh"
+#include "G4INCLEventInfo.hh"
+#include "G4INCLGlobalInfo.hh"
+#include "G4INCLLogger.hh"
+#include "G4INCLConfig.hh"
+#include "G4INCLRootFinder.hh"
+
+
 
 namespace genie {
 
@@ -42,17 +54,24 @@ namespace genie {
 
     public: 
       static INCLNucleus * Instance (void);
-      void init();
       void initialize(const GHepRecord * evrec);
-      void reset();
+      void reset(const GHepRecord * evrec);
 
-      TVector3 getPosition();
-      TVector3 getMomentum();
-      double   getEnergy();
+      TVector3 getHitNucleonPosition();
+      TVector3 getHitNucleonMomentum();
+      double   getHitNucleonEnergy();
+      double   getHitNucleonMass();
+      double   getMass();
+      double   getRemovalEnergy();
+      G4INCL::Nucleus * getNuclues();
+      G4INCL::StandardPropagationModel * getPropagationModel();
+      G4INCL::Particle *getHitParticle();
+      G4INCL::Config *getConfig(){return theConfig_;}
 
     private:
       INCLNucleus();
       ~INCLNucleus();
+      void init();
 
       static INCLNucleus *fInstance;
 
@@ -61,8 +80,15 @@ namespace genie {
       double  energy_; // off-shell energy of initial nucleon
       G4INCL::Config *theConfig_;
       G4INCL::Nucleus *nucleus_;
+      G4INCL::StandardPropagationModel *propagationModel_;
+      G4INCL::CascadeAction *cascadeAction_;
+      G4INCL::Particle *hitNucleon_;
 
-      static int nucleon_index;
+      int nucleon_index_;
+
+      double maxUniverseRadius_;
+      double maxInteractionDistance_;
+      double minRemnantSize_;
 
 
   };

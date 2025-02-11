@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::NucleusGen
+\class    genie::NucleusGenINCL
 
 \brief    It visits the event record & computes a Fermi motion momentum for
           initial state nucleons bound in nuclei.
@@ -21,8 +21,8 @@
 #include "Framework/Conventions/GBuild.h"
 #ifdef __GENIE_INCL_ENABLED__
 
-#ifndef _NUCLEUS_GEN_H_
-#define _NUCLEUS_GEN_H_
+#ifndef _NUCLEUS_GEN_INCL_H_
+#define _NUCLEUS_GEN_INCL_H_
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
 #include "Framework/GHEP/GHepParticle.h"
@@ -34,12 +34,12 @@
 namespace genie {
 
 
-class NucleusGen : public EventRecordVisitorI {
+class NucleusGenINCL : public EventRecordVisitorI {
 
 public :
-  NucleusGen();
-  NucleusGen(string config);
- ~NucleusGen();
+  NucleusGenINCL();
+  NucleusGenINCL(string config);
+ ~NucleusGenINCL();
 
   //-- implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
@@ -73,5 +73,5 @@ private:
 
 
 
-#endif // _NUCLEUS_GEN_H_
+#endif // _NUCLEUS_GEN_INCL_H_
 #endif // end  __GENIE_INCL_ENABLED__

@@ -1,5 +1,5 @@
 THIS_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export GENIEBASE=/root/genie
+export GENIEBASE=/root
 export GENIE=$GENIEBASE/Generator
 export XSECSPLINEDIR=$GENIEBASE/data
 export GENIE_REWEIGHT=$GENIEBASE/Reweight
