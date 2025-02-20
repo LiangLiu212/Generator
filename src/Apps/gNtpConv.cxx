@@ -382,6 +382,10 @@ void ConvertToGST(void)
   int    brNiK0        = 0;      // Nu. of `primary' K0's + \bar{K0}'s 
   int    brNiEM        = 0;      // Nu. of `primary' gammas and e-/e+ 
   int    brNiOther     = 0;      // Nu. of other `primary' hadron shower particles
+  int    brNpar        = 0;      // Nu. of paritcle in event record
+  int    brPDG   [kNPmax];       // Pdg    of paritcle in event record
+  int    brMother[kNPmax];       // Index  of paritcle in event record
+  int    brStatus[kNPmax];       // Status of paritcle in event record
   int    brNf          = 0;      // Nu. of final state particles in hadronic system
   int    brPdgf  [kNPmax];       // Pdg code of k^th final state particle in hadronic system
   double brEf    [kNPmax];       // Energy     of k^th final state particle in hadronic system @ LAB
@@ -497,6 +501,12 @@ void ConvertToGST(void)
   s_tree->Branch("nik0",          &brNiK0,	    "nik0/I"	    );
   s_tree->Branch("niem",          &brNiEM,	    "niem/I"	    );
   s_tree->Branch("niother",       &brNiOther,       "niother/I"     );
+  s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
+  s_tree->Branch("pdg",	           brPDG,	    "pdg[npar]/I"   );
+  s_tree->Branch("mother",	   brMother,	    "mother[npar]/I");
+  s_tree->Branch("status",	   brStatus,	    "status[npar]/I");
+  s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
+  s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
   s_tree->Branch("ni",	         &brNi,	            "ni/I"	    );
   s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I"   );
   s_tree->Branch("resc",          brResc,	    "resc[ni]/I"   );
@@ -779,9 +789,14 @@ void ConvertToGST(void)
     LOG("gntpc", pDEBUG) << "Extracting final state hadronic system";
 
     vector<int> final_had_syst;
+    brNpar=0;
     while( (p = (GHepParticle *) piter.Next()) && study_hadsyst)
     {
       ip++;
+      brPDG[brNpar] = p->Pdg();
+      brMother[brNpar] = p->FirstMother();
+      brStatus[brNpar] = p->Status();
+      brNpar++;
       // don't count final state lepton as part hadronic system 
       //if(!is_coh && event.Particle(ip)->FirstMother()==0) continue;
       if(!is_hnl && event.Particle(ip)->FirstMother()==0) continue;

@@ -222,6 +222,10 @@ void INCLNucleus::init(){
   LOG("NuclData", pINFO) << "init()";
   theConfig_->init();
   theConfig_->setINCLXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/data"); // FIXME:: using config to set path
+  theConfig_->setABLAXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/ablaxx/upstream/data/G4ABLA3.0");
+  theConfig_->setcABLA07DataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/abla07/upstream/tables");
+  theConfig_->setGEMINIXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/geminixx/upstream");
+  theConfig_->setDeExcitationType(G4INCL::DeExcitationABLA07);
   // initialize INCL model
   G4INCL::Random::initialize(theConfig_);
   // Select the Pauli and CDPP blocking algorithms
@@ -306,12 +310,7 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   // INCL initialize universe radius according to particle species,
   // kenetic energy, and nucleus type. void INCL::initUniverseRadius(ParticleSpecies const &p, const double kineticEnergy, const int A, const int Z)
   // FIXME: I'm not sure if we need the interaction distance for neutrino scattering
-  double rMax = 0.0;
-  const double pMaximumRadius = G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Proton, targetSpecies.theA, targetSpecies.theZ);
-  const double nMaximumRadius = G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Neutron, targetSpecies.theA, targetSpecies.theZ);
-  const double maximumRadius = std::max(pMaximumRadius, nMaximumRadius);
-  rMax = std::max(maximumRadius, rMax);
-  maxUniverseRadius_ = rMax;
+  this->initUniverseRadius(targetSpecies.theA, targetSpecies.theZ);
 
   // FIXME the last two parameters need to be configed
   // theConfig_, G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Proton, targetSpecies.theA, targetSpecies.theZ)
@@ -324,11 +323,13 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
 
   // initialize max interaction distance
   // FIXME: in INCL, composite has non-zero max interaction distance.
-  maxInteractionDistance_ = 0;
+  
+  // maxInteractionDistance_ = 0;
 
   // set the min Remnant size to be 4
   // the min remnant is alpha particle
   // FIXME: it is only works for nuclei with large A
+  //
   minRemnantSize_ = 4;
 
   // cascade action is not related to simulation
@@ -459,6 +460,28 @@ double INCLNucleus::getRemovalEnergy(){
   }
   else 
     exit(1);
+}
+
+void INCLNucleus::initUniverseRadius(const int A, const int Z){
+  // This function is analogy to function in incl_physics/src/G4INCLCascade.cc
+  // void INCL::initUniverseRadius(ParticleSpecies const &p, 
+  //                const double kineticEnergy, const int A, 
+  //                const int Z)
+  double rMax = 0.0;
+  // A should be large than 0
+  // FIXME: 
+  // 1. do we need to consider the isotopes?
+  // 2. do we need to consider the extra-impact parameter for neutrino?
+  // 	The xsec for neutrino-nucleus is ~10 fb
+  // 	the xsec for hadron-nucleus is ~800 mb
+  if(!(A > 0)) 
+    throw std::runtime_error("Mass number A is not real!");
+  const double pMaximumRadius = G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Proton,  A, Z);
+  const double nMaximumRadius = G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Neutron, A, Z);
+  const double maximumRadius = std::max(pMaximumRadius, nMaximumRadius);
+  rMax = std::max(maximumRadius, rMax);
+  maxUniverseRadius_ = rMax;
+  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
 }
 
 #endif // __GENIE_INCL_ENABLED__

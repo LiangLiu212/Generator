@@ -68,10 +68,14 @@ namespace genie {
       G4INCL::Particle *getHitParticle();
       G4INCL::Config *getConfig(){return theConfig_;}
 
+      double getMaxUniverseRadius() {return maxUniverseRadius_;}
+
     private:
       INCLNucleus();
       ~INCLNucleus();
       void init();
+
+      void initUniverseRadius(const int A, const int Z);
 
       static INCLNucleus *fInstance;
 
@@ -87,9 +91,8 @@ namespace genie {
       int nucleon_index_;
 
       double maxUniverseRadius_;
-      double maxInteractionDistance_;
+      // double maxInteractionDistance_;
       double minRemnantSize_;
-
 
   };
 

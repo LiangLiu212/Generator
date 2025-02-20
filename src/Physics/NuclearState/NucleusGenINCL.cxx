@@ -309,7 +309,7 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
 
   int imom = evrec->TargetNucleusPosition();
   evrec->AddParticle(
-       ipdgc,kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+       ipdgc, kIStHadronInTheNucleus, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 }
 
 
