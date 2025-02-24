@@ -214,7 +214,7 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   p4->SetPx(p3.Px()/1000.);
   p4->SetPy(p3.Py()/1000.);
   p4->SetPz(p3.Pz()/1000.);
-  p4->SetE (hit_nucleon_energy/1000.);
+  p4->SetE ((hit_nucleon_energy - w)/1000.);
   LOG("NucleusGenINCL", pINFO) << "Momentum";
   p4->Print();
 
@@ -309,7 +309,7 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
 
   int imom = evrec->TargetNucleusPosition();
   evrec->AddParticle(
-       ipdgc, kIStHadronInTheNucleus, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+       ipdgc, kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 }
 
 

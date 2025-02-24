@@ -456,7 +456,8 @@ double INCLNucleus::getRemovalEnergy(){
     double nucleon_mass = nucleus_->getStore()->getParticles().at(nucleon_index_)->getRealMass();
     double mag = nucleus_->getStore()->getParticles().at(nucleon_index_)->getMomentum().mag();
     removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - nucleus_->getStore()->getParticles().at(nucleon_index_)->getEnergy();
-    return removal_energy;
+    // return removal_energy;
+    return nucleus_->getStore()->getParticles().at(nucleon_index_)->getPotentialEnergy();
   }
   else 
     exit(1);

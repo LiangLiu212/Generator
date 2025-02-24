@@ -353,6 +353,8 @@ void ConvertToGST(void)
   double brPyv         = 0;      // Neutrino py @ LAB
   double brPzv         = 0;      // Neutrino pz @ LAB
   double brEn          = 0;      // Initial state hit nucleon energy @ LAB
+  double brPn          = 0;      // Initial state hit nucleon p @ LAB
+  double brCosthn      = 0;      // Initial state hit nucleon cos(theta)p @ LAB
   double brPxn         = 0;      // Initial state hit nucleon px @ LAB
   double brPyn         = 0;      // Initial state hit nucleon py @ LAB
   double brPzn         = 0;      // Initial state hit nucleon pz @ LAB
@@ -472,6 +474,8 @@ void ConvertToGST(void)
   s_tree->Branch("pyv",	          &brPyv,	    "pyv/D"	    );
   s_tree->Branch("pzv",	          &brPzv,	    "pzv/D"	    );
   s_tree->Branch("En",	          &brEn,	    "En/D"	    );
+  s_tree->Branch("pn",	          &brPn,	    "pn/D"	    );
+  s_tree->Branch("cthn",	  &brCosthn,	    "cthn/D"	    );
   s_tree->Branch("pxn",	          &brPxn,	    "pxn/D"	    );
   s_tree->Branch("pyn",	          &brPyn,	    "pyn/D"	    );
   s_tree->Branch("pzn",	          &brPzn,	    "pzn/D"	    );
@@ -505,8 +509,6 @@ void ConvertToGST(void)
   s_tree->Branch("pdg",	           brPDG,	    "pdg[npar]/I"   );
   s_tree->Branch("mother",	   brMother,	    "mother[npar]/I");
   s_tree->Branch("status",	   brStatus,	    "status[npar]/I");
-  s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
-  s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
   s_tree->Branch("ni",	         &brNi,	            "ni/I"	    );
   s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I"   );
   s_tree->Branch("resc",          brResc,	    "resc[ni]/I"   );
@@ -999,6 +1001,8 @@ void ConvertToGST(void)
     brPyv        = k1.Py();  
     brPzv        = k1.Pz();  
     brEn         = (hitnucl) ? p1.Energy() : 0;      
+    brPn         = (hitnucl) ? p1.P() : 0;      
+    brCosthn         = (hitnucl) ? TMath::Cos( p1.Vect().Angle(k1.Vect()) ) : 0;      
     brPxn        = (hitnucl) ? p1.Px()     : 0;      
     brPyn        = (hitnucl) ? p1.Py()     : 0;      
     brPzn        = (hitnucl) ? p1.Pz()     : 0;            

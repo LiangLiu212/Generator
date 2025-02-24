@@ -343,7 +343,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     int Z = incl_target->getZ();
     int pdg = genie::pdg::IonPdgCode( A , Z );
 
-    evrec->AddParticle(pdg, kIStHadronInTheNucleus, 3, -1, -1, -1, p4mom, p4posi);
+    evrec->AddParticle(pdg, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
 
     std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<G4INCLAblaInterface>(theConfig);
     //theDeExcitation = new G4INCLAblaInterface(theConfig);
@@ -385,7 +385,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
       if(theEventInfo.A[i] > 4){
 	ptype = kIStFinalStateNuclearRemnant;
       } else {
-	ptype = kIStStableFinalState;
+	ptype = kIStDeExFinalState;
       }
       evrec->AddParticle(depdg, ptype, remnant_id, -1, -1, -1, p4mom, p4posi);
     }
