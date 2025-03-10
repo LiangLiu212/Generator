@@ -68,9 +68,18 @@ namespace genie {
     // GENIE method
     mutable GHepParticle *prob;
     mutable GHepParticle *primarylepton;
+    G4INCL::ParticleType PDG_to_INCLType(int pdg) const;
+    const EventRecordVisitorI * fResonanceDecayer;
 
-    void postCascade() const;
+    // INCL can handle delta resonances, but it can't
+    // handle higher order resonances, 
+    // Will decay the kIStPreDecayResonantState except delta
+    // resonances
+    void DecayResonance(GHepRecord * event_rec) const;
 
+    // INCL method
+    void postCascade(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    //void postCascadeEventRecord(GHepRecord * event_rec, G4INCL::FinalState * finalState, int pre, int post) const;
     bool preCascade() const;
 
     bool continueCascade() const;
@@ -80,16 +89,52 @@ namespace genie {
     mutable G4INCL::StandardPropagationModel * propagationModel;
     mutable G4INCL::EventInfo theEventInfo;
 
+    mutable double temfin;
+    void fillFinalState(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    //void fillFinalStateNCEL(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+
+    // FIXME: put the G4INCL::Nucleus::<post cascade func> in here 
+    // to get the event record
+    bool decayInsideStrangeParticles(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    // Emit strange particles still inside the nucleus
+    //  \brief Force emission of all strange particles inside the nucleus.
+    void emitInsideStrangeParticles(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    /// \brief Force emission of all Lambda (desexitation code with strangeness not implanted yet)
+    int  emitInsideLambda(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    /// \brief Force emission of all Kaon inside the nucleus
+    bool emitInsideKaon(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+
+    /** \brief Force the decay of deltas inside the nucleus.
+     * 
+     * \return true if any delta was forced to decay.
+     */
+
+    bool decayInsideDeltas(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    /// \brief Force emission of all pions inside the nucleus.
+    void emitInsidePions(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+
+    /** \brief Force the decay of unstable outgoing clusters.
+     *
+     * \return true if any cluster was forced to decay.
+     */
+    bool decayOutgoingClusters(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+    /** \brief Force the phase-space decay of the Nucleus.
+     *
+     * Only applied if Z==0 or N==0.
+     *
+     * \return true if the nucleus was forced to decay.
+     */
+    bool decayMe(GHepRecord * event_rec, G4INCL::FinalState * finalState) const ;
 
 
     struct INCLRecord{
-      int global_index;
-      int pdgid;
-      int mother_index;
-      int local_index;
+      int global_index;        // Each particles in INCLXX will have a unique ID, it is a global index for every simulation run.
+      int pdgid;	       // PDG ID of particles in INCLXX
+      int mother_index;        // mother index of particles in each event
+      int local_index;         // local index of particles in each event
       TLorentzVector p4mom;
       TLorentzVector p4posi;
-      G4INCL::ParticleType theType;
+      G4INCL::ParticleType theType;   // INCL Particle type
 
       INCLRecord(int g_id, int p_id, int m_id, int l_id):
 	global_index(g_id),
@@ -122,7 +167,7 @@ namespace genie {
     void fillEventRecord(G4INCL::FinalState *fs, G4INCL::ParticleList mother_list, GHepRecord * evrec, double time) const;
     void fillStep(G4INCL::Particle *par, std::vector<INCLRecord> &stepList, int type, double time) const;
 
-    int INCLPDG_to_GHEPPDG(int pdg, int A, int Z) const;
+    int INCLPDG_to_GHEPPDG(int pdg, int A, int Z, int S) const;
 
     /// \brief Class to adjust remnant recoil
     class RecoilFunctor : public G4INCL::RootFunctor {

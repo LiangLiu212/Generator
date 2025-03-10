@@ -3,14 +3,16 @@
 
 \class    genie::NucleusGenTraditional
 
-\brief    It visits the event record & computes a Fermi motion momentum for
-          initial state nucleons bound in nuclei.
+\brief    It visits the event record & combines the FermoMover and VertexGenerator
+          computes a Fermi motion momentum and position for initial state nucleons 
+	  bound in nuclei. It is configured in NucleusGenerator. This new interface
+	  is compatible with previous implments.
           Is a concrete implementation of the EventRecordVisitorI interface.
 
 \author   Liang Liu <liangliu \at fnal.gov>
           Fermi National Accelerator Laboratory
 
-\created  October 17, 2024
+\created  Jan 17, 2025
 
 \cpright  Copyright (c) 2003-2024, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
@@ -46,6 +48,8 @@ public :
 private:
 
   void LoadConfig (void);
+
+  // 
 
   const EventRecordVisitorI *fFermiMover;
   const EventRecordVisitorI *fVertexGenerator;

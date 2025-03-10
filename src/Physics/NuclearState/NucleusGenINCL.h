@@ -67,6 +67,7 @@ private:
 
   // const SecondNucleonEmissionI *  fSecondEmitter ; 
 
+  std::string expandEnvironmentPath(const std::string& path);
 };
 
 }      // genie namespace

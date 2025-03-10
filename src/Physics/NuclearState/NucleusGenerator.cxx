@@ -76,12 +76,12 @@ void NucleusGenerator::Configure(string config)
 //____________________________________________________________________________
 void NucleusGenerator::LoadConfig(void)
 {
-  RgKey nuclkey = "NucleusGenerator";
+
+  RgKey nuclgenkey = "NucleusGenerator";
   fNucleusGen = nullptr;
-  //fNuclModel = dynamic_cast<const NucleusGenerator *> (this->SubAlg(nuclkey));
-  //
-  LOG("NucleusGenerator", pINFO) << "Hello world!";
-  fNucleusGen = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg("Nuclear-Model"));
+  fNucleusGen = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg(nuclgenkey));
+  assert(fNucleusGen);
+
 }
 //____________________________________________________________________________
 

@@ -56,6 +56,7 @@ namespace genie {
       static INCLNucleus * Instance (void);
       void initialize(const GHepRecord * evrec);
       void reset(const GHepRecord * evrec);
+      void configure();
 
       TVector3 getHitNucleonPosition();
       TVector3 getHitNucleonMomentum();
@@ -70,17 +71,20 @@ namespace genie {
 
       double getMaxUniverseRadius() {return maxUniverseRadius_;}
 
+      void setINCLXXDataFilePath(std::string str){ INCLXXDataFilePath_ = str; }
+      void setABLAXXDataFilePath(std::string str){ ablaxxDataFilePath_ = str; }
+      void setABLA07DataFilePath(std::string str){ abla07DataFilePath_ = str; }
+      void setGEMINIXXDataFilePath(std::string str){ geminixxDataFilePath_ = str; }
+      void setDeExcitationType(G4INCL::DeExcitationType deExType){ deExcitationType_ = deExType; }
+
     private:
       INCLNucleus();
       ~INCLNucleus();
-      void init();
-
       void initUniverseRadius(const int A, const int Z);
-
       static INCLNucleus *fInstance;
 
-      TVector3 v3_; // position of initial nucleon 
-      TVector3 p3_; // fermi momentum of initial nucleon
+      //TVector3 v3_; // position of initial nucleon 
+      //TVector3 p3_; // fermi momentum of initial nucleon
       double  energy_; // off-shell energy of initial nucleon
       G4INCL::Config *theConfig_;
       G4INCL::Nucleus *nucleus_;
@@ -93,6 +97,13 @@ namespace genie {
       double maxUniverseRadius_;
       // double maxInteractionDistance_;
       double minRemnantSize_;
+
+      std::string INCLXXDataFilePath_;
+      std::string abla07DataFilePath_;
+      std::string ablaxxDataFilePath_;
+      std::string geminixxDataFilePath_;
+
+      G4INCL::DeExcitationType deExcitationType_;
 
   };
 

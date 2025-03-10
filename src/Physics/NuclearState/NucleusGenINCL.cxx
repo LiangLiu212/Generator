@@ -20,7 +20,9 @@
 
 #include "Framework/Conventions/GBuild.h"
 #ifdef __GENIE_INCL_ENABLED__
-#include <cstdlib>
+#include <cstdlib>  // For getenv
+#include <string>
+#include <regex>
 
 #include <TLorentzVector.h>
 #include <TVector3.h>
@@ -78,32 +80,27 @@ void NucleusGenINCL::ProcessEventRecord(GHepRecord * evrec) const
 {
   // skip if not a nuclear target
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-
   // skip if no hit nucleon is set
   if(! evrec->HitNucleon()) return;
 
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
+
+  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
   incl_nucleus->initialize(evrec);
   incl_nucleus->reset(evrec);
   incl_nucleus->initialize(evrec);
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
 
   // give hit nucleon a vertex
   this->setInitialStateVertex(evrec);
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
   // give hit nucleon a Fermi momentum
   this->setInitialStateMomentum(evrec);
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
 
   // handle the addition of the recoil nucleon
   // TODO:  INCL has it own SRC model
-//  if ( fSecondEmitter ) fSecondEmitter -> ProcessEventRecord( evrec ) ;
+  //  if ( fSecondEmitter ) fSecondEmitter -> ProcessEventRecord( evrec ) ;
 
   // add a recoiled nucleus remnant
   this->setTargetNucleusRemnant(evrec);
-  LOG("NucleusGenINCL", pINFO) << "Adding final state nucleus";
 }
 
 //___________________________________________________________________________
@@ -152,8 +149,6 @@ void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
 
   }
 
-  LOG("NucleusGenINCL", pINFO) << "Position";
-  vtx.Print();
   // Copy the vertex info to the particles already in the event  record
   //
   TObjArrayIter piter(evrec);
@@ -215,8 +210,6 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   p4->SetPy(p3.Py()/1000.);
   p4->SetPz(p3.Pz()/1000.);
   p4->SetE ((hit_nucleon_energy - w)/1000.);
-  LOG("NucleusGenINCL", pINFO) << "Momentum";
-  p4->Print();
 
   nucleon->SetMomentum(*p4);  // update GHEP value
   nucleon->SetRemovalEnergy(w);  // FIXME this may be not necessary
@@ -329,8 +322,75 @@ void NucleusGenINCL::Configure(string config)
 void NucleusGenINCL::LoadConfig(void)
 {
 
+  std::string inclxxpath;
+  GetParamDef( "inclxx-data-dir", inclxxpath, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(inclxxpath);
+
+  std::string ablaxxpath;
+  GetParamDef( "inclxx-ablaxx-dir", ablaxxpath, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(ablaxxpath);
+
+  std::string abla07path;
+  GetParamDef( "inclxx-abla07-dir", abla07path, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(abla07path);
+
+  std::string geminixxpath;
+  GetParamDef( "inclxx-geminixx-dir", geminixxpath, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(geminixxpath);
+
+  std::string deExType;
+  G4INCL::DeExcitationType deExcitationType;
+  GetParamDef( "inclxx-de-excitation", deExType, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << "inclxx-de-excitation : " << deExType;
+  if(deExType.compare("ABLA07")){
+    deExcitationType = G4INCL::DeExcitationABLA07;
+  } else if(deExType.compare("ABLAXX")) {
+    deExcitationType = G4INCL::DeExcitationABLAXX;
+  } else if(deExType.compare("GEMINIXX")) {
+    deExcitationType = G4INCL::DeExcitationGEMINIXX;
+  } else {
+    std::stringstream ss;
+    ss<< "########################################################\n"
+      << "###              WARNING WARNING WARNING             ###\n"
+      << "###                                                  ###\n"
+      << "### You are running the code without any coupling to ###\n"
+      << "###              a de-excitation model!              ###\n"
+      << "###    Results will be INCOMPLETE and UNPHYSICAL!    ###\n"
+      << "###    Are you sure this is what you want to do?     ###\n"
+      << "########################################################\n";
+    LOG("NucleusGenINCL", pWARN) << '\n' << ss.str();
+  }
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_nucleus->setINCLXXDataFilePath(this->expandEnvironmentPath(inclxxpath));
+  incl_nucleus->setABLAXXDataFilePath(this->expandEnvironmentPath(ablaxxpath));
+  incl_nucleus->setABLA07DataFilePath(this->expandEnvironmentPath(abla07path));
+  incl_nucleus->setGEMINIXXDataFilePath(this->expandEnvironmentPath(geminixxpath));
+  incl_nucleus->setDeExcitationType(deExcitationType);
+  incl_nucleus->configure();
 }
 //____________________________________________________________________________
+
+std::string NucleusGenINCL::expandEnvironmentPath(const std::string& path){
+  std::regex env_var_pattern(R"(\$\{([^}]+)\})"); // Regex to match $VAR_NAME
+  std::smatch match;
+
+  std::string expanded_path = path;
+
+  while (std::regex_search(expanded_path, match, env_var_pattern)) {
+    std::string env_var = match[1].str(); // Extract variable name
+    const char* env_value = std::getenv(env_var.c_str());
+
+    if (env_value) {
+      expanded_path.replace(match.position(0), match.length(0), env_value);
+    } else {
+      LOG("NucleusGenINCL", pERROR) << "Warning: Environment variable " << env_var << " is not set!";
+      expanded_path.replace(match.position(0), match.length(0), ""); // Remove unresolved variables
+    }
+  }
+
+  return expanded_path;
+}
+
 
 
 #endif // end  __GENIE_INCL_ENABLED__

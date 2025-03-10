@@ -50,6 +50,14 @@ namespace genie {
 
       void LoadConfig (void);
 
+      // A nucleus generator that will handle fermi motion and 
+      // position simultaneously.
+      //
+      // 1. class NucleusGenTraditional combine the FermiMover 
+      //    and VertexGenerator
+      // 2. class NucleusGenINCL uses external INCLXX nuclear
+      //    model.
+
       const EventRecordVisitorI *fNucleusGen;
   };
 }      // genie namespace

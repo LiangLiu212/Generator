@@ -193,6 +193,7 @@ INCLNucleus::INCLNucleus():propagationModel_(0)
   nucleon_index_ = -1;
   nucleus_ = nullptr;
   theConfig_ = nullptr;
+  hitNucleon_ = nullptr;
 }
 //____________________________________________________________________________
 INCLNucleus::~INCLNucleus()
@@ -206,26 +207,23 @@ INCLNucleus::~INCLNucleus()
 INCLNucleus * INCLNucleus::Instance()
 {
   if(fInstance == 0) {
-    LOG("NuclData", pINFO) << "INCLNucleus late initialization";
-    //    static INCLNucleus::Cleaner cleaner;
-    //    cleaner.DummyMethodAndSilentCompiler();
+    LOG("INCLNucleus", pINFO) << "INCLNucleus late initialization";
     fInstance = new INCLNucleus;
     fInstance->theConfig_ = new G4INCL::Config();
     fInstance->nucleus_ = nullptr;
-    fInstance->init();
   }
   return fInstance;
 }
 
+void INCLNucleus::configure(){
 
-void INCLNucleus::init(){
-  LOG("NuclData", pINFO) << "init()";
   theConfig_->init();
-  theConfig_->setINCLXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/data"); // FIXME:: using config to set path
-  theConfig_->setABLAXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/ablaxx/upstream/data/G4ABLA3.0");
-  theConfig_->setcABLA07DataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/abla07/upstream/tables");
-  theConfig_->setGEMINIXXDataFilePath("/root/inclxx/inclxx-v6.33.1-e5857a1/de-excitation/geminixx/upstream");
-  theConfig_->setDeExcitationType(G4INCL::DeExcitationABLA07);
+  theConfig_->setINCLXXDataFilePath(INCLXXDataFilePath_); // FIXME:: using config to set path
+  theConfig_->setABLAXXDataFilePath(ablaxxDataFilePath_);
+  theConfig_->setcABLA07DataFilePath(abla07DataFilePath_);
+  theConfig_->setGEMINIXXDataFilePath(geminixxDataFilePath_);
+  theConfig_->setDeExcitationType(deExcitationType_);
+
   // initialize INCL model
   G4INCL::Random::initialize(theConfig_);
   // Select the Pauli and CDPP blocking algorithms
@@ -261,40 +259,24 @@ void INCLNucleus::init(){
   else
     cascadeAction_ = new G4INCL::CascadeAction();
 //  cascadeAction_->beforeRunAction(theConfig_);
-
-
-
 }
 
-
 void INCLNucleus::initialize(const GHepRecord * evrec){
-
-  LOG("NuclData", pINFO) << "initialize()";
-
+  // Skip to initialize a new nucleus if the INCL nucleus is not empty 
+  // and the same species with GENIE target 
+  if(nucleus_){
+    if(!nucleus_->getStore()->getParticles().empty())
+      if(nucleus_->getA() == evrec->TargetNucleus()->A() && nucleus_->getZ() == evrec->TargetNucleus()->Z())
+	return ;
+  }
   // initialize according process Event in INCL
-
-  GHepParticle * nucleus = evrec->TargetNucleus();
-  G4INCL::ParticleSpecies targetSpecies = G4INCL::ParticleSpecies(nucleus->Name());
+  // GHepParticle * tgt_nucleus = evrec->TargetNucleus();
+  G4INCL::ParticleSpecies targetSpecies = G4INCL::ParticleSpecies(evrec->TargetNucleus()->A(), evrec->TargetNucleus()->Z());
   theConfig_->setTargetA(targetSpecies.theA);
   theConfig_->setTargetZ(targetSpecies.theZ);
   theConfig_->setTargetS(targetSpecies.theS);
-  LOG("NuclData", pINFO) << "initialize()";
   // define Nucleus and initialize it
-
-  if(nucleus_){
-    if(!nucleus_->getStore()->getParticles().empty()){
-      if(nucleus_->getA() == evrec->TargetNucleus()->A() && nucleus_->getZ() == evrec->TargetNucleus()->Z()){
-//  LOG("NuclData", pINFO)  << nucleus_->print();
-	return;
-      }
-      else{
-	nucleus_->deleteParticles();
-	nucleus_->getStore()->clear();
-	delete nucleus_;
-      }
-    }
-  }
-
+  
   // ReInitialize the bias vector
   G4INCL::Particle::INCLBiasVector.clear();
   //Particle::INCLBiasVector.Clear();
@@ -315,6 +297,9 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   // FIXME the last two parameters need to be configed
   // theConfig_, G4INCL::ParticleTable::getMaximumNuclearRadius(G4INCL::Proton, targetSpecies.theA, targetSpecies.theZ)
   // G4INCL::NType
+  if(nucleus_){
+    delete nucleus_;
+  }
   nucleus_ = new G4INCL::Nucleus(targetSpecies.theA, targetSpecies.theZ, targetSpecies.theS, 
   theConfig_, maxUniverseRadius_, G4INCL::Def);
   nucleus_->getStore()->getBook().reset();
@@ -339,7 +324,7 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   // INCL need to decide whether the cascade can be ran or not
   // For genie, we need to run casecade for every events
   // const bool canRunCascade = preCascade(projectileSpecies, kineticEnergy);
-
+  //
   LOG("INCLNucleus", pDEBUG) << nucleus_->getStore()->getParticles().at(2)->getPotentialEnergy() ;
   LOG("INCLNucleus", pDEBUG) << nucleus_->getStore()->getParticles().at(2)->getEnergy() -  nucleus_->getStore()->getParticles().at(2)->getPotentialEnergy()  ;
   LOG("INCLNucleus", pDEBUG) << nucleus_->getStore()->getParticles().at(2)->getMomentum().print() ;
@@ -349,12 +334,16 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon->Pdg();
 
   RandomGen * rnd = RandomGen::Instance();
+  nucleon_index_ = -1;
   if(pdg::IsProton(nucleon->Pdg()))
     nucleon_index_ = rnd->RndGen().Integer(targetSpecies.theZ);
   else if(pdg::IsNeutron(nucleon->Pdg()))
     nucleon_index_ = rnd->RndGen().Integer(targetSpecies.theA - targetSpecies.theZ) + targetSpecies.theZ;
-  else
+  else{
+    LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon!";
     exit(1);
+  }
+  if(hitNucleon_) hitNucleon_ = nullptr;
   hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
 }
 
@@ -368,82 +357,88 @@ void INCLNucleus::reset(const GHepRecord * evrec){
   if(nucleus_){
     nucleus_->deleteParticles();
     nucleus_->getStore()->clear();
-    nucleus_->initializeParticles();
     nucleus_->getStore()->getBook().reset();
+    nucleus_->initializeParticles();
 
-  GHepParticle * nucleon = evrec->HitNucleon();
-  LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon->Pdg();
-  RandomGen * rnd = RandomGen::Instance();
-  if(pdg::IsProton(nucleon->Pdg()))
-    nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->Z());
-  else if(pdg::IsNeutron(nucleon->Pdg()))
-    nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->A() - evrec->TargetNucleus()->Z()) + evrec->TargetNucleus()->Z();
-  else
-    exit(1);
-  hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
+    GHepParticle * nucleon = evrec->HitNucleon();
+    LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon->Pdg();
+    RandomGen * rnd = RandomGen::Instance();
+    nucleon_index_ = -1;
+    if(pdg::IsProton(nucleon->Pdg()))
+      nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->Z());
+    else if(pdg::IsNeutron(nucleon->Pdg()))
+      nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->A() - evrec->TargetNucleus()->Z()) + evrec->TargetNucleus()->Z();
+    else{
+      LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon!";
+      exit(1);
+    }
+    // reset the hit nucleon
+    if(hitNucleon_) hitNucleon_ = nullptr;
+    hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
 
-
-  delete propagationModel_;
-  propagationModel_ = new G4INCL::StandardPropagationModel(theConfig_->getLocalEnergyBBType(),theConfig_->getLocalEnergyPiType(),theConfig_->getHadronizationTime());
-
+    if(propagationModel_){
+      delete propagationModel_;
+    }
+    propagationModel_ = new G4INCL::StandardPropagationModel(theConfig_->getLocalEnergyBBType(),theConfig_->getLocalEnergyPiType(),theConfig_->getHadronizationTime());
   }
 }
+
 TVector3 INCLNucleus::getHitNucleonPosition(){
-  if(nucleus_ && nucleon_index_ != -1){
-    TVector3 v3_(999999.,999999.,999999.);
-    v3_.SetXYZ(nucleus_->getStore()->getParticles().at(nucleon_index_)->getPosition().getX(),
-	nucleus_->getStore()->getParticles().at(nucleon_index_)->getPosition().getY(),
-	nucleus_->getStore()->getParticles().at(nucleon_index_)->getPosition().getZ());
-    return v3_;
+  if(!hitNucleon_){
+	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
+  TVector3 v3(999999.,999999.,999999.);
+  v3.SetXYZ(hitNucleon_->getPosition().getX(),
+      hitNucleon_->getPosition().getY(),
+      hitNucleon_->getPosition().getZ());
+  return v3;
 }
 TVector3 INCLNucleus::getHitNucleonMomentum(){
-  if(nucleus_ && nucleon_index_ != -1){
-    TVector3 v3_(999999.,999999.,999999.);
-    v3_.SetXYZ(nucleus_->getStore()->getParticles().at(nucleon_index_)->getMomentum().getX(),
-	nucleus_->getStore()->getParticles().at(nucleon_index_)->getMomentum().getY(),
-	nucleus_->getStore()->getParticles().at(nucleon_index_)->getMomentum().getZ());
-    return v3_;
+  if(!hitNucleon_){
+	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
-
+  TVector3 p3(999999.,999999.,999999.);
+  p3.SetXYZ(hitNucleon_->getMomentum().getX(),
+      hitNucleon_->getMomentum().getY(),
+      hitNucleon_->getMomentum().getZ());
+  return p3;
 }
 double INCLNucleus::getHitNucleonEnergy(){
-  if(nucleus_ && nucleon_index_ != -1){
-    return nucleus_->getStore()->getParticles().at(nucleon_index_)->getEnergy();
+  if(!hitNucleon_){
+	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
+  return hitNucleon_->getEnergy();
 }
 
 double INCLNucleus::getHitNucleonMass(){
-  if(nucleus_ && nucleon_index_ != -1){
-    return nucleus_->getStore()->getParticles().at(nucleon_index_)->getMass();
+  if(!hitNucleon_){
+	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
+  return hitNucleon_->getMass();
 }
 
 double INCLNucleus::getMass(){
-  if(nucleus_ && nucleon_index_ != -1){
-    return nucleus_->getMass();
+  if(!nucleus_){
+	LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
+  return nucleus_->getMass();
 }
 
 G4INCL::Nucleus * INCLNucleus::getNuclues(){
-  if(nucleus_ && nucleon_index_ != -1)
-    return nucleus_;
-  else 
-    exit(1);
+  if(!nucleus_){
+	LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
+	exit(1);
+  }
+  return nucleus_;
 }
 
 G4INCL::Particle * INCLNucleus::getHitParticle(){
-    return hitNucleon_;
+  return hitNucleon_;
 }
 
 G4INCL::StandardPropagationModel * INCLNucleus::getPropagationModel(){
@@ -451,16 +446,17 @@ G4INCL::StandardPropagationModel * INCLNucleus::getPropagationModel(){
 }
 
 double INCLNucleus::getRemovalEnergy(){
-  if(nucleus_ && nucleon_index_ != -1){
-    double removal_energy = 0;
-    double nucleon_mass = nucleus_->getStore()->getParticles().at(nucleon_index_)->getRealMass();
-    double mag = nucleus_->getStore()->getParticles().at(nucleon_index_)->getMomentum().mag();
-    removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - nucleus_->getStore()->getParticles().at(nucleon_index_)->getEnergy();
-    // return removal_energy;
-    return nucleus_->getStore()->getParticles().at(nucleon_index_)->getPotentialEnergy();
+  if(!hitNucleon_){
+	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+	exit(1);
   }
-  else 
-    exit(1);
+  // FIXME: need to find the correct way for removal energy
+ //   double removal_energy = 0;
+ //   double nucleon_mass = hitNucleon_->getRealMass();
+ //   double mag = hitNucleon_->getMomentum().mag();
+ //   removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - hitNucleon_->getEnergy();
+    // return removal_energy;
+  return hitNucleon_->getPotentialEnergy();
 }
 
 void INCLNucleus::initUniverseRadius(const int A, const int Z){
