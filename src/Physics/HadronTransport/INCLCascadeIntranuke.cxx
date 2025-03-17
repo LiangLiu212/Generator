@@ -840,6 +840,10 @@ int INCLCascadeIntranuke::INCLPDG_to_GHEPPDG(int pdg, int A, int Z, int S) const
 }
 
 void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState * finalState) const{
+
+  // neutrino interaction info
+  const ProcessInfo & proc_info = evrec->Summary()->ProcInfo();
+
   int idx = 0;
   double TLab;
   temfin = 29.8 * std::pow(incl_target->getA(), 0.16);
@@ -851,9 +855,13 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   // FIXME, resonances Delta could decay to p and gamma. gamma is not a hadron
   while ( (p = (GHepParticle *) piter.Next() ) ) {
     if(p->Status() == kIStHadronInTheNucleus){
-      if(p->Pdg() == evrec->HitNucleon()->Pdg()){
-	//list_primary_nucleon.push_back(p);
+      if(p->Pdg() == evrec->HitNucleon()->Pdg() || proc_info.IsWeakNC()){
 	list_primary_nucleon[idx] = p;
+      }
+      else if(proc_info.IsWeakNC()){
+	if(p->Pdg() == 2212 && evrec->HitNucleon()->Pdg() == 2112){
+	  list_primary_nucleon[idx] = p;
+	}
       }
       else{
 	//list_hadrons.push_back(p);
@@ -948,8 +956,6 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
     case -321: return G4INCL::KMinus;
     case 310: return G4INCL::KShort;
     case 130: return G4INCL::KLong;
-
-
     default:
 	      return G4INCL::UnknownParticle;
   }
