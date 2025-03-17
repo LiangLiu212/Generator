@@ -779,9 +779,6 @@ void ConvertToGST(void)
     bool study_hadsyst = (is_qel || is_res || is_dis || is_coh || is_dfr || is_mec || is_singlek || is_hnl);
     
     //
-    TObjArrayIter piter(&event);
-    GHepParticle * p = 0;
-    int ip=-1;
 
     //
     // Extract the final state system originating from the hadronic vertex 
@@ -790,15 +787,23 @@ void ConvertToGST(void)
 
     LOG("gntpc", pDEBUG) << "Extracting final state hadronic system";
 
-    vector<int> final_had_syst;
+    TObjArrayIter piter1(&event);
+    GHepParticle * pp = 0;
     brNpar=0;
+    while( (pp = (GHepParticle *) piter1.Next())){
+      brPDG[brNpar] = pp->Pdg();
+      brMother[brNpar] = pp->FirstMother();
+      brStatus[brNpar] = pp->Status();
+      brNpar++;
+    }
+
+    TObjArrayIter piter(&event);
+    GHepParticle * p = 0;
+    int ip=-1;
+    vector<int> final_had_syst;
     while( (p = (GHepParticle *) piter.Next()) && study_hadsyst)
     {
       ip++;
-      brPDG[brNpar] = p->Pdg();
-      brMother[brNpar] = p->FirstMother();
-      brStatus[brNpar] = p->Status();
-      brNpar++;
       // don't count final state lepton as part hadronic system 
       //if(!is_coh && event.Particle(ip)->FirstMother()==0) continue;
       if(!is_hnl && event.Particle(ip)->FirstMother()==0) continue;

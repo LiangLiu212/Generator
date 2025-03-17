@@ -189,20 +189,21 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   // initialize INCL nucleus model
   // INCL nucleus model sample all nucleons with r-p correlation
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  G4INCL::Nucleus *incl_nuc = incl_nucleus->getNuclues();
-  TLorentzVector p4tgt;
-  p4tgt.SetPx(incl_nuc->getMomentum().getX() / 1000.);
-  p4tgt.SetPy(incl_nuc->getMomentum().getY() / 1000. );
-  p4tgt.SetPz(incl_nuc->getMomentum().getZ() / 1000. );
-  p4tgt.SetE(incl_nuc->getEnergy() / 1000.);
-  init_state->SetTgtP4(p4tgt);
-  nucleus->SetMomentum(p4tgt);
+//  G4INCL::Nucleus *incl_nuc = incl_nucleus->getNuclues();
+//  TLorentzVector p4tgt;
+//  p4tgt.SetPx(incl_nuc->getMomentum().getX() / 1000.);
+//  p4tgt.SetPy(incl_nuc->getMomentum().getY() / 1000. );
+//  p4tgt.SetPz(incl_nuc->getMomentum().getZ() / 1000. );
+//  p4tgt.SetE(incl_nuc->getEnergy() / 1000.);
+//  init_state->SetTgtP4(p4tgt);
+//  nucleus->SetMomentum(p4tgt);
 
 
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
   TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
-  double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
+  //double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
+  double   hit_nucleon_energy = incl_nucleus->getHitNucleonMass();
   double   w  = incl_nucleus->getRemovalEnergy();
   //-- update the struck nucleon 4p at the interaction summary and at
   // the GHEP record
@@ -290,10 +291,15 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
   }
 
   double Mi = nucleus->Mass();
-  Px = incl_nuc->getMomentum().getX()/1000. - Px;
-  Py = incl_nuc->getMomentum().getY()/1000. - Py;
-  Pz = incl_nuc->getMomentum().getZ()/1000. - Pz;
-  E = incl_nuc->getEnergy()/1000. - E;
+//  Px = incl_nuc->getMomentum().getX()/1000. - Px;
+//  Py = incl_nuc->getMomentum().getY()/1000. - Py;
+//  Pz = incl_nuc->getMomentum().getZ()/1000. - Pz;
+//  E = incl_nuc->getEnergy()/1000. - E;
+
+  Px *= -1;
+  Py *= -1;
+  Pz *= -1;
+  E = Mi-E;
 
   // Add the nucleus to the event record
   LOG("FermiMover", pINFO)

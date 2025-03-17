@@ -456,7 +456,9 @@ double INCLNucleus::getRemovalEnergy(){
  //   double mag = hitNucleon_->getMomentum().mag();
  //   removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - hitNucleon_->getEnergy();
     // return removal_energy;
-  return hitNucleon_->getPotentialEnergy();
+  //return hitNucleon_->getPotentialEnergy();
+  return nucleus_->getPotential()->getSeparationEnergy(hitNucleon_->getType());
+
 }
 
 void INCLNucleus::initUniverseRadius(const int A, const int Z){
