@@ -57,13 +57,13 @@ using namespace genie::constants;
 
 //___________________________________________________________________________
 NucleusGenTraditional::NucleusGenTraditional() :
-EventRecordVisitorI("genie::NucleusGenTraditional")
+NucleusGenI("genie::NucleusGenTraditional")
 {
 
 }
 //___________________________________________________________________________
 NucleusGenTraditional::NucleusGenTraditional(string config) :
-EventRecordVisitorI("genie::NucleusGenTraditional", config)
+NucleusGenI("genie::NucleusGenTraditional", config)
 {
 
 }
@@ -80,7 +80,13 @@ void NucleusGenTraditional::ProcessEventRecord(GHepRecord * evrec) const
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
   fVertexGenerator->ProcessEventRecord(evrec);
   fFermiMover->ProcessEventRecord(evrec);
+}
 
+void NucleusGenTraditional::GenerateVertex(GHepRecord * evrec) const{
+  // This is function will be used in QEL-CC channel
+  // skip if not a nuclear target
+  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
+  fVertexGenerator->ProcessEventRecord(evrec);
 }
 
 //___________________________________________________________________________
@@ -116,6 +122,11 @@ void NucleusGenTraditional::LoadConfig(void)
     LOG("NucleusGenTraditional", pERROR) << "Configuration has failed.";
     exit(78);
   }
+
+  RgKey nuclkey = "NuclearModel";
+  fNuclModel = nullptr;
+  fNuclModel = dynamic_cast<const NuclearModelI *>(fFermiMover->SubAlg(nuclkey));
+  assert(fNuclModel);
 }
 //____________________________________________________________________________
 

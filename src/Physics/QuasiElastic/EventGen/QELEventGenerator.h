@@ -20,6 +20,7 @@
 #define _QEL_EVENT_GENERATOR_H_
 
 #include "Physics/NuclearState/NuclearModelI.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 #include "Physics/Common/KineGeneratorWithCache.h"
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
 #include "Framework/Utils/Range1.h"
@@ -52,6 +53,7 @@ private:
   void AddTargetNucleusRemnant (GHepRecord * evrec) const; ///< add a recoiled nucleus remnant
 
   const NuclearModelI *  fNuclModel;   ///< nuclear model
+  const NucleusGenI   *  fNucleusGen;  ///< nucleus generator
 
   mutable double fMinAngleEM;
 

@@ -171,7 +171,7 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-    evrec->Print(std::cout);
+    //evrec->Print(std::cout);
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
@@ -307,7 +307,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
       LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles pz : " << theEventInfo.pz[i];
     }
 
-    evrec->Print(std::cout);
+ //   evrec->Print(std::cout);
     LOG("INCLCascadeIntranuke", pINFO) << incl_target->print();
 
     double Rem_p2 = theEventInfo.pxRem[0]*theEventInfo.pxRem[0]

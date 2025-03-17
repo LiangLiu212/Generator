@@ -67,7 +67,9 @@ QELEventGenerator::~QELEventGenerator()
 void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
 {
     LOG("QELEvent", pDEBUG) << "Generating QE event kinematics...";
-
+    if(fNucleusGen){
+      fNucleusGen->GenerateVertex(evrec);
+    }
     // Get the random number generators
     RandomGen * rnd = RandomGen::Instance();
 
@@ -200,6 +202,7 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         LOG("QELEvent", pDEBUG)
             << "xsec= " << xsec << ", Rnd= " << t;
 #endif
+	LOG("QELEvent", pWARN) << "xsec max = " << xsec_max <<  ", xsec= " << xsec << ", Rnd= " << t;
         accept = (t < xsec);
 
         // If the generated kinematics are accepted, finish-up module's job
@@ -371,12 +374,27 @@ void QELEventGenerator::LoadConfig(void)
 {
     // Load sub-algorithms and config data to reduce the number of registry
     // lookups
-        fNuclModel = 0;
+    try{
+      fNucleusGen = nullptr;
+      RgKey nuclgenkey = "NuclearModel";
+      fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+      if(fNucleusGen){
+        fNucleusGen->GetConfig().Print(std::cout);
+        assert(fNucleusGen);
+	fNuclModel = nullptr;
+	fNuclModel = fNucleusGen->GetNuclearModel();
 
-    RgKey nuclkey = "NuclearModel";
-
-    fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-    assert(fNuclModel);
+      }
+      else
+	throw std::runtime_error("undef!");
+    }
+    catch (const std::exception& e) {
+      fNuclModel = nullptr;
+      RgKey nuclkey = "NuclearModel";
+      fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+      assert(fNuclModel);
+      fNuclModel->GetConfig().Print(std::cout);
+    }
 
     // Safety factor for the maximum differential cross section
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6  ) ;

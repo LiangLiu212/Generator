@@ -27,6 +27,7 @@
 #include "Framework/EventGen/EventRecordVisitorI.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Physics/NuclearState/FermiMomentumTable.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 #include "Framework/Interaction/Target.h"
 #include "Physics/NuclearState/SRCNuclearRecoil.h"
 #include "Physics/NuclearState/SecondNucleonEmissionI.h"
@@ -34,7 +35,7 @@
 namespace genie {
 
 
-class NucleusGenINCL : public EventRecordVisitorI {
+class NucleusGenINCL : public NucleusGenI {
 
 public :
   NucleusGenINCL();
@@ -43,6 +44,8 @@ public :
 
   //-- implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
+
+  void GenerateVertex(GHepRecord *event_rec) const;
 
   //-- overload the Algorithm::Configure() methods to load private data
   //   members from configuration options

@@ -59,13 +59,13 @@ using namespace genie::constants;
 
 //___________________________________________________________________________
 NucleusGenINCL::NucleusGenINCL() :
-EventRecordVisitorI("genie::NucleusGenINCL")
+NucleusGenI("genie::NucleusGenINCL")
 {
 
 }
 //___________________________________________________________________________
 NucleusGenINCL::NucleusGenINCL(string config) :
-EventRecordVisitorI("genie::NucleusGenINCL", config)
+NucleusGenI("genie::NucleusGenINCL", config)
 {
 
 }
@@ -83,12 +83,14 @@ void NucleusGenINCL::ProcessEventRecord(GHepRecord * evrec) const
   // skip if no hit nucleon is set
   if(! evrec->HitNucleon()) return;
 
+  // get the target and use it to initialize the incl nucleus
+  Target* tgt = evrec->Summary()->InitState().TgtPtr();
 
   LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(evrec);
-  incl_nucleus->reset(evrec);
-  incl_nucleus->initialize(evrec);
+  incl_nucleus->initialize(tgt);
+  incl_nucleus->reset(tgt);
+  incl_nucleus->initialize(tgt);
 
   // give hit nucleon a vertex
   this->setInitialStateVertex(evrec);
@@ -102,6 +104,29 @@ void NucleusGenINCL::ProcessEventRecord(GHepRecord * evrec) const
   // add a recoiled nucleus remnant
   this->setTargetNucleusRemnant(evrec);
 }
+
+
+//___________________________________________________________________________
+void NucleusGenINCL::GenerateVertex(GHepRecord * evrec) const
+{
+  // skip if not a nuclear target
+  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
+  // skip if no hit nucleon is set
+  if(! evrec->HitNucleon()) return;
+
+  // get the target and use it to initialize the incl nucleus
+  Target* tgt = evrec->Summary()->InitState().TgtPtr();
+
+  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_nucleus->initialize(tgt);
+  incl_nucleus->reset(tgt);
+  incl_nucleus->initialize(tgt);
+
+  // give hit nucleon a vertex
+  this->setInitialStateVertex(evrec);
+}
+
 
 //___________________________________________________________________________
 //  using INCL model to get the position and momentum of 
@@ -373,6 +398,11 @@ void NucleusGenINCL::LoadConfig(void)
   incl_nucleus->setGEMINIXXDataFilePath(this->expandEnvironmentPath(geminixxpath));
   incl_nucleus->setDeExcitationType(deExcitationType);
   incl_nucleus->configure();
+
+  RgKey nuclkey = "NuclearModel";
+  fNuclModel = nullptr;
+  fNuclModel = dynamic_cast<const NuclearModelI *>(this->SubAlg(nuclkey));
+  assert(fNuclModel);
 }
 //____________________________________________________________________________
 

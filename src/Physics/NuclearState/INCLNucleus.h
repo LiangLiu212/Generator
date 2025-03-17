@@ -35,6 +35,7 @@
 #include "G4INCLNucleus.hh"
 // GENIE
 #include "Framework/GHEP/GHepRecord.h"
+#include "Framework/Interaction/Target.h"
 #include "G4INCLParticle.hh"
 #include "G4INCLNucleus.hh"
 #include "G4INCLIPropagationModel.hh"
@@ -48,14 +49,15 @@
 
 
 
+
 namespace genie {
 
   class INCLNucleus {
 
     public: 
       static INCLNucleus * Instance (void);
-      void initialize(const GHepRecord * evrec);
-      void reset(const GHepRecord * evrec);
+      void initialize(const Target * tgt);
+      void reset(const Target * tgt);
       void configure();
 
       TVector3 getHitNucleonPosition();

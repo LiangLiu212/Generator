@@ -1,22 +1,22 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::NucleusGenTraditional
+  \class    genie::NucleusGenTraditional
 
-\brief    It visits the event record & combines the FermoMover and VertexGenerator
-          computes a Fermi motion momentum and position for initial state nucleons 
-	  bound in nuclei. It is configured in NucleusGenerator. This new interface
-	  is compatible with previous implments.
-          Is a concrete implementation of the EventRecordVisitorI interface.
+  \brief    It visits the event record & combines the FermoMover and VertexGenerator
+  computes a Fermi motion momentum and position for initial state nucleons 
+  bound in nuclei. It is configured in NucleusGenerator. This new interface
+  is compatible with previous implments.
+  Is a concrete implementation of the EventRecordVisitorI interface.
 
-\author   Liang Liu <liangliu \at fnal.gov>
-          Fermi National Accelerator Laboratory
+  \author   Liang Liu <liangliu \at fnal.gov>
+  Fermi National Accelerator Laboratory
 
-\created  Jan 17, 2025
+  \created  Jan 17, 2025
 
-\cpright  Copyright (c) 2003-2024, The GENIE Collaboration
-          For the full text of the license visit http://copyright.genie-mc.org
-          
+  \cpright  Copyright (c) 2003-2024, The GENIE Collaboration
+  For the full text of the license visit http://copyright.genie-mc.org
+
 */
 //____________________________________________________________________________
 
@@ -25,36 +25,38 @@
 #define _NUCLEUS_GEN_TRADITIONAL_H_
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 #include "Framework/GHEP/GHepParticle.h"
 
 namespace genie {
 
 
-class NucleusGenTraditional : public EventRecordVisitorI {
+  class NucleusGenTraditional : public NucleusGenI {
 
-public :
-  NucleusGenTraditional();
-  NucleusGenTraditional(string config);
- ~NucleusGenTraditional();
+    public :
+      NucleusGenTraditional();
+      NucleusGenTraditional(string config);
+      ~NucleusGenTraditional();
 
-  //-- implement the EventRecordVisitorI interface
-  void ProcessEventRecord(GHepRecord * event_rec) const;
+      //-- implement the EventRecordVisitorI interface
+      void ProcessEventRecord(GHepRecord * event_rec) const;
 
-  //-- overload the Algorithm::Configure() methods to load private data
-  //   members from configuration options
-  void Configure(const Registry & config);
-  void Configure(string config);
 
-private:
+      void GenerateVertex(GHepRecord *event_rec) const;
 
-  void LoadConfig (void);
+      //-- overload the Algorithm::Configure() methods to load private data
+      //   members from configuration options
+      void Configure(const Registry & config);
+      void Configure(string config);
 
-  // 
+    private:
 
-  const EventRecordVisitorI *fFermiMover;
-  const EventRecordVisitorI *fVertexGenerator;
+      void LoadConfig (void);
+      // 
+      const EventRecordVisitorI *fFermiMover;
+      const EventRecordVisitorI *fVertexGenerator;
 
-};
+  };
 
 }      // genie namespace
 

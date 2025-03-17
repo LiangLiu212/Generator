@@ -79,7 +79,7 @@ void NucleusGenerator::LoadConfig(void)
 
   RgKey nuclgenkey = "NucleusGenerator";
   fNucleusGen = nullptr;
-  fNucleusGen = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg(nuclgenkey));
+  fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
   assert(fNucleusGen);
 
 }

@@ -261,17 +261,16 @@ void INCLNucleus::configure(){
 //  cascadeAction_->beforeRunAction(theConfig_);
 }
 
-void INCLNucleus::initialize(const GHepRecord * evrec){
+void INCLNucleus::initialize(const Target * tgt){
   // Skip to initialize a new nucleus if the INCL nucleus is not empty 
   // and the same species with GENIE target 
   if(nucleus_){
     if(!nucleus_->getStore()->getParticles().empty())
-      if(nucleus_->getA() == evrec->TargetNucleus()->A() && nucleus_->getZ() == evrec->TargetNucleus()->Z())
+      if(nucleus_->getA() == tgt->A() && nucleus_->getZ() == tgt->Z())
 	return ;
   }
   // initialize according process Event in INCL
-  // GHepParticle * tgt_nucleus = evrec->TargetNucleus();
-  G4INCL::ParticleSpecies targetSpecies = G4INCL::ParticleSpecies(evrec->TargetNucleus()->A(), evrec->TargetNucleus()->Z());
+  G4INCL::ParticleSpecies targetSpecies = G4INCL::ParticleSpecies(tgt->A(), tgt->Z());
   theConfig_->setTargetA(targetSpecies.theA);
   theConfig_->setTargetZ(targetSpecies.theZ);
   theConfig_->setTargetS(targetSpecies.theS);
@@ -330,14 +329,14 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   LOG("INCLNucleus", pDEBUG) << nucleus_->getStore()->getParticles().at(2)->getMomentum().print() ;
   LOG("INCLNucleus", pDEBUG) << nucleus_->getStore()->getParticles().at(2)->getPosition().print() ;
 
-  GHepParticle * nucleon = evrec->HitNucleon();
-  LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon->Pdg();
+  int nucleon_pdg = tgt->HitNucPdg();
+  LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon_pdg;
 
   RandomGen * rnd = RandomGen::Instance();
   nucleon_index_ = -1;
-  if(pdg::IsProton(nucleon->Pdg()))
+  if(pdg::IsProton(nucleon_pdg))
     nucleon_index_ = rnd->RndGen().Integer(targetSpecies.theZ);
-  else if(pdg::IsNeutron(nucleon->Pdg()))
+  else if(pdg::IsNeutron(nucleon_pdg))
     nucleon_index_ = rnd->RndGen().Integer(targetSpecies.theA - targetSpecies.theZ) + targetSpecies.theZ;
   else{
     LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon!";
@@ -347,11 +346,11 @@ void INCLNucleus::initialize(const GHepRecord * evrec){
   hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
 }
 
-void INCLNucleus::reset(const GHepRecord * evrec){
+void INCLNucleus::reset(const Target * tgt){
   // nucleus must exsit!
   if(!nucleus_)  LOG("INCLNucleus", pFATAL) << "nucleus doesn't exsit!";
   // can't reset a nucleus with different type
-  if(!(nucleus_->getA() == evrec->TargetNucleus()->A() && nucleus_->getZ() == evrec->TargetNucleus()->Z())) 
+  if(!(nucleus_->getA() == tgt->A() && nucleus_->getZ() == tgt->Z())) 
     LOG("INCLNucleus", pFATAL) << "you are try to reset a nucleus with different type!";
   // reset the nucleus
   if(nucleus_){
@@ -360,14 +359,18 @@ void INCLNucleus::reset(const GHepRecord * evrec){
     nucleus_->getStore()->getBook().reset();
     nucleus_->initializeParticles();
 
-    GHepParticle * nucleon = evrec->HitNucleon();
-    LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon->Pdg();
+
+//   GHepParticle * nucleon = evrec->HitNucleon();
+ 
+
+    int nucleon_pdg = tgt->HitNucPdg();
+    LOG("INCLNucleus", pDEBUG) << "hit nucleon pdg : " << nucleon_pdg;
     RandomGen * rnd = RandomGen::Instance();
     nucleon_index_ = -1;
-    if(pdg::IsProton(nucleon->Pdg()))
-      nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->Z());
-    else if(pdg::IsNeutron(nucleon->Pdg()))
-      nucleon_index_ = rnd->RndGen().Integer(evrec->TargetNucleus()->A() - evrec->TargetNucleus()->Z()) + evrec->TargetNucleus()->Z();
+    if(pdg::IsProton(nucleon_pdg))
+      nucleon_index_ = rnd->RndGen().Integer(tgt->Z());
+    else if(pdg::IsNeutron(nucleon_pdg))
+      nucleon_index_ = rnd->RndGen().Integer(tgt->A() - tgt->Z()) + tgt->Z();
     else{
       LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon!";
       exit(1);
@@ -480,7 +483,7 @@ void INCLNucleus::initUniverseRadius(const int A, const int Z){
   const double maximumRadius = std::max(pMaximumRadius, nMaximumRadius);
   rMax = std::max(maximumRadius, rMax);
   maxUniverseRadius_ = rMax;
-  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
+//  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
 }
 
 #endif // __GENIE_INCL_ENABLED__

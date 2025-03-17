@@ -56,8 +56,8 @@ University of Liverpool
    - genie::HNIntranuke2018/OsetOff
   -->
   <param type="bool" name="HadronTransp-Enable"> true </param>
-  <param type="alg"  name="HadronTransp-Model">  genie::INCLCascadeIntranuke/Default  </param>
-  <!-- param type="alg"  name="HadronTransp-Model">  genie::HAIntranuke2018/Default  </param -->
+  <!-- param type="alg"  name="HadronTransp-Model">  genie::INCLCascadeIntranuke/Default  </param -->
+  <param type="alg"  name="HadronTransp-Model">  genie::HAIntranuke2018/Default  </param>
 
 
  <!--
