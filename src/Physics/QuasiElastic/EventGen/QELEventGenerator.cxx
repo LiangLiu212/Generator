@@ -158,6 +158,9 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
           fNuclModel->GenerateNucleon(*tgt, hitNucPos);
+	  if(fNucleusGen){
+	    fNucleusGen->setInitialStateVertex(evrec);
+	  }
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and
@@ -353,6 +356,8 @@ void QELEventGenerator::AddTargetNucleusRemnant(GHepRecord * evrec) const
     int imom = evrec->TargetNucleusPosition();
     evrec->AddParticle(
             ipdgc,kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+//    evrec->AddParticle(
+//            ipdgc,kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 
     LOG("QELEvent", pINFO) << "Done";
     LOG("QELEvent", pINFO) << *evrec;
@@ -515,6 +520,7 @@ double QELEventGenerator::ComputeMaxXSec(const Interaction * in) const
                   // BindHitNucleon() above
                   double xs = genie::utils::ComputeFullQELPXSec(interaction,
                     fNuclModel, fXSecModel, costh, phi, dummy_Eb, kOnShell, fMinAngleEM, false);
+		  LOG("QELEvent", pINFO) << "ilayer: " << ilayer << ", itheta: " << itheta << ", iphi: " << iphi << ", xsec: " << xs;
 
                   if (xs > this_nuc_xsec_max){
                       phi_at_xsec_max = phi;

@@ -47,6 +47,8 @@ namespace genie {
 	return fNuclModel;
       }
       virtual void GenerateVertex(GHepRecord *event_rec) const  = 0;
+      virtual void GenerateCluster(GHepRecord *event_rec) const  = 0;
+      virtual void setInitialStateVertex   (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a position
 
     protected:
       void LoadConfig (void);

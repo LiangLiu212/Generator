@@ -68,7 +68,6 @@ bool INCLNuclearModel::GenerateNucleon(const Target & target,
   incl_nucleus->reset(&target);
   incl_nucleus->initialize(&target);
   G4INCL::Particle *incl_nucleon = incl_nucleus->getHitParticle();
-
 //  LOG("NucleusGenINCL", pINFO) << "Removal Energy " << incl_nucleus->getRemovalEnergy() / 1000;
 
   fCurrRemovalEnergy =  incl_nucleus->getRemovalEnergy() / 1000;
@@ -76,6 +75,45 @@ bool INCLNuclearModel::GenerateNucleon(const Target & target,
   fCurrMomentum.SetXYZ(hit_mom.X()/1000, hit_mom.Y()/1000, hit_mom.Z()/1000);
   return true;
 }
+//____________________________________________________________________________
+
+//bool INCLNuclearModel::GenerateCluster (Target & target, PDGCodeList pdgv, TVector3 *p3a, TVector3 *p3b) const{
+//  LOG("NucleusGenINCL", pINFO) << "INCLNuclearModel::GenerateCluster 1";
+//
+//  
+//  if(pdgv[0] == kPdgNeutron && pdgv[1] == kPdgNeutron){
+//    target.SetHitNucPdg(kPdgClusterNN);
+//  }
+//  else if(pdgv[0] == kPdgNeutron && pdgv[1] == kPdgProton){
+//    target.SetHitNucPdg(kPdgClusterNP);
+//  }
+//  else if(pdgv[0] == kPdgProton && pdgv[1] == kPdgProton){
+//    target.SetHitNucPdg(kPdgClusterPP);
+//  }
+//  else{
+//
+//    LOG("NucleusGenINCL", pFATAL) << "Unknown di-nucleon cluster pdg code " 
+//      << pdgv[0] << " : " << pdgv[1];
+//    exit(1);
+//  }
+//  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+//  incl_nucleus->initialize(&target);
+//  incl_nucleus->reset(&target);
+//  incl_nucleus->initialize(&target);
+//  G4INCL::Cluster *incl_cluster =  incl_nucleus->getHitNNCluster();
+//  G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
+//
+//  LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
+//  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
+//
+////  for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+////  }
+//
+//  LOG("NucleusGenINCL", pINFO) << "success!";
+//  exit(1);
+//}
+
+//____________________________________________________________________________
 //____________________________________________________________________________
 double INCLNuclearModel::Prob(double p, double w, const Target & target,
                              double hitNucRadius) const

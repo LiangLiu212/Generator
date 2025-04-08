@@ -47,11 +47,13 @@ Generator-%d                alg     No
 -->
 
   <param_set name="Default"> 
-     <param type="int" name="NGenerators">   4                                    </param>
+     <param type="int" name="NGenerators">   6                                    </param>
      <param type="alg" name="Generator-0">   genie::EventGenerator/QEL-NC-INCL          </param>
      <param type="alg" name="Generator-1">   genie::EventGenerator/RES-NC-INCL          </param>
      <param type="alg" name="Generator-2">   genie::EventGenerator/QEL-CC-Traditional          </param>
      <param type="alg" name="Generator-3">   genie::EventGenerator/QEL-CC-INCL          </param>
+     <param type="alg" name="Generator-4">   genie::EventGenerator/MEC-CC-Traditional          </param>
+     <param type="alg" name="Generator-5">   genie::EventGenerator/MEC-CC-INCL          </param>
   </param_set>
 
 </tune_generator_list>

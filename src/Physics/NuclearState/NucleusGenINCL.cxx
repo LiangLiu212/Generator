@@ -109,29 +109,90 @@ void NucleusGenINCL::ProcessEventRecord(GHepRecord * evrec) const
 //___________________________________________________________________________
 void NucleusGenINCL::GenerateVertex(GHepRecord * evrec) const
 {
-  // skip if not a nuclear target
-  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-  // skip if no hit nucleon is set
-  if(! evrec->HitNucleon()) return;
+  // INCL nuclear model don't need to generate vertex separately.
+  // Vertex will be setup with momentum simultaneously.
+  return;
+//  // skip if not a nuclear target
+//  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
+//  // skip if no hit nucleon is set
+//  if(! evrec->HitNucleon()) return;
+//
+//  // get the target and use it to initialize the incl nucleus
+//  Target* tgt = evrec->Summary()->InitState().TgtPtr();
+//
+//  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
+//  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+//  incl_nucleus->initialize(tgt);
+//  incl_nucleus->reset(tgt);
+//  incl_nucleus->initialize(tgt);
+//  // give hit nucleon a vertex
+//  this->setInitialStateVertex(evrec);
 
-  // get the target and use it to initialize the incl nucleus
-  Target* tgt = evrec->Summary()->InitState().TgtPtr();
-
-  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
-  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(tgt);
-  incl_nucleus->reset(tgt);
-  incl_nucleus->initialize(tgt);
-
-  // give hit nucleon a vertex
-  this->setInitialStateVertex(evrec);
 }
 
+
+void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
+
+  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
+
+  GHepParticle * target_nucleus = evrec->TargetNucleus();
+  assert(target_nucleus);
+  GHepParticle * nucleon_cluster = evrec->HitNucleon();
+  assert(nucleon_cluster);
+  Target tgt(target_nucleus->Pdg());
+  tgt.SetHitNucPdg(nucleon_cluster->Pdg());
+
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_nucleus->initialize(&tgt);
+  incl_nucleus->reset(&tgt);
+  incl_nucleus->initialize(&tgt);
+
+  G4INCL::Cluster *incl_cluster =  incl_nucleus->getHitNNCluster();
+  G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
+
+  TVector3 vtx(cluster_posi.getX(), cluster_posi.getY(), cluster_posi.getZ());
+  // Copy the vertex info to the particles already in the event  record
+  //
+  TObjArrayIter piter(evrec);
+  GHepParticle * p = 0;
+  while( (p = (GHepParticle *) piter.Next()) )
+  {
+    if(pdg::IsPseudoParticle(p->Pdg())) continue;
+    if(pdg::IsIon           (p->Pdg())) continue;
+
+    LOG("NucleusGenINCL", pDEBUG) << "Setting vertex position for: " << p->Name();
+    p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
+  }
+
+
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
+
+  G4INCL::ThreeVector cluster_mom = incl_cluster->getMomentum();
+  TLorentzVector p4nclust   (   cluster_mom.getX() / 1000.,    
+      cluster_mom.getY() / 1000.,
+      cluster_mom.getZ() / 1000.,
+      incl_cluster->getEnergy()   );
+
+  nucleon_cluster->SetMomentum(p4nclust);
+
+//  for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+//  }
+
+  LOG("NucleusGenINCL", pINFO) << "success!";
+
+//  exit(1);
+
+}
 
 //___________________________________________________________________________
 //  using INCL model to get the position and momentum of 
 //  Hit  nucleon
 void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
+  if(fNuclModel->Id().Name().compare("genie::INCLNuclearModel") != 0)
+    return;
+  LOG("NucleusGenINCL", pDEBUG) << fNuclModel->Id().Name();
 
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
 
@@ -143,7 +204,6 @@ void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
     vtx.SetXYZ(0.,0.,0.);
   }else{
     double A = nucltgt->A();
- //   vtx = GenerateVertex(interaction,A);
  	
   const ProcessInfo & proc_info = interaction->ProcInfo();
   bool is_coh = proc_info.IsCoherentProduction() || proc_info.IsCoherentElastic();
@@ -183,11 +243,9 @@ void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
     if(pdg::IsPseudoParticle(p->Pdg())) continue;
     if(pdg::IsIon           (p->Pdg())) continue;
 
-    LOG("NucleusGenINCL", pINFO) << "Setting vertex position for: " << p->Name();
+    LOG("NucleusGenINCL", pDEBUG) << "Setting vertex position for: " << p->Name();
     p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
   }
-
-
 
 }
 
@@ -227,8 +285,8 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
   TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
-  //double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
-  double   hit_nucleon_energy = incl_nucleus->getHitNucleonMass();
+  double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
+  //double   hit_nucleon_energy = incl_nucleus->getHitNucleonMass();
   double   w  = incl_nucleus->getRemovalEnergy();
   //-- update the struck nucleon 4p at the interaction summary and at
   // the GHEP record

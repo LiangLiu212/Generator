@@ -35,6 +35,8 @@
 #include "G4INCLNucleus.hh"
 // GENIE
 #include "Framework/GHEP/GHepRecord.h"
+#include "Framework/ParticleData/PDGCodes.h"
+#include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/Target.h"
 #include "G4INCLParticle.hh"
 #include "G4INCLNucleus.hh"
@@ -69,7 +71,33 @@ namespace genie {
       G4INCL::Nucleus * getNuclues();
       G4INCL::StandardPropagationModel * getPropagationModel();
       G4INCL::Particle *getHitParticle();
+      G4INCL::Cluster  *getHitNNCluster();
+
       G4INCL::Config *getConfig(){return theConfig_;}
+
+//      bool     nextNucleonIndex(int pdg){
+//	if(pdg::IsProton(pdg)){
+//	  nucleon_index_++;
+//	  if(nucleon_index_ >= nucleus_->getZ())
+//	    return false;
+//	}
+//	else{
+//	  nucleon_index_++;
+//	  if(nucleon_index_ >= nucleus_->getA())
+//	    return false;
+//	}
+//	hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
+//	return true;
+//      }
+//      void     initNucleonIndex(int pdg){
+//	if(pdg::IsProton(pdg)){
+//	  nucleon_index_ = 0;
+//	}
+//	else{
+//	  nucleon_index_ = nucleus_->getZ();
+//	}
+//	hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
+//      }
 
       double getMaxUniverseRadius() {return maxUniverseRadius_;}
 
@@ -83,6 +111,8 @@ namespace genie {
       INCLNucleus();
       ~INCLNucleus();
       void initUniverseRadius(const int A, const int Z);
+      G4INCL::Particle* getNucleon(const int pdg);
+      G4INCL::Cluster* getNNCluster(const int pdg1, const int pdg2);
       static INCLNucleus *fInstance;
 
       //TVector3 v3_; // position of initial nucleon 
@@ -90,11 +120,21 @@ namespace genie {
       double  energy_; // off-shell energy of initial nucleon
       G4INCL::Config *theConfig_;
       G4INCL::Nucleus *nucleus_;
+      G4INCL::Particle *hitNucleon_;
+      // NN cluster for MEC channel
+      G4INCL::Cluster  *clusterNN_;
+//      const int maxClusterMass = 2;
+//      G4INCL::Particle *selectedParticles[maxClusterMass];
+
+
+
       G4INCL::StandardPropagationModel *propagationModel_;
       G4INCL::CascadeAction *cascadeAction_;
-      G4INCL::Particle *hitNucleon_;
+      const G4INCL::NuclearDensity *theDensityForLepton;
 
       int nucleon_index_;
+      int cluster_index1_;
+      int cluster_index2_;
 
       double maxUniverseRadius_;
       // double maxInteractionDistance_;

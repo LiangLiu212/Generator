@@ -182,25 +182,39 @@ void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
   Target tgt(target_nucleus->Pdg());
   PDGCodeList pdgv = this->NucleonClusterConstituents(nucleon_cluster->Pdg());
   assert(pdgv.size()==2);
-  tgt.SetHitNucPdg(pdgv[0]);
-  fNuclModel->GenerateNucleon(tgt);
-  TVector3 p3a = fNuclModel->Momentum3();
-  tgt.SetHitNucPdg(pdgv[1]);
-  fNuclModel->GenerateNucleon(tgt);
-  TVector3 p3b = fNuclModel->Momentum3();
+ // tgt.SetHitNucPdg(pdgv[0]);
+ // fNuclModel->GenerateNucleon(tgt);
+ // TVector3 p3a = fNuclModel->Momentum3();
+ // tgt.SetHitNucPdg(pdgv[1]);
+ // fNuclModel->GenerateNucleon(tgt);
+ // TVector3 p3b = fNuclModel->Momentum3();
+ 
 
-  LOG("FermiMover", pINFO)
-     << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
-     << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
-     << "|p| = " << p3a.Mag();
-  LOG("FermiMover", pINFO)
-     << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
-     << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
-     << "|p| = " << p3b.Mag();
+  TVector3 p3;
+  if(fNucleusGen){
+    // The new interface of nucleus model
+    // it will generate the momentum and position of a cluster simultaneously.
+    fNucleusGen->GenerateCluster(event);
+    // the p3 will be set again, the following code is duplicate with new interface
+    p3 = event->HitNucleon()->P4()->Vect();
+  }
+  else{
+    // the modified traditional interface
+    TVector3 p3a, p3b;
+    fNuclModel->GenerateCluster(tgt, pdgv, &p3a, &p3b);
+    LOG("FermiMover", pINFO)
+       << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
+       << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
+       << "|p| = " << p3a.Mag();
+    LOG("FermiMover", pINFO)
+       << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
+       << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
+       << "|p| = " << p3b.Mag();
+    p3 = p3a + p3b;
+  }
 
-  // calcute nucleon cluster momentum
+   // calcute nucleon cluster momentum
 
-  TVector3 p3 = p3a + p3b;
 
   LOG("FermiMover", pINFO)
      << "di-nucleon cluster momentum: ("
@@ -224,7 +238,6 @@ void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
   nucleon_cluster->SetMomentum(p4nclust);
   remnant_nucleus->SetMomentum(p4remnant);
 
-  // set the nucleon cluster 4-momentum at the interaction summary
 
   event->Summary()->InitStatePtr()->TgtPtr()->SetHitNucP4(p4nclust);
 }
@@ -232,7 +245,7 @@ void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
 void MECGenerator::SelectEmpiricalKinematics(GHepRecord * event) const
 {
 // Select interaction kinematics using the rejection method.
-//
+//c
 
   // Access cross section algorithm for running thread
   RunningThreadInfo * rtinfo = RunningThreadInfo::Instance();
@@ -1237,14 +1250,15 @@ void MECGenerator::GenerateNSVInitialHadrons(GHepRecord * event) const
         // Nieves et al. would use a local Fermi gas here, not this, but ok.
         // so momentum from global Fermi gas, local Fermi gas, or spectral function
         // and removal energy ~0.025 GeV, correlated with density, or from SF distribution
-        tgt.SetHitNucPdg(pdgv[0]);
-        fNuclModel->GenerateNucleon(tgt);
-        p31i = fNuclModel->Momentum3();
-        removalenergy1 = fNuclModel->RemovalEnergy();
-        tgt.SetHitNucPdg(pdgv[1]);
-        fNuclModel->GenerateNucleon(tgt);
-        p32i = fNuclModel->Momentum3();
-        removalenergy2 = fNuclModel->RemovalEnergy();
+        //tgt.SetHitNucPdg(pdgv[0]);
+        //fNuclModel->GenerateNucleon(tgt);
+        //p31i = fNuclModel->Momentum3();
+        //removalenergy1 = fNuclModel->RemovalEnergy();
+        //tgt.SetHitNucPdg(pdgv[1]);
+        //fNuclModel->GenerateNucleon(tgt);
+        //p32i = fNuclModel->Momentum3();
+        //removalenergy2 = fNuclModel->RemovalEnergy();
+	fNuclModel->GenerateCluster(tgt, pdgv, &p31i, &p32i, &removalenergy1, &removalenergy2);
 
         // not sure -- could give option to use Nieves q-value here.
 
@@ -1334,10 +1348,32 @@ void MECGenerator::Configure(string config)
 //___________________________________________________________________________
 void MECGenerator::LoadConfig(void)
 {
-    fNuclModel = 0;
-    RgKey nuclkey = "NuclearModel";
-    fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-    assert(fNuclModel);
+    //fNuclModel = 0;
+    //RgKey nuclkey = "NuclearModel";
+    //fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+    //assert(fNuclModel);
+    
+    try {
+      fNucleusGen = nullptr;
+      RgKey nuclgenkey = "NuclearModel";
+      fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+      if(fNucleusGen){
+        fNucleusGen->GetConfig().Print(std::cout);
+        assert(fNucleusGen);
+	fNuclModel = nullptr;
+	fNuclModel = fNucleusGen->GetNuclearModel();
+      }
+      else
+	throw std::runtime_error("undef!");
+    }
+    catch (const std::exception& e) {
+      fNuclModel = nullptr;
+      RgKey nuclkey = "NuclearModel";
+      fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+      assert(fNuclModel);
+      fNuclModel->GetConfig().Print(std::cout);
+    }
+
 
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6 ) ;
     GetParam( "MaxXSec-FunctionCalls", fFunctionCalls ) ;

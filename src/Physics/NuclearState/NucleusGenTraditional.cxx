@@ -89,6 +89,74 @@ void NucleusGenTraditional::GenerateVertex(GHepRecord * evrec) const{
   fVertexGenerator->ProcessEventRecord(evrec);
 }
 
+void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
+  // This is function will be used in MEC channela
+  // first, generate vertex for hit cluster
+  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
+  fVertexGenerator->ProcessEventRecord(evrec);
+
+  GHepParticle * target_nucleus = evrec->TargetNucleus();
+  assert(target_nucleus);
+  GHepParticle * nucleon_cluster = evrec->HitNucleon();
+  assert(nucleon_cluster);
+  GHepParticle * remnant_nucleus = evrec->RemnantNucleus();
+  assert(remnant_nucleus);
+
+  // generate a Fermi momentum for each nucleon
+
+  Target tgt(target_nucleus->Pdg());
+
+  bool allowdup = true;
+  PDGCodeList pdgv(allowdup);
+
+  if(nucleon_cluster->Pdg() == kPdgClusterNN) {
+     pdgv.push_back(kPdgNeutron);
+     pdgv.push_back(kPdgNeutron);
+  }
+  else
+  if(nucleon_cluster->Pdg() == kPdgClusterNP) {
+     pdgv.push_back(kPdgNeutron);
+     pdgv.push_back(kPdgProton);
+  }
+  else
+  if(nucleon_cluster->Pdg() == kPdgClusterPP) {
+     pdgv.push_back(kPdgProton);
+     pdgv.push_back(kPdgProton);
+  }
+  else
+  {
+     LOG("NucleusGenTraditional", pERROR)
+        << "Unknown di-nucleon cluster PDG code (" << nucleon_cluster->Pdg() << ")";
+     exit(1);
+  }
+
+  assert(pdgv.size()==2);
+
+  TVector3 p3a, p3b;
+  double removalenergy1, removalenergy2;
+  fNuclModel->GenerateCluster(tgt, pdgv, &p3a, &p3b, &removalenergy1, &removalenergy2);
+  LOG("NucleusGenTraditional", pINFO)
+    << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
+    << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
+    << "|p| = " << p3a.Mag();
+  LOG("NucleusGenTraditional", pINFO)
+    << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
+    << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
+    << "|p| = " << p3b.Mag();
+
+  TVector3 p3 = p3a + p3b;
+  double M2n = PDGLibrary::Instance()->Find(nucleon_cluster->Pdg())-> Mass(); // nucleon cluster mass
+  // nucleon cluster energy
+  double EN = TMath::Sqrt(p3.Mag2() + M2n*M2n);
+
+  TLorentzVector p4nclust   (   p3.Px(),    p3.Py(),    p3.Pz(),  EN   );
+  nucleon_cluster->SetMomentum(p4nclust);
+
+}
+
+
+
+
 //___________________________________________________________________________
 void NucleusGenTraditional::Configure(const Registry & config)
 {

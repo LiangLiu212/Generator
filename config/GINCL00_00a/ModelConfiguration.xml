@@ -81,6 +81,8 @@ University of Liverpool
 
   <param type="alg" name="XSecModel@genie::EventGenerator/DIS-CC">         genie::KNOTunedQPMDISPXSec/Default </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/DIS-NC">         genie::KNOTunedQPMDISPXSec/Default </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/DIS-NC-Traditional">         genie::KNOTunedQPMDISPXSec/Default </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/DIS-NC-INCL">         genie::KNOTunedQPMDISPXSec/Default </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/DIS-EM">         genie::KNOTunedQPMDISPXSec/Default </param>
 
   <param type="alg" name="XSecModel@genie::EventGenerator/COH-CC-PION">    genie::BergerSehgalCOHPiPXSec2015/Default   </param>
@@ -99,6 +101,8 @@ University of Liverpool
 
   <param type="alg" name="XSecModel@genie::EventGenerator/MEC-CC">         genie::SuSAv2MECPXSec/Default </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/MEC-NC">         genie::EmpiricalMECPXSec2015/Default  </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/MEC-NC-Traditional">         genie::EmpiricalMECPXSec2015/Default  </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/MEC-NC-INCL">         genie::EmpiricalMECPXSec2015/Default  </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/MEC-EM">         genie::SuSAv2MECPXSec/Default </param>
 
   <param type="alg" name="XSecModel@genie::EventGenerator/NucleonDecay">   genie::DummyPXSec/Default             </param>

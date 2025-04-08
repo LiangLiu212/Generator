@@ -26,6 +26,7 @@
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
 #include "Framework/ParticleData/PDGCodeList.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 
 namespace genie {
 
@@ -70,6 +71,7 @@ private:
   mutable const XSecAlgorithmI * fXSecModel;
   mutable TGenPhaseSpace         fPhaseSpaceGenerator;
   const NuclearModelI *          fNuclModel;
+  const NucleusGenI   *  fNucleusGen;  ///< nucleus generator
 
   double fSafetyFactor ; 
   int fFunctionCalls ; 

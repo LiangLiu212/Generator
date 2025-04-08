@@ -85,6 +85,7 @@ namespace genie {
     bool continueCascade() const;
     mutable G4INCL::Nucleus  *incl_target;
     mutable G4INCL::Particle *hit_nucleon;
+    mutable G4INCL::Particle *hit_cluster;
     mutable G4INCL::Config * theConfig;
     mutable G4INCL::StandardPropagationModel * propagationModel;
     mutable G4INCL::EventInfo theEventInfo;

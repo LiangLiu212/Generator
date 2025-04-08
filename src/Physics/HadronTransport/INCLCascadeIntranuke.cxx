@@ -99,6 +99,8 @@ namespace bt = boost::timer;
 #include "Framework/Utils/StringUtils.h"
 #include "Framework/Utils/SystemUtils.h"
 #include "Physics/NuclearState/INCLNucleus.h"
+#include "Physics/HadronTransport/G4INCLGENIEAvatar.h"
+#include "Physics/HadronTransport/G4INCLGENIEParticleRecord.h"
 
 // ROOT
 #include "TSystem.h"
@@ -171,7 +173,7 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-    //evrec->Print(std::cout);
+    evrec->Print(std::cout);
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
     LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
@@ -180,21 +182,29 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
     this->DecayResonance(evrec);
 
+  //  Get 'nuclear environment' at the beginning of hadron transport
+  //  and keep track of the remnant nucleus A,Z
+
+//    GEvGenMode_t fGMode = evrec->EventGenerationMode();
+//    if(fGMode == kGMdLeptonNucleus ||
+//	  fGMode == kGMdDarkMatterNucleus ||
+//	  fGMode == kGMdNucleonDecay) {
+//      int inucl = evrec->RemnantNucleusPosition();
+//      evrec->Particle(inucl)->SetStatus(kIStIntermediateState);
+//    }
+
+    LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
     // exit(1);
 
     // FIXME: start with the NC process
     INCLNucleus *incl_nucleus = INCLNucleus::Instance();
     incl_target = incl_nucleus->getNuclues();
-    hit_nucleon = incl_nucleus->getHitParticle();
     theConfig = incl_nucleus->getConfig();
     propagationModel =  incl_nucleus->getPropagationModel();
     incl_target->setParticleNucleusCollision();
     std::unique_ptr<G4INCL::FinalState> finalState(new FinalState);
     primarylepton = evrec->FinalStatePrimaryLepton();
     prob = evrec->Probe();
-
- //   std::cout << hit_nucleon->print() << std::endl;
- //   std::cout << incl_target->print() << std::endl;
 
     this->preCascade();
 
@@ -212,36 +222,12 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     propagationModel->setStoppingTime(maximumTime);
     propagationModel->setNucleus(incl_target);
     propagationModel->generateAllAvatars();
-
     this->fillFinalState(evrec, finalState.get());
 
 /*
     int idx = 0;
     double TLab;
     temfin = 29.8 * std::pow(incl_target->getA(), 0.16);
-    TObjArrayIter piter(evrec);
-    GHepParticle * p = nullptr;
-    while ( (p = (GHepParticle *) piter.Next() ) ) {
-      if(p->Status() == kIStHadronInTheNucleus){
-	// FIXME: for NC QE, it is only neutron and proton
-	TLab = p->KinE() * 1000.;
-        TLorentzVector *p4= p->P4();
-        G4INCL::ThreeVector momentum (0.,0.,0.);
-        momentum.setX(p4->Px()*1000);
-        momentum.setY(p4->Py()*1000);
-        momentum.setZ(p4->Pz()*1000);
-        hit_nucleon->setMomentum(momentum);
-        hit_nucleon->adjustEnergyFromMomentum();
-        hit_nucleon->makeParticipant();
-        finalState->addModifiedParticle(hit_nucleon);
-	tempFinalState.emplace_back(hit_nucleon->getID(), p->Pdg(), p->FirstMother(), idx);
-      }
-      else{
-	tempFinalState.emplace_back(-1, p->Pdg(), p->FirstMother(), idx);
-      }
-      idx++;
-    }
-
     if(TLab > 2000.)
       temfin *= (5.8E4-TLab)/5.6E4;
 */
@@ -259,21 +245,16 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     incl_target->getStore()->getBook().incrementAcceptedCollisions();
     int step = 0;
 
-    LOG("INCLCascadeIntranuke", pINFO) << finalState->print() ;
-    LOG("INCLCascadeIntranuke", pINFO) << incl_target->print() ;
-
     while(step < 10000000 && continueCascade()){
       IAvatar *avatar = propagationModel->propagate(finalState.get());
       finalState->reset();
       if(avatar == 0) break; // No more avatars in the avatar list.
-      LOG("INCLCascadeIntranuke", pINFO) << avatar->toString();
-      avatar->fillFinalState(finalState.get());
- //     std::cout << finalState->print() << std::endl;
-      incl_target->applyFinalState(finalState.get());
- //     std::cout << incl_target->print() << std::endl;
-      LOG("INCLCascadeIntranuke", pINFO) << avatar->dump();
       G4INCL::ParticleList mother_list = avatar->getParticles();
+      avatar->fillFinalState(finalState.get());
+      // Must fill event record before incl nucleus applyFinalState
+      // applyFinalState will delete destroyed particles.
       this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime());
+      incl_target->applyFinalState(finalState.get());
       delete avatar;
       step++;
     }
@@ -505,12 +486,9 @@ bool INCLCascadeIntranuke::continueCascade() const{
 
   bool continueCascade_ = true;
 
-  LOG("INCLCascadeIntranuke", pINFO) << propagationModel->getCurrentTime() << "  "  <<  propagationModel->getStoppingTime() << "  " << continueCascade_;
-
   if(propagationModel->getCurrentTime() > propagationModel->getStoppingTime()){
     continueCascade_ = false;
   }
-  LOG("INCLCascadeIntranuke", pINFO) << incl_target->getStore()->getBook().getCascading() << "  " << incl_target->getStore()->getIncomingParticles().empty() << "  " << continueCascade_;
   if(incl_target->getStore()->getBook().getCascading()==0 &&
       incl_target->getStore()->getIncomingParticles().empty()){
     continueCascade_ = false;
@@ -519,8 +497,6 @@ bool INCLCascadeIntranuke::continueCascade() const{
   if(incl_target->getA() <= minRemnantSize) {
     continueCascade_ = false;
   }
-
-  LOG("INCLCascadeIntranuke", pINFO) << incl_target->getTryCompoundNucleus()<<  "  " << continueCascade_;
 
   if(incl_target->getTryCompoundNucleus()) {
     continueCascade_ = false;
@@ -670,7 +646,6 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
 }
 
 void INCLCascadeIntranuke::fillStep(G4INCL::Particle *par, std::vector<INCLRecord> &stepList, int type, double time) const {
-
   ParticleSpecies ptype = par->getSpecies();
   TLorentzVector p4mom;
   p4mom.SetPx(par->getMomentum().getX() / 1000.);
@@ -844,85 +819,46 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   // neutrino interaction info
   const ProcessInfo & proc_info = evrec->Summary()->ProcInfo();
 
-  int idx = 0;
+  // FIXME: start with the NC process
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+
+  //incl_target = incl_nucleus->getNuclues();
+  //hit_nucleon = incl_nucleus->getHitParticle();
+
   double TLab;
   temfin = 29.8 * std::pow(incl_target->getA(), 0.16);
 
   TObjArrayIter piter(evrec);
   GHepParticle * p = nullptr;
-  std::map<int, GHepParticle*> list_hadrons;
-  std::map<int, GHepParticle*> list_primary_nucleon;  // FIXME, is there only one nucleons.
-  // FIXME, resonances Delta could decay to p and gamma. gamma is not a hadron
+  std::vector<G4INCL::GENIEParticleRecord> eventRecord;
+  eventRecord.clear();
   while ( (p = (GHepParticle *) piter.Next() ) ) {
-    if(p->Status() == kIStHadronInTheNucleus){
-      if(p->Pdg() == evrec->HitNucleon()->Pdg() || proc_info.IsWeakNC()){
-	list_primary_nucleon[idx] = p;
-      }
-      else if(proc_info.IsWeakNC()){
-	if(p->Pdg() == 2212 && evrec->HitNucleon()->Pdg() == 2112){
-	  list_primary_nucleon[idx] = p;
-	}
-      }
-      else{
-	//list_hadrons.push_back(p);
-	list_hadrons[idx] = p;
-      }
-    }
-    else if(p->Status() == kIStPreDecayResonantState){
-      if(p->FirstDaughter() == -1){
-	list_primary_nucleon[idx] = p;
-      }
-    }
-    else{
-      tempFinalState.emplace_back(-1, p->Pdg(), p->FirstMother(), idx);
-    }
+    eventRecord.emplace_back(p, int(proc_info.ScatteringTypeId()));
+  }
+  G4INCL::IAvatar *avatar;
+  if(proc_info.IsMEC()){
+    avatar = new G4INCL::GENIEAvatar(0, incl_nucleus->getHitNNCluster(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar->fillFinalState(finalState);
+  }
+  else{
+    avatar = new G4INCL::GENIEAvatar(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar->fillFinalState(finalState);
+  }
+
+  int idx = 0;
+  for(auto er = eventRecord.begin(); er != eventRecord.end(); er++){
+    LOG("INCLCascadeIntranuke", pNOTICE) << er->ID() << "  " << er->Pdg() << "  " << er->FirstMother() << " " << idx;
+    tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx);
     idx++;
   }
-  LOG("INCLCascadeIntranuke", pINFO) << "list_primary_nucleon : " << list_primary_nucleon.size();
-  LOG("INCLCascadeIntranuke", pINFO) << "list_hadrons : " << list_hadrons.size();
-  if(list_primary_nucleon.size() == 1){ // FIXME : is there only one nucleons.
-    for(auto in = list_primary_nucleon.begin(); in != list_primary_nucleon.end(); in++){
 
-      G4INCL::ThreeVector momentum (0.,0.,0.);
-      momentum.setX(in->second->P4()->Px()*1000);
-      momentum.setY(in->second->P4()->Py()*1000);
-      momentum.setZ(in->second->P4()->Pz()*1000);
-      hit_nucleon->setType(PDG_to_INCLType(in->second->Pdg()));
-      hit_nucleon->setMass(in->second->P4()->M()*1000);
-      hit_nucleon->setMomentum(momentum);
-      hit_nucleon->adjustEnergyFromMomentum();
-      hit_nucleon->makeParticipant();
-      incl_target->getStore()->getBook().incrementCascading(); // FIXME
-      //incl_target->getStore()->getBook().incrementCascading(); // FIXME
-      finalState->addModifiedParticle(hit_nucleon);
-      tempFinalState.emplace_back(hit_nucleon->getID(), in->second->Pdg(), in->second->FirstMother(), in->first);
-    }
-  }
-  LOG("INCLCascadeIntranuke", pINFO) << hit_nucleon->getPosition().print();
-
-  LOG("INCLCascadeIntranuke", pINFO) << "From GENIE : ";
-
-  for(auto ipar = list_hadrons.begin(); ipar != list_hadrons.end(); ipar++){
-    const G4INCL::ThreeVector posi(ipar->second->X4()->X(), ipar->second->X4()->Y(), ipar->second->X4()->Z());
-    const G4INCL::ThreeVector mom(ipar->second->P4()->Px()*1000., ipar->second->P4()->Py()*1000., ipar->second->P4()->Pz()*1000.);
-    G4INCL::Particle *ihadron = new G4INCL::Particle(PDG_to_INCLType(ipar->second->Pdg()), mom, posi);
-    ihadron->adjustEnergyFromMomentum();
-    ihadron->makeParticipant();
-    finalState->addCreatedParticle(ihadron);
-    incl_target->getStore()->getBook().incrementCascading(); // FIXME
-    tempFinalState.emplace_back(ihadron->getID(), ipar->second->Pdg(), ipar->second->FirstMother(), ipar->first);
-  }
+  delete avatar;
+  return;
 
 }
 
 G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
   switch(pdg){
-//    case 2212: return G4INCL::Proton;
-//    case 2112: return G4INCL::Neutron;
-//    case  211: return G4INCL::PiPlus;
-//    case -211: return G4INCL::PiMinus;
-//    case  111: return G4INCL::PiZero;
-//
     case 2212: return G4INCL::Proton;
     case 2112: return G4INCL::Neutron;
     case 211: return G4INCL::PiPlus;
@@ -972,8 +908,9 @@ void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
 	decay_flag = true;
       }
     }
-    if(decay_flag)
+    if(decay_flag){
       fResonanceDecayer->ProcessEventRecord(evrec);
+    }
   }
 }
 

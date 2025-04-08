@@ -795,6 +795,10 @@ void ConvertToGST(void)
       brMother[brNpar] = pp->FirstMother();
       brStatus[brNpar] = pp->Status();
       brNpar++;
+      if(pp->Status() == kIStNucleonTarget){
+ //       pp->X4()->Print();
+	vtx = pp->X4();
+      }
     }
 
     TObjArrayIter piter(&event);

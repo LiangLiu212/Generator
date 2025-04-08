@@ -43,6 +43,10 @@ namespace genie {
 
 
       void GenerateVertex(GHepRecord *event_rec) const;
+      void GenerateCluster(GHepRecord *event_rec) const;
+      void setInitialStateVertex   (GHepRecord * evrec) const{
+	// TODO: do noting for traditional nuclear model
+      }  
 
       //-- overload the Algorithm::Configure() methods to load private data
       //   members from configuration options

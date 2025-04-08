@@ -22,4 +22,8 @@ NucleusGenerator              alg     No         Nucleus Generator:
     <!-- param type="alg"  name="NucleusGenerator">                 genie::NucleusGenTraditional/Default </param -->
   </param_set>
  
+  <param_set name="Traditional">
+    <param type="alg"  name="NucleusGenerator">                 genie::NucleusGenTraditional/Default </param>
+  </param_set>
+
 </alg_conf>

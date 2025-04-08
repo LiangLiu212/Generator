@@ -45,16 +45,19 @@ public :
   //-- implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
 
-  void GenerateVertex(GHepRecord *event_rec) const;
 
   //-- overload the Algorithm::Configure() methods to load private data
   //   members from configuration options
   void Configure(const Registry & config);
   void Configure(string config);
 
+  // this two will be used in QEL-CC channel
+  void GenerateVertex(GHepRecord *event_rec) const;
+  void GenerateCluster(GHepRecord *event_rec) const;
+  void setInitialStateVertex   (GHepRecord * evrec) const; ///< give hit nucleon a position
+
 private:
 
-  void setInitialStateVertex   (GHepRecord * evrec) const; ///< give hit nucleon a position
 
   void setInitialStateMomentum (GHepRecord * evrec) const; ///< give hit nucleon a momentum
 
