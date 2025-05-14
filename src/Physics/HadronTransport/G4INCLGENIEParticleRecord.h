@@ -12,15 +12,23 @@ namespace G4INCL {
    *
    */
 
+  enum GENIERecordCode {
+    kUnknown = -1,
+    kProbe,
+    kTarget,
+    kHitNucleon,
+    kRemnant,
+    kFinalStateLepton,
+    kHadron
+  };
+
   class GENIEParticleRecord {
     public:
-      GENIEParticleRecord(genie::GHepParticle* p, int scType);
+      GENIEParticleRecord(genie::GHepParticle* p, int scType, GENIERecordCode recordCode);
       ~GENIEParticleRecord();
       // Basic properties
       int           Pdg            (void) const { return  fPdgCode;            }
-      int           ID             (void) const { 
-	std::cout << "id : " << fID << std::endl;
-	return  fID;                 }
+      int           ID             (void) const { return  fID;                 }
       int           Status         (void) const { return  fStatus;             }
       int           FirstMother    (void) const { return  fFirstMother;        }
       int           LastMother     (void) const { return  fLastMother;         }
@@ -32,6 +40,12 @@ namespace G4INCL {
       ThreeVector   X3             (void) const { return  fX3;                 }
       ParticleType  Type           (void) const { return  fPType;              } 
       void          setID          (int id);
+
+      void          setMomentum    (ThreeVector &mom) {  fP3 = mom;            }
+      void          setMass        (double       m)   {  fMass = m;            }
+
+
+      GENIERecordCode RecordCode   (void) const { return  fGenieRecordCode;    }
 
     private:
       int           fPdgCode;        ///< particle PDG code
@@ -46,6 +60,7 @@ namespace G4INCL {
       ThreeVector   fP3;             ///< momentum 3-vector (MeV)
       ThreeVector   fX3;             ///< position 3-vector (in the target nucleus coordinate system / x,y,z in fm / t from the moment of the primary interaction in ys(yocto second = 10^-24 s)
       ParticleType fPType;           ///< INCL particle type
+      GENIERecordCode fGenieRecordCode;
 
 
 

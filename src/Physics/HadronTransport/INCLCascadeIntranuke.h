@@ -68,6 +68,7 @@ namespace genie {
     // GENIE method
     mutable GHepParticle *prob;
     mutable GHepParticle *primarylepton;
+    mutable GHepParticle *target;
     G4INCL::ParticleType PDG_to_INCLType(int pdg) const;
     const EventRecordVisitorI * fResonanceDecayer;
 
@@ -163,9 +164,10 @@ namespace genie {
 
     mutable std::vector<INCLRecord> tempFinalState;
     mutable std::map<int, std::vector<INCLRecord>> stepFinalState;
+    mutable std::vector<INCLRecord> backup_mother; // this cantainer is used to store the initial momentum and position of mother particles in binary collision
     mutable int istep;
 
-    void fillEventRecord(G4INCL::FinalState *fs, G4INCL::ParticleList mother_list, GHepRecord * evrec, double time) const;
+    void fillEventRecord(G4INCL::FinalState *fs, G4INCL::ParticleList mother_list, GHepRecord * evrec, double time, G4INCL::AvatarType avaType) const;
     void fillStep(G4INCL::Particle *par, std::vector<INCLRecord> &stepList, int type, double time) const;
 
     int INCLPDG_to_GHEPPDG(int pdg, int A, int Z, int S) const;

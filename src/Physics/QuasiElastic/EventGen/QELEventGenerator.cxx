@@ -360,7 +360,6 @@ void QELEventGenerator::AddTargetNucleusRemnant(GHepRecord * evrec) const
 //            ipdgc,kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 
     LOG("QELEvent", pINFO) << "Done";
-    LOG("QELEvent", pINFO) << *evrec;
 }
 //___________________________________________________________________________
 void QELEventGenerator::Configure(const Registry & config)
@@ -520,7 +519,6 @@ double QELEventGenerator::ComputeMaxXSec(const Interaction * in) const
                   // BindHitNucleon() above
                   double xs = genie::utils::ComputeFullQELPXSec(interaction,
                     fNuclModel, fXSecModel, costh, phi, dummy_Eb, kOnShell, fMinAngleEM, false);
-		  LOG("QELEvent", pINFO) << "ilayer: " << ilayer << ", itheta: " << itheta << ", iphi: " << iphi << ", xsec: " << xs;
 
                   if (xs > this_nuc_xsec_max){
                       phi_at_xsec_max = phi;

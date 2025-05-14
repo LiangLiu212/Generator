@@ -22,16 +22,12 @@ namespace G4INCL {
     std::vector<GENIEParticleRecord>::iterator ip;
 
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      std::cout << "ip: " << ip->Pdg() << " " << ip->FirstMother() << "  " << ip->Status()  << "  " << hitParticle->getID() << std::endl;
       if(ip->Status() == 14){
 	ip->setID(int(hitParticle->getID()));
 	hitParticle->setType(ip->Type());
 	hitParticle->setMomentum(ip->P3());
 	hitParticle->setPosition(ip->X3());
 	hitParticle->adjustEnergyFromMomentum();
-        double energy = hitParticle->getEnergy() + hitParticle->getPotentialEnergy() - hitParticle->getEmissionQValueCorrection(theNucleus->getA(), theNucleus->getZ(), theNucleus->getS());  // FIXME
-	hitParticle->setEnergy(energy); // FIXME
-	hitParticle->adjustMomentumFromEnergy(); // FIXME
       }
     }
     fs->addModifiedParticle(hitParticle);

@@ -221,7 +221,7 @@ void INCLNucleus::configure(){
   theConfig_->setGEMINIXXDataFilePath(geminixxDataFilePath_);
   theConfig_->setDeExcitationType(deExcitationType_);
 
-  //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
+  theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
 
   // initialize INCL model
   G4INCL::Random::initialize(theConfig_);
@@ -451,15 +451,28 @@ TVector3 INCLNucleus::getHitNucleonPosition(){
       hitNucleon_->getPosition().getZ());
   return v3;
 }
+
 TVector3 INCLNucleus::getHitNucleonMomentum(){
   if(!hitNucleon_){
 	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
 	exit(1);
   }
+  // INCL initial state;
+  // we need to subtract the local energy from INCL nucleon before interaction
+  //
+  double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+  double oldEnergy = hitNucleon_->getEnergy();
+  LOG("INCLNucleus", pFATAL) << "Local Energy and old Energy: " << localEnergy << " : " << oldEnergy;
+  // subtract the local energy
+  hitNucleon_->setEnergy(oldEnergy - localEnergy);
+  hitNucleon_->adjustMomentumFromEnergy();
   TVector3 p3(999999.,999999.,999999.);
   p3.SetXYZ(hitNucleon_->getMomentum().getX(),
       hitNucleon_->getMomentum().getY(),
       hitNucleon_->getMomentum().getZ());
+  // put it back to old energy
+  hitNucleon_->setEnergy(oldEnergy);
+  hitNucleon_->adjustMomentumFromEnergy();
   return p3;
 }
 double INCLNucleus::getHitNucleonEnergy(){
@@ -467,7 +480,10 @@ double INCLNucleus::getHitNucleonEnergy(){
 	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
 	exit(1);
   }
-  return hitNucleon_->getEnergy();
+  double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+  double oldEnergy = hitNucleon_->getEnergy();
+  LOG("INCLNucleus", pFATAL) << "Local Energy and old Energy: " << localEnergy << " : " << oldEnergy;
+  return (oldEnergy - localEnergy);
 }
 
 double INCLNucleus::getHitNucleonMass(){
@@ -583,7 +599,7 @@ G4INCL::Cluster* INCLNucleus::getNNCluster(const int pdg1, const int pdg2){
       double space    = ((*i)->getPosition() - cluster_N1->getPosition()).mag2();
       double momentum = ((*i)->getMomentum() - cluster_N1->getMomentum()).mag2();
       double temp_size     = space;
-      if(temp_size < size){
+      if(temp_size < size){ // TODO: maybe need to find a reasonable way to get the cluster
 	size =  temp_size;
 	cluster_N2 = (*i);
       }

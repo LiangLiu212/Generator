@@ -53,8 +53,8 @@ public:
   virtual bool           GenerateNucleon (const Target & tgt,
                                           double hitNucleonRadius) const;
 
-  virtual bool           GenerateCluster (Target & tgt, PDGCodeList pdgv, TVector3 *p3a, TVector3 *p3b) const;
-  virtual bool           GenerateCluster (Target & tgt, PDGCodeList pdgv, TVector3 *p3a, TVector3 *p3b, double *removalEa, double *removalEb) const;
+  virtual bool           GenerateCluster (Target & tgt, PDGCodeList & pdgv, TVector3 *p3a, TVector3 *p3b) const;
+  virtual bool           GenerateCluster (Target & tgt, PDGCodeList & pdgv, TVector3 *p3a, TVector3 *p3b, double *removalEa, double *removalEb) const;
 
   virtual double         Prob            (double p, double w, const Target &) const = 0;
   virtual double         Prob            (double p, double w, const Target & tgt,

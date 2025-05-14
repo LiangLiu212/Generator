@@ -85,6 +85,7 @@ void NucleusGenTraditional::ProcessEventRecord(GHepRecord * evrec) const
 void NucleusGenTraditional::GenerateVertex(GHepRecord * evrec) const{
   // This is function will be used in QEL-CC channel
   // skip if not a nuclear target
+  LOG("NucleusGenTraditional", pNOTICE) << "new events";
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
   fVertexGenerator->ProcessEventRecord(evrec);
 }

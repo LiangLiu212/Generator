@@ -286,17 +286,16 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   // the removal energy maybe not necessary
   TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
   double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
-  //double   hit_nucleon_energy = incl_nucleus->getHitNucleonMass();
-  double   w  = incl_nucleus->getRemovalEnergy();
+  // double   w  = incl_nucleus->getRemovalEnergy();
   //-- update the struck nucleon 4p at the interaction summary and at
   // the GHEP record
   p4->SetPx(p3.Px()/1000.);
   p4->SetPy(p3.Py()/1000.);
   p4->SetPz(p3.Pz()/1000.);
-  p4->SetE ((hit_nucleon_energy - w)/1000.);
+  p4->SetE ((hit_nucleon_energy)/1000.);
 
   nucleon->SetMomentum(*p4);  // update GHEP value
-  nucleon->SetRemovalEnergy(w);  // FIXME this may be not necessary
+  nucleon->SetRemovalEnergy(0);  // FIXME this may be not necessary
 
 
   // Sometimes, for interactions near threshold, Fermi momentum might bring
