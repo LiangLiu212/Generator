@@ -53,40 +53,93 @@ namespace G4INCL {
 
   void GENIEAvatar::preInteraction() {
 
-    int index = 0;
-    double lepton_initial_energy = 0;
-    ThreeVector leptonInitialMom;
-    std::vector<GENIEParticleRecord>::iterator ip;
-    for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
-	<< ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
-      if(ip->RecordCode() == kProbe){
-	lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	leptonInitialMom = ip->P3();
-      }
-      else if(ip->RecordCode() == kFinalStateLepton){
-	leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	leptonMom = ip->P3();
-      }
-      else if(ip->RecordCode() == kHitNucleon){
-	if(ip->ScatteringType() != 10){
-	  ThreeVector n_mom = particle1->getMomentum();
-	  ip->setMomentum(n_mom);
-	  ip->setMass(particle1->getMass());
+
+    if((*genie_evtrec)[0].ScatteringType() != 10){
+      int index = 0;
+      double lepton_initial_energy = 0;
+      ThreeVector leptonInitialMom;
+      std::vector<GENIEParticleRecord>::iterator ip;
+      for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
+	std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
+	  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
+	if(ip->RecordCode() == kProbe){
+	  lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+	  leptonInitialMom = ip->P3();
+	  std::cout << "DEBUG: " << "\n" 
+	    << "Incident particle: \n" 
+	    << "Particle type = electron\n" 
+	    << "   energy      = " << lepton_initial_energy << "\n"
+	    << "   mass        = " << ip->Mass() << "\n"
+	    << "   K.E.        = " << lepton_initial_energy - ip->Mass() << "\n"
+	    << "   Potential   = 0" << "\n"
+	    << "   momentum    = " << ip->P3().print() << "\n";
 	}
+	else if(ip->RecordCode() == kFinalStateLepton){
+	  leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+	  leptonMom = ip->P3();
+	  std::cout << "DEBUG: " << "\n" 
+	    << "Incident particle post-collision: \n" 
+	    << "Particle type = electron\n" 
+	    << "   energy      = " << leptonE << "\n"
+	    << "   mass        = " << ip->Mass() << "\n"
+	    << "   K.E.        = " << leptonE - ip->Mass() << "\n"
+	    << "   Potential   = 0" << "\n"
+	    << "   momentum    = " << ip->P3().print() << "\n";
+
+	}
+	else if(ip->RecordCode() == kHitNucleon){
+	  if(ip->ScatteringType() != 10){
+	    ThreeVector n_mom = particle1->getMomentum();
+	    ip->setMomentum(n_mom);
+	    ip->setMass(particle1->getMass());
+	  }
+	}
+	index++;
       }
-      index++;
+      std::cout << "DEBUG: " << particle1->print() << std::endl;
+      oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy();
+      std::cout << "DEBUG: " << oldTotalEnergy << std::endl;
+
+      // transfrom the target nucleon to local energy frame
+      KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);
+
+      // make boost vector
+      boostVector = (leptonInitialMom + particle1->getMomentum())/(lepton_initial_energy + particle1->getEnergy());
     }
-    std::cout << "DEBUG: " << particle1->print() << std::endl;
-    oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy();
-    std::cout << "DEBUG: " << oldTotalEnergy << std::endl;
+    else{
+      int index = 0;
+      double lepton_initial_energy = 0;
+      ThreeVector leptonInitialMom;
+      std::vector<GENIEParticleRecord>::iterator ip;
+      for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
+	std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
+	  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
+	if(ip->RecordCode() == kProbe){
+	  lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+	  leptonInitialMom = ip->P3();
+	}
+	else if(ip->RecordCode() == kFinalStateLepton){
+	  leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+	  leptonMom = ip->P3();
+	}
+	else if(ip->RecordCode() == kHitNucleon){
+	}
+	index++;
+      }
 
-    // transfrom the target nucleon to local energy frame
-    KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);
+      G4INCL::ParticleList particles = cluster->getParticleList();
+      oldTotalEnergy = lepton_initial_energy;
 
-    // make boost vector
-    boostVector = (leptonInitialMom + particle1->getMomentum())/(lepton_initial_energy + particle1->getEnergy());
-
+      ThreeVector local_mom = leptonInitialMom;
+      double local_energy = lepton_initial_energy;
+      for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+	oldTotalEnergy += (*i)->getEnergy() - (*i)->getPotentialEnergy();
+	KinematicsUtils::transformToLocalEnergyFrame(theNucleus, (*i));
+	local_mom += (*i)->getMomentum();
+	local_energy += (*i)->getEnergy();
+      }
+      boostVector = local_mom / local_energy;
+    }
     return;
   }
 
@@ -104,12 +157,20 @@ namespace G4INCL {
     modifiedAndCreated = modified;
     modifiedAndCreated.insert(modifiedAndCreated.end(), created.begin(), created.end());
 
+
+    for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
+      std::cout << "DEBUG " << (*i)->print() << std::endl;
+    }
+
     bool success = enforceEnergyConservation(fs);
     if(!success){
       std::cout << "enforceEnergyConservation fs wrong!" << std::endl;
       exit(1);
     }
 
+    for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
+      std::cout << "DEBUG " << (*i)->print() << std::endl;
+    }
 
     /// update the event record after call enforceEnergyConservation;
     int index = 0;
@@ -119,6 +180,14 @@ namespace G4INCL {
       if(ip->RecordCode() == kFinalStateLepton){
 	ip->setMomentum(leptonMom);
 	ip->setMass(std::sqrt(leptonE*leptonE - leptonMom.mag2()));
+	  std::cout << "DEBUG: " << "\n" 
+	    << "Incident particle update potential: \n" 
+	    << "Particle type = electron\n" 
+	    << "   energy      = " << leptonE << "\n"
+	    << "   mass        = " << ip->Mass() << "\n"
+	    << "   K.E.        = " << leptonE - ip->Mass() << "\n"
+	    << "   Potential   = 0" << "\n"
+	    << "   momentum    = " << ip->P3().print() << "\n";
       }
       else if(ip->Status() == 14 || ip->Status() == 13){
 	std::cout << "DEBUG " << __FILE__ << "  " << ip->P3().print() << "  " << (*imc)->getMomentum().print() << std::endl;

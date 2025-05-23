@@ -28,11 +28,6 @@ namespace G4INCL {
 	particles.at(cluster_index)->setType(ip->Type());
 	particles.at(cluster_index)->setMomentum(ip->P3());
 	particles.at(cluster_index)->adjustEnergyFromMomentum();
-//	double energy = particles.at(cluster_index)->getEnergy() +
-//	  particles.at(cluster_index)->getPotentialEnergy() -
-//	  particles.at(cluster_index)->getEmissionQValueCorrection(theNucleus->getA(), theNucleus->getZ(), theNucleus->getS()); // FIXME
-//	particles.at(cluster_index)->setEnergy(energy); // FIXME
-//	particles.at(cluster_index)->adjustMomentumFromEnergy(); // FIXME
 	fs->addModifiedParticle(particles.at(cluster_index));
 	cluster_index++;
       }

@@ -28,6 +28,7 @@
 #include <TVector3.h>
 #include <TParticlePDG.h>
 #include <TMath.h>
+#include "G4INCLKinematicsUtils.hh"
 
 #include "Framework/Algorithm/AlgFactory.h"
 #include "Framework/Algorithm/AlgConfigPool.h"
@@ -148,11 +149,15 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
   incl_nucleus->initialize(&tgt);
 
   G4INCL::Cluster *incl_cluster =  incl_nucleus->getHitNNCluster();
-  G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
+  G4INCL::Nucleus *nucleus =  incl_nucleus->getNuclues();
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->getMomentum().print();
+  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
 
+
+  G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
   TVector3 vtx(cluster_posi.getX(), cluster_posi.getY(), cluster_posi.getZ());
   // Copy the vertex info to the particles already in the event  record
-  //
   TObjArrayIter piter(evrec);
   GHepParticle * p = 0;
   while( (p = (GHepParticle *) piter.Next()) )
@@ -164,25 +169,32 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
     p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
   }
 
+  G4INCL::ThreeVector cluster_mom(0, 0, 0);
+  double cluster_energy = 0;
+  G4INCL::ParticleList particles = incl_cluster->getParticleList();
+  for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+    double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus, (*i));
+    double oldEnergy = (*i)->getEnergy();
+    (*i)->setEnergy(oldEnergy - localEnergy);
+    (*i)->adjustMomentumFromEnergy();
+    cluster_mom+=(*i)->getMomentum();
+    cluster_energy += (*i)->getEnergy();
+    (*i)->setEnergy(oldEnergy);
+    (*i)->adjustMomentumFromEnergy();
+  }
 
-  LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
-  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
-  LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
+  LOG("NucleusGenINCL", pINFO) << cluster_mom.print();
+  LOG("NucleusGenINCL", pINFO) << cluster_energy;
 
-  G4INCL::ThreeVector cluster_mom = incl_cluster->getMomentum();
+  //G4INCL::ThreeVector cluster_mom = incl_cluster->getMomentum();
   TLorentzVector p4nclust   (   cluster_mom.getX() / 1000.,    
       cluster_mom.getY() / 1000.,
       cluster_mom.getZ() / 1000.,
-      incl_cluster->getEnergy()   );
+      cluster_energy / 1000.   );
 
   nucleon_cluster->SetMomentum(p4nclust);
-
-//  for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
-//  }
-
   LOG("NucleusGenINCL", pINFO) << "success!";
-
-//  exit(1);
+//  abort();
 
 }
 

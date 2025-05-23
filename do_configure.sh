@@ -18,6 +18,7 @@ unset GENIEBASE
   --enable-lhapdf6 \
   --enable-boost \
   --enable-incl \
+  --enable-fnal \
   --with-log4cpp-inc=${LOG4CPP_INC} \
   --with-log4cpp-lib=${LOG4CPP_LIB} \
   --with-libxml2-inc=${LIBXML2_INC} \
