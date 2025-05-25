@@ -459,13 +459,14 @@ TVector3 INCLNucleus::getHitNucleonMomentum(){
   }
   // INCL initial state;
   // we need to subtract the local energy from INCL nucleon before interaction
-  //
+  LOG("INCLNucleus", pNOTICE) << "\n" << "Hit nucleon inside target:\n" << hitNucleon_->print();
   double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
   double oldEnergy = hitNucleon_->getEnergy();
   LOG("INCLNucleus", pFATAL) << "Local Energy and old Energy: " << localEnergy << " : " << oldEnergy;
   // subtract the local energy
   hitNucleon_->setEnergy(oldEnergy - localEnergy);
   hitNucleon_->adjustMomentumFromEnergy();
+  LOG("INCLNucleus", pNOTICE) << "\n" << "Hit nucleon subtract local energy:\n" << hitNucleon_->print();
   TVector3 p3(999999.,999999.,999999.);
   p3.SetXYZ(hitNucleon_->getMomentum().getX(),
       hitNucleon_->getMomentum().getY(),

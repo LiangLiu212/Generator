@@ -311,6 +311,9 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
 
     if(theEventInfo.nParticles == 0){
+      LOG("INCLCascadeIntranuke", pNOTICE) << "De-Excitation energy: " << incl_target->computeExcitationEnergy();
+      incl_target->setExcitationEnergy(incl_target->computeExcitationEnergy());
+
       TLorentzVector *p4prob = prob->P4();
       TLorentzVector *p4lep  = primarylepton->P4();
       TLorentzVector *p4target = target->P4();
@@ -332,7 +335,12 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     int S = incl_target->getS(); // INCL and ABLA support hypernuclei
     int pdg = genie::pdg::IonPdgCode( A , Z, 0, 0 );
 
-    evrec->AddParticle(pdg, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
+    LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
+    TParticlePDG * prem = PDGLibrary::Instance()->Find(pdg);
+    int PreDeExPDG = pdg;
+    if(!prem) PreDeExPDG = kPdgHadronicBlob;
+
+    evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
 
 
     switch(theConfig->getDeExcitationType()){
@@ -378,6 +386,8 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 	int depdg = this->INCLPDG_to_GHEPPDG(theEventInfo.PDGCode[i], theEventInfo.A[i], theEventInfo.Z[i], theEventInfo.S[i]);
 	TParticlePDG * p = PDGLibrary::Instance()->Find(depdg);
 
+	LOG("INCLCascadeIntranuke", pNOTICE) << depdg;
+
 	double p2 = theEventInfo.px[i]*theEventInfo.px[i]
 	  + theEventInfo.py[i]*theEventInfo.py[i]
 	  + theEventInfo.pz[i]*theEventInfo.pz[i];
@@ -412,6 +422,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
       double M = p->Mass();
       double Rem_E = sqrt(Rem_p2/1000000. + M*M);
       TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
+      LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
       evrec->AddParticle(pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4mom, p4posi);
     }
 
@@ -964,6 +975,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   std::vector<G4INCL::GENIEParticleRecord> eventRecord;
   eventRecord.clear();
   while ( (p = (GHepParticle *) piter.Next() ) ) {
+    // the code of the particles in primary neutrino interaction
     G4INCL::GENIERecordCode recordCode;
     if(eventRecord.size() == evrec->ProbePosition())
       recordCode = G4INCL::kProbe;
@@ -977,7 +989,6 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
       recordCode = G4INCL::kRemnant;
     else
       recordCode = G4INCL::kUnknown;
-
 
     eventRecord.emplace_back(p, int(proc_info.ScatteringTypeId()), recordCode);
   }
@@ -1010,28 +1021,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx++);
     er++;
   }
-/*
-  TLorentzVector *p4lepton = evrec->FinalStatePrimaryLepton()->P4();
-  TLorentzVector *p4hitnucleon = evrec->HitNucleon()->P4();
-  int idx = 0;
-  for(auto er = eventRecord.begin(); er != eventRecord.end(); er++){
-    LOG("INCLCascadeIntranuke", pNOTICE) << er->ID() << "  " << er->Pdg() << "  " << er->FirstMother() << " " << idx << "  " << er->P3().print();
-    tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx);
-    if(idx == evrec->FinalStatePrimaryLeptonPosition()){
-      p4lepton->SetPx(er->P3().getX()/1000.);
-      p4lepton->SetPy(er->P3().getY()/1000.);
-      p4lepton->SetPz(er->P3().getZ()/1000.);
-      p4lepton->SetE(std::sqrt(er->P3().mag2() + er->Mass()*er->Mass())/1000.);
-    }
-    else if(idx == evrec->HitNucleonPosition()){
-      p4hitnucleon->SetPx(er->P3().getX()/1000.);
-      p4hitnucleon->SetPy(er->P3().getY()/1000.);
-      p4hitnucleon->SetPz(er->P3().getZ()/1000.);
-      p4hitnucleon->SetE(std::sqrt(er->P3().mag2() + er->Mass()*er->Mass())/1000.);
-    }
-    idx++;
-  }
-*/
+  evrec->Print(std::cout);
   delete avatar;
   return;
 
