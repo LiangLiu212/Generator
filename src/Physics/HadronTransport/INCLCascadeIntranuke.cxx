@@ -173,14 +173,16 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-    evrec->Print(std::cout);
-    LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
-    LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
-    LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
-    LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
-    LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
+    // evrec->Print(std::cout);
+    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
+    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
+    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
+    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
     this->DecayResonance(evrec);
+
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
   //  Get 'nuclear environment' at the beginning of hadron transport
   //  and keep track of the remnant nucleus A,Z
@@ -192,9 +194,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 //      int inucl = evrec->RemnantNucleusPosition();
 //      evrec->Particle(inucl)->SetStatus(kIStIntermediateState);
 //    }
-
-    LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
-    // exit(1);
 
     // FIXME: start with the NC process
     INCLNucleus *incl_nucleus = INCLNucleus::Instance();
@@ -212,9 +211,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     double currentTime = 0.0;
 //    double temfin;
 
-
-
-
     tempFinalState.clear();
     stepFinalState.clear();
     istep = 0;
@@ -223,6 +219,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     propagationModel->setStoppingTime(maximumTime);
     propagationModel->setNucleus(incl_target);
     propagationModel->generateAllAvatars();
+
     this->fillFinalState(evrec, finalState.get());
 
 /*
@@ -232,6 +229,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     if(TLab > 2000.)
       temfin *= (5.8E4-TLab)/5.6E4;
 */
+
 //    double maximumTime = temfin;
 //    propagationModel->setStoppingTime(maximumTime);
 //    propagationModel->setNucleus(incl_target);
@@ -279,21 +277,22 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
       }
     }
 
-    LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Before De-Excitation : " << stable_finalstate - theEventInfo.nParticles;
-    LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants   : " << theEventInfo.nRemnants;
-    LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants A : " << theEventInfo.ARem[0];
-    LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants Z : " << theEventInfo.ZRem[0];
-    LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants S : " << theEventInfo.SRem[0];
-    LOG("INCLCascadeIntranuke", pNOTICE) << "nParticles   : " << theEventInfo.nParticles;
     const int n_outgoing = theEventInfo.nParticles;
-    for(int i = 0; i < theEventInfo.nParticles; i++){
-      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
-      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles px : " << theEventInfo.px[i];
-      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles py : " << theEventInfo.py[i];
-      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles pz : " << theEventInfo.pz[i];
-    }
 
-    LOG("INCLCascadeIntranuke", pINFO) << incl_target->print();
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Before De-Excitation : " << stable_finalstate - theEventInfo.nParticles;
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants   : " << theEventInfo.nRemnants;
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants A : " << theEventInfo.ARem[0];
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants Z : " << theEventInfo.ZRem[0];
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants S : " << theEventInfo.SRem[0];
+    // LOG("INCLCascadeIntranuke", pNOTICE) << "nParticles   : " << theEventInfo.nParticles;
+    // for(int i = 0; i < theEventInfo.nParticles; i++){
+    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
+    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles px : " << theEventInfo.px[i];
+    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles py : " << theEventInfo.py[i];
+    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles pz : " << theEventInfo.pz[i];
+    // }
+
+    // LOG("INCLCascadeIntranuke", pINFO) << incl_target->print();
 
     double Rem_p2 = theEventInfo.pxRem[0]*theEventInfo.pxRem[0]
       + theEventInfo.pyRem[0]*theEventInfo.pyRem[0]
@@ -310,38 +309,17 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
     TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
 
-    if(theEventInfo.nParticles == 0){
-      LOG("INCLCascadeIntranuke", pNOTICE) << "De-Excitation energy: " << incl_target->computeExcitationEnergy();
-      incl_target->setExcitationEnergy(incl_target->computeExcitationEnergy());
-
-      TLorentzVector *p4prob = prob->P4();
-      TLorentzVector *p4lep  = primarylepton->P4();
-      TLorentzVector *p4target = target->P4();
-      Rem_px = p4target->Px() + p4prob->Px() - p4lep->Px();
-      Rem_py = p4target->Py() + p4prob->Py() - p4lep->Py();
-      Rem_pz = p4target->Pz() + p4prob->Pz() - p4lep->Pz();
-      Rem_E  = p4target->E()  + p4prob->E()  - p4lep->E();
-      p4mom.SetPxPyPzE(Rem_px, Rem_py, Rem_pz, Rem_E);
-      theEventInfo.pxRem[0] = Rem_px*1000;
-      theEventInfo.pyRem[0] = Rem_py*1000;
-      theEventInfo.pzRem[0] = Rem_pz*1000;
-      theEventInfo.EStarRem[0] = (p4mom.E())*1000;
-    }
-
-//    TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
     TLorentzVector p4posi(0,0,0,0);
     int A = incl_target->getA();
     int Z = incl_target->getZ();
     int S = incl_target->getS(); // INCL and ABLA support hypernuclei
     int pdg = genie::pdg::IonPdgCode( A , Z, 0, 0 );
 
-    LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
+    // LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
     TParticlePDG * prem = PDGLibrary::Instance()->Find(pdg);
     int PreDeExPDG = pdg;
     if(!prem) PreDeExPDG = kPdgHadronicBlob;
-
     evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
-
 
     switch(theConfig->getDeExcitationType()){
       case G4INCL::DeExcitationABLAXX:
@@ -806,7 +784,9 @@ void INCLCascadeIntranuke::fillStep(G4INCL::Particle *par, std::vector<INCLRecor
 }
 
 void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * finalState) const {
+  // Fill in the event information
   theEventInfo.stoppingTime = propagationModel->getCurrentTime();
+
   // The event bias
   theEventInfo.eventBias = (Double_t) Particle::getTotalBias();
 
@@ -858,7 +838,7 @@ void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * 
 
   // If the normal cascade predicted complete fusion, use the tabulated
   // masses to compute the excitation energy, the recoil, etc.
-  if(incl_target->getStore()->getOutgoingParticles().size()==0
+  if(false && incl_target->getStore()->getOutgoingParticles().size()==0
       && (!incl_target->getProjectileRemnant()
 	|| incl_target->getProjectileRemnant()->getParticles().size()==0)) {
 
