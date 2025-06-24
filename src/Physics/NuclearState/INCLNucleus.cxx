@@ -270,15 +270,15 @@ void INCLNucleus::initialize(const Target * tgt){
 
   // Initialize the INCL particle table:
   // FIXME: this is a temp set, 
-  if(!theDensityForLepton){
-  theConfig_->setRPCorrelationCoefficient(1.0);
-  G4INCL::ParticleTable::initialize(theConfig_);
-  // create the density that will use in neutrino interactiona
-  theDensityForLepton = G4INCL::NuclearDensityFactoryHitByLepton::createDensity(tgt->A(), tgt->Z(), 0); // parameters are  A, Z, S = 0;
-  theConfig_->setRPCorrelationCoefficient(G4INCL::Proton, 0.5); // FIXME, the default value for proton r-p correlation
-  theConfig_->setRPCorrelationCoefficient(G4INCL::Neutron, 0.73); // FIXME, the default value for neutron r-p correlation
-  G4INCL::ParticleTable::initialize(theConfig_);
-  }
+//  if(!theDensityForLepton){
+//  theConfig_->setRPCorrelationCoefficient(1.0);
+//  G4INCL::ParticleTable::initialize(theConfig_);
+//  // create the density that will use in neutrino interactiona
+//  theDensityForLepton = G4INCL::NuclearDensityFactoryHitByLepton::createDensity(tgt->A(), tgt->Z(), 0); // parameters are  A, Z, S = 0;
+//  theConfig_->setRPCorrelationCoefficient(G4INCL::Proton, 0.5); // FIXME, the default value for proton r-p correlation
+//  theConfig_->setRPCorrelationCoefficient(G4INCL::Neutron, 0.73); // FIXME, the default value for neutron r-p correlation
+//  G4INCL::ParticleTable::initialize(theConfig_);
+//  }
 
 
   if(nucleus_){

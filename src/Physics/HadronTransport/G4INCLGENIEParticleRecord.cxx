@@ -28,8 +28,6 @@ namespace G4INCL{
 
   }
   void GENIEParticleRecord::setID(int id){
-    std::cout << "id : " << id << std::endl;
     fID = id;
-    std::cout << "id : " << fID << std::endl;
   }
 }

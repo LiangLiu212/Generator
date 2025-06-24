@@ -8,7 +8,7 @@
 namespace G4INCL {
 
   GENIEMECChannel::GENIEMECChannel(Cluster *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord): cluster(p), theNucleus(n),
-    genie_evtrec(eventRecord)
+  genie_evtrec(eventRecord)
   {
   }
 
@@ -22,17 +22,16 @@ namespace G4INCL {
     int cluster_index = 0;
     std::vector<GENIEParticleRecord>::iterator ip;
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      std::cout << "ip: " << ip->Pdg() << " " << ip->FirstMother() << "  " << ip->Status()  << "  " <<  std::endl;
       if(ip->Status() == 14){
-	ip->setID(int(particles.at(cluster_index)->getID()));
-	particles.at(cluster_index)->setType(ip->Type());
-	particles.at(cluster_index)->setMomentum(ip->P3());
-	particles.at(cluster_index)->adjustEnergyFromMomentum();
-	fs->addModifiedParticle(particles.at(cluster_index));
-	cluster_index++;
+        ip->setID(int(particles.at(cluster_index)->getID()));
+        particles.at(cluster_index)->setType(ip->Type());
+        particles.at(cluster_index)->setMomentum(ip->P3());
+        particles.at(cluster_index)->adjustEnergyFromMomentum();
+        fs->addModifiedParticle(particles.at(cluster_index));
+        cluster_index++;
       }
     }
-    
+
 
     std::cout << "success!" << std::endl;
   }

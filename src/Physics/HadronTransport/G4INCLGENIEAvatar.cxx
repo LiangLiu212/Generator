@@ -9,6 +9,7 @@
 #include <string>
 #include <cassert>
 
+
 namespace G4INCL {
 
   GENIEAvatar::GENIEAvatar(double time, Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord)
@@ -60,45 +61,45 @@ namespace G4INCL {
       ThreeVector leptonInitialMom;
       std::vector<GENIEParticleRecord>::iterator ip;
       for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-	std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
-	  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
-	if(ip->RecordCode() == kProbe){
-	  lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	  leptonInitialMom = ip->P3();
-	  std::cout << "DEBUG: " << "\n" 
-	    << "Incident particle: \n" 
-	    << "Particle type = electron\n" 
-	    << "   energy      = " << lepton_initial_energy << "\n"
-	    << "   mass        = " << ip->Mass() << "\n"
-	    << "   K.E.        = " << lepton_initial_energy - ip->Mass() << "\n"
-	    << "   Potential   = 0" << "\n"
-	    << "   momentum    = " << ip->P3().print() << "\n";
-	}
-	else if(ip->RecordCode() == kFinalStateLepton){
-	  leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	  leptonMom = ip->P3();
-	  std::cout << "DEBUG: " << "\n" 
-	    << "Incident particle post-collision: \n" 
-	    << "Particle type = electron\n" 
-	    << "   energy      = " << leptonE << "\n"
-	    << "   mass        = " << ip->Mass() << "\n"
-	    << "   K.E.        = " << leptonE - ip->Mass() << "\n"
-	    << "   Potential   = 0" << "\n"
-	    << "   momentum    = " << ip->P3().print() << "\n";
+        //std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
+        //  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
+        if(ip->RecordCode() == kProbe){
+          lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+          leptonInitialMom = ip->P3();
+          //std::cout << "DEBUG: " << "\n" 
+          //  << "Incident particle: \n" 
+          //  << "Particle type = electron\n" 
+          //  << "   energy      = " << lepton_initial_energy << "\n"
+          //  << "   mass        = " << ip->Mass() << "\n"
+          //  << "   K.E.        = " << lepton_initial_energy - ip->Mass() << "\n"
+          //  << "   Potential   = 0" << "\n"
+          //  << "   momentum    = " << ip->P3().print() << "\n";
+        }
+        else if(ip->RecordCode() == kFinalStateLepton){
+          leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+          leptonMom = ip->P3();
+          //std::cout << "DEBUG: " << "\n" 
+          //  << "Incident particle post-collision: \n" 
+          //  << "Particle type = electron\n" 
+          //  << "   energy      = " << leptonE << "\n"
+          //  << "   mass        = " << ip->Mass() << "\n"
+          //  << "   K.E.        = " << leptonE - ip->Mass() << "\n"
+          //  << "   Potential   = 0" << "\n"
+          //  << "   momentum    = " << ip->P3().print() << "\n";
 
-	}
-	else if(ip->RecordCode() == kHitNucleon){
-	  if(ip->ScatteringType() != 10){
-	    ThreeVector n_mom = particle1->getMomentum();
-	    ip->setMomentum(n_mom);
-	    ip->setMass(particle1->getMass());
-	  }
-	}
-	index++;
+        }
+        else if(ip->RecordCode() == kHitNucleon){
+          if(ip->ScatteringType() != 10){
+            ThreeVector n_mom = particle1->getMomentum();
+            ip->setMomentum(n_mom);
+            ip->setMass(particle1->getMass());
+          }
+        }
+        index++;
       }
-      std::cout << "DEBUG: " << particle1->print() << std::endl;
+      //std::cout << "DEBUG: " << particle1->print() << std::endl;
       oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy();
-      std::cout << "DEBUG: " << oldTotalEnergy << std::endl;
+      //std::cout << "DEBUG: " << oldTotalEnergy << std::endl;
 
       // transfrom the target nucleon to local energy frame
       KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);
@@ -112,19 +113,19 @@ namespace G4INCL {
       ThreeVector leptonInitialMom;
       std::vector<GENIEParticleRecord>::iterator ip;
       for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-	std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
-	  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
-	if(ip->RecordCode() == kProbe){
-	  lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	  leptonInitialMom = ip->P3();
-	}
-	else if(ip->RecordCode() == kFinalStateLepton){
-	  leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
-	  leptonMom = ip->P3();
-	}
-	else if(ip->RecordCode() == kHitNucleon){
-	}
-	index++;
+        //std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << ip->ID() << " "
+        //  << ip->Pdg() << " " << ip->Mass() << " " << std::sqrt(ip->P3().mag()*ip->P3().mag() + ip->Mass()*ip->Mass()) << std::endl;
+        if(ip->RecordCode() == kProbe){
+          lepton_initial_energy = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+          leptonInitialMom = ip->P3();
+        }
+        else if(ip->RecordCode() == kFinalStateLepton){
+          leptonE = std::sqrt(ip->P3().mag2() + ip->Mass()*ip->Mass());
+          leptonMom = ip->P3();
+        }
+        else if(ip->RecordCode() == kHitNucleon){
+        }
+        index++;
       }
 
       G4INCL::ParticleList particles = cluster->getParticleList();
@@ -133,10 +134,10 @@ namespace G4INCL {
       ThreeVector local_mom = leptonInitialMom;
       double local_energy = lepton_initial_energy;
       for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
-	oldTotalEnergy += (*i)->getEnergy() - (*i)->getPotentialEnergy();
-	KinematicsUtils::transformToLocalEnergyFrame(theNucleus, (*i));
-	local_mom += (*i)->getMomentum();
-	local_energy += (*i)->getEnergy();
+        oldTotalEnergy += (*i)->getEnergy() - (*i)->getPotentialEnergy();
+        KinematicsUtils::transformToLocalEnergyFrame(theNucleus, (*i));
+        local_mom += (*i)->getMomentum();
+        local_energy += (*i)->getEnergy();
       }
       boostVector = local_mom / local_energy;
     }
@@ -158,10 +159,6 @@ namespace G4INCL {
     modifiedAndCreated.insert(modifiedAndCreated.end(), created.begin(), created.end());
 
 
-    for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
-      std::cout << "DEBUG " << (*i)->print() << std::endl;
-    }
-
     bool success = enforceEnergyConservation(fs);
     if(!success){
       std::cout << "enforceEnergyConservation fs wrong!" << std::endl;
@@ -178,23 +175,22 @@ namespace G4INCL {
     ParticleIter imc = modifiedAndCreated.begin();
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->RecordCode() == kFinalStateLepton){
-	ip->setMomentum(leptonMom);
-	ip->setMass(std::sqrt(leptonE*leptonE - leptonMom.mag2()));
-	  std::cout << "DEBUG: " << "\n" 
-	    << "Incident particle update potential: \n" 
-	    << "Particle type = electron\n" 
-	    << "   energy      = " << leptonE << "\n"
-	    << "   mass        = " << ip->Mass() << "\n"
-	    << "   K.E.        = " << leptonE - ip->Mass() << "\n"
-	    << "   Potential   = 0" << "\n"
-	    << "   momentum    = " << ip->P3().print() << "\n";
+        ip->setMomentum(leptonMom);
+        ip->setMass(std::sqrt(leptonE*leptonE - leptonMom.mag2()));
+        //std::cout << "DEBUG: " << "\n" 
+        //  << "Incident particle update potential: \n" 
+        //  << "Particle type = electron\n" 
+        //  << "   energy      = " << leptonE << "\n"
+        //  << "   mass        = " << ip->Mass() << "\n"
+        //  << "   K.E.        = " << leptonE - ip->Mass() << "\n"
+        //  << "   Potential   = 0" << "\n"
+        //  << "   momentum    = " << ip->P3().print() << "\n";
       }
       else if(ip->Status() == 14 || ip->Status() == 13){
-	std::cout << "DEBUG " << __FILE__ << "  " << ip->P3().print() << "  " << (*imc)->getMomentum().print() << std::endl;
-	ThreeVector p_mom = (*imc)->getMomentum();
-	ip->setMomentum(p_mom);
-	ip->setMass((*imc)->getMass());
-	imc++;
+        ThreeVector p_mom = (*imc)->getMomentum();
+        ip->setMomentum(p_mom);
+        ip->setMass((*imc)->getMass());
+        imc++;
       }
       index++;
     }
@@ -202,7 +198,6 @@ namespace G4INCL {
     for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
       (*i)->makeParticipant(); //FIXME
       theNucleus->getStore()->getBook().incrementCascading(); // FIXME
-      std::cout << "DEBUG" << __FILE__ << (*i)->print() << std::endl;
     }
     for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
       (*i)->makeParticipant(); //FIXME
@@ -263,6 +258,7 @@ namespace G4INCL {
 
 
   double GENIEAvatar::ViolationLeptonEMomentumFunctor::operator()(const double alpha) const {
+      //LOG("INCLCascadeIntranuke", pNOTICE) << "alpha : " << alpha;
     scaleParticleMomenta(alpha);
 
     double deltaE = 0.0;
@@ -289,48 +285,48 @@ namespace G4INCL {
       (*i)->rpCorrelate();
       (*i)->boost(-boostVector);
       if(theNucleus){
-	theNucleus->updatePotentialEnergy(*i);
+        theNucleus->updatePotentialEnergy(*i);
       } else {
-	(*i)->setPotentialEnergy(0.);
+        (*i)->setPotentialEnergy(0.);
       }
 
       //jcd      if(shouldUseLocalEnergy && !(*i)->isPion())  // This translates AECSVT's loops 1, 3 and 4
       if(shouldUseLocalEnergy && !(*i)->isPion() && !(*i)->isEta() && !(*i)->isOmega() &&
-	  !(*i)->isKaon() && !(*i)->isAntiKaon()  && !(*i)->isSigma() && !(*i)->isPhoton() && !(*i)->isLambda() && !(*i)->isAntiNucleon()) { // This translates AECSVT's loops 1, 3 and 4
-	assert(theNucleus); // Local energy without a nucleus doesn't make sense
-	const double energy = (*i)->getEnergy(); // Store the energy of the particle
-	double locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // Initial value of local energy
-	double locEOld;
-	double deltaLocE = InteractionAvatar::locEAccuracy + 1E3;
-	for(int iterLocE=0;
-	    deltaLocE>InteractionAvatar::locEAccuracy && iterLocE<InteractionAvatar::maxIterLocE;
-	    ++iterLocE) {
-	  locEOld = locE;
-	  (*i)->setEnergy(energy + locE); // Update the energy of the particle...
-	  (*i)->adjustMomentumFromEnergy();
-	  theNucleus->updatePotentialEnergy(*i); // ...update its potential energy...
-	  locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // ...and recompute locE.
-	  deltaLocE = std::abs(locE-locEOld);
-	}
+          !(*i)->isKaon() && !(*i)->isAntiKaon()  && !(*i)->isSigma() && !(*i)->isPhoton() && !(*i)->isLambda() && !(*i)->isAntiNucleon()) { // This translates AECSVT's loops 1, 3 and 4
+        assert(theNucleus); // Local energy without a nucleus doesn't make sense
+        const double energy = (*i)->getEnergy(); // Store the energy of the particle
+        double locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // Initial value of local energy
+        double locEOld;
+        double deltaLocE = InteractionAvatar::locEAccuracy + 1E3;
+        for(int iterLocE=0;
+            deltaLocE>InteractionAvatar::locEAccuracy && iterLocE<InteractionAvatar::maxIterLocE;
+            ++iterLocE) {
+          locEOld = locE;
+          (*i)->setEnergy(energy + locE); // Update the energy of the particle...
+          (*i)->adjustMomentumFromEnergy();
+          theNucleus->updatePotentialEnergy(*i); // ...update its potential energy...
+          locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // ...and recompute locE.
+          deltaLocE = std::abs(locE-locEOld);
+        }
       }
 
       //jlrs  For lambdas and nuclei with masses higher than 19 also local energy
       if(shouldUseLocalEnergy && (*i)->isLambda() && theNucleus->getA()>19) {
-	assert(theNucleus); // Local energy without a nucleus doesn't make sense
-	const double energy = (*i)->getEnergy(); // Store the energy of the particle
-	double locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // Initial value of local energy
-	double locEOld;
-	double deltaLocE = InteractionAvatar::locEAccuracy + 1E3;
-	for(int iterLocE=0;
-	    deltaLocE>InteractionAvatar::locEAccuracy && iterLocE<InteractionAvatar::maxIterLocE;
-	    ++iterLocE) {
-	  locEOld = locE;
-	  (*i)->setEnergy(energy + locE); // Update the energy of the particle...
-	  (*i)->adjustMomentumFromEnergy();
-	  theNucleus->updatePotentialEnergy(*i); // ...update its potential energy...
-	  locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // ...and recompute locE.
-	  deltaLocE = std::abs(locE-locEOld);
-	}
+        assert(theNucleus); // Local energy without a nucleus doesn't make sense
+        const double energy = (*i)->getEnergy(); // Store the energy of the particle
+        double locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // Initial value of local energy
+        double locEOld;
+        double deltaLocE = InteractionAvatar::locEAccuracy + 1E3;
+        for(int iterLocE=0;
+            deltaLocE>InteractionAvatar::locEAccuracy && iterLocE<InteractionAvatar::maxIterLocE;
+            ++iterLocE) {
+          locEOld = locE;
+          (*i)->setEnergy(energy + locE); // Update the energy of the particle...
+          (*i)->adjustMomentumFromEnergy();
+          theNucleus->updatePotentialEnergy(*i); // ...update its potential energy...
+          locE = KinematicsUtils::getLocalEnergy(theNucleus, *i); // ...and recompute locE.
+          deltaLocE = std::abs(locE-locEOld);
+        }
       }
     }
   }

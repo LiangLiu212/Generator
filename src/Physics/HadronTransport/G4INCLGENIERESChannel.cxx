@@ -9,7 +9,7 @@ namespace G4INCL {
 
   GENIERESChannel::GENIERESChannel(Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord)
     : hitParticle(p), theNucleus(n),
-      genie_evtrec(eventRecord)
+    genie_evtrec(eventRecord)
   {
   }
 
@@ -22,42 +22,41 @@ namespace G4INCL {
 
     std::vector<GENIEParticleRecord>::iterator ip;
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      std::cout << "ip: " << ip->Pdg() << " " << ip->FirstMother() << "  " << ip->Status()  << std::endl;
       if(ip->Status() == 13){
-	ip->setID(int(hitParticle->getID()));
-	hitParticle->setType(ip->Type());
-	hitParticle->setMass(ip->Mass());
-	hitParticle->setMomentum(ip->P3());
-	hitParticle->setPosition(ip->X3());
-	hitParticle->adjustEnergyFromMomentum();
+        ip->setID(int(hitParticle->getID()));
+        hitParticle->setType(ip->Type());
+        hitParticle->setMass(ip->Mass());
+        hitParticle->setMomentum(ip->P3());
+        hitParticle->setPosition(ip->X3());
+        hitParticle->adjustEnergyFromMomentum();
         //double energy = hitParticle->getEnergy() + hitParticle->getPotentialEnergy() - hitParticle->getEmissionQValueCorrection(theNucleus->getA(), theNucleus->getZ(), theNucleus->getS());  // FIXME
-	//hitParticle->setEnergy(energy); // FIXME
-	//hitParticle->adjustMomentumFromEnergy(); // FIXME
-	fs->addModifiedParticle(hitParticle);
+        //hitParticle->setEnergy(energy); // FIXME
+        //hitParticle->adjustMomentumFromEnergy(); // FIXME
+        fs->addModifiedParticle(hitParticle);
       }
       else if((ip->Status() == 14 && (ip->Type() == Proton || ip->Type() == Neutron))){
-	ip->setID(int(hitParticle->getID()));
-	hitParticle->setType(ip->Type());
-	hitParticle->setMass(ip->Mass());
-	hitParticle->setMomentum(ip->P3());
-	hitParticle->setPosition(ip->X3());
-	hitParticle->adjustEnergyFromMomentum();
+        ip->setID(int(hitParticle->getID()));
+        hitParticle->setType(ip->Type());
+        hitParticle->setMass(ip->Mass());
+        hitParticle->setMomentum(ip->P3());
+        hitParticle->setPosition(ip->X3());
+        hitParticle->adjustEnergyFromMomentum();
         double energy = hitParticle->getEnergy() + hitParticle->getPotentialEnergy() - hitParticle->getEmissionQValueCorrection(theNucleus->getA(), theNucleus->getZ(), theNucleus->getS());  // FIXME
-	hitParticle->setEnergy(energy); // FIXME
-	hitParticle->adjustMomentumFromEnergy(); // FIXME
-	fs->addModifiedParticle(hitParticle);
+        hitParticle->setEnergy(energy); // FIXME
+        hitParticle->adjustMomentumFromEnergy(); // FIXME
+        fs->addModifiedParticle(hitParticle);
       }
       else if( (ip->Status() == 14) ){
-	Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
-	ip->setID(int(ihadron->getID()));
-	ihadron->setMass(ip->Mass());
-	ihadron->adjustEnergyFromMomentum();
-	fs->addCreatedParticle(ihadron);
+        Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
+        ip->setID(int(ihadron->getID()));
+        ihadron->setMass(ip->Mass());
+        ihadron->adjustEnergyFromMomentum();
+        fs->addCreatedParticle(ihadron);
       }
     }
 
- //   fs->addModifiedParticle(particle1);
- //   fs->addModifiedParticle(particle2);
+    //   fs->addModifiedParticle(particle1);
+    //   fs->addModifiedParticle(particle2);
 
   }
 

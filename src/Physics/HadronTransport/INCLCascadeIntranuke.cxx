@@ -112,20 +112,20 @@ using std::ostringstream;
 using namespace std;
 
 INCLCascadeIntranuke::INCLCascadeIntranuke() :
-EventRecordVisitorI("genie::INCLCascadeIntranuke"),
-theINCLConfig(0), theINCLModel(0), theDeExcitation(0)
+  EventRecordVisitorI("genie::INCLCascadeIntranuke"),
+  theINCLConfig(0), theINCLModel(0), theDeExcitation(0)
 {
   LOG("INCLCascadeIntranuke", pDEBUG)
-  << "default ctor";
+    << "default ctor";
 }
 
 //______________________________________________________________________________
 INCLCascadeIntranuke::INCLCascadeIntranuke(string config) :
-EventRecordVisitorI("genie::INCLCascadeIntranuke", config),
-theINCLConfig(0), theINCLModel(0), theDeExcitation(0)
+  EventRecordVisitorI("genie::INCLCascadeIntranuke", config),
+  theINCLConfig(0), theINCLModel(0), theDeExcitation(0)
 {
   LOG("INCLCascadeIntranuke", pDEBUG)
-  << "ctor from config " << config;
+    << "ctor from config " << config;
 }
 
 //______________________________________________________________________________
@@ -157,8 +157,8 @@ bool INCLCascadeIntranuke::AddDataPathFlags(size_t& nflags, char** flags) {
 
 bool INCLCascadeIntranuke::LookForAndAddValidPath(std::vector<std::string>& datapaths,
     size_t defaultIndx,
- const char* optString,
- size_t& nflags, char** flags) {
+    const char* optString,
+    size_t& nflags, char** flags) {
 
   return false;
 }
@@ -171,261 +171,253 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 }
 
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
-    LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
+  LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-    // evrec->Print(std::cout);
-    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
-    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
-    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
-    // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
+   evrec->Print(std::cout);
+  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
+  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
+  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
+  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
-    this->DecayResonance(evrec);
+  this->DecayResonance(evrec);
 
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
   //  Get 'nuclear environment' at the beginning of hadron transport
   //  and keep track of the remnant nucleus A,Z
 
-//    GEvGenMode_t fGMode = evrec->EventGenerationMode();
-//    if(fGMode == kGMdLeptonNucleus ||
-//	  fGMode == kGMdDarkMatterNucleus ||
-//	  fGMode == kGMdNucleonDecay) {
-//      int inucl = evrec->RemnantNucleusPosition();
-//      evrec->Particle(inucl)->SetStatus(kIStIntermediateState);
-//    }
+  //    GEvGenMode_t fGMode = evrec->EventGenerationMode();
+  //    if(fGMode == kGMdLeptonNucleus ||
+  //	  fGMode == kGMdDarkMatterNucleus ||
+  //	  fGMode == kGMdNucleonDecay) {
+  //      int inucl = evrec->RemnantNucleusPosition();
+  //      evrec->Particle(inucl)->SetStatus(kIStIntermediateState);
+  //    }
 
-    // FIXME: start with the NC process
-    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-    incl_target = incl_nucleus->getNuclues();
-    theConfig = incl_nucleus->getConfig();
-    propagationModel =  incl_nucleus->getPropagationModel();
-    incl_target->setParticleNucleusCollision();
-    std::unique_ptr<G4INCL::FinalState> finalState(new FinalState);
-    primarylepton = evrec->FinalStatePrimaryLepton();
-    prob = evrec->Probe();
-    target = evrec->TargetNucleus();
+  // FIXME: start with the NC process
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_target = incl_nucleus->getNuclues();
+  theConfig = incl_nucleus->getConfig();
+  propagationModel =  incl_nucleus->getPropagationModel();
+  incl_target->setParticleNucleusCollision();
+  std::unique_ptr<G4INCL::FinalState> finalState(new FinalState);
+  primarylepton = evrec->FinalStatePrimaryLepton();
+  prob = evrec->Probe();
+  target = evrec->TargetNucleus();
 
-    this->preCascade();
+  this->preCascade();
 
-    double currentTime = 0.0;
-//    double temfin;
+  double currentTime = 0.0;
+  //    double temfin;
 
-    tempFinalState.clear();
-    stepFinalState.clear();
-    istep = 0;
+  tempFinalState.clear();
+  stepFinalState.clear();
+  istep = 0;
 
-    double maximumTime = 29.8 * std::pow(incl_target->getA(), 0.16);
-    propagationModel->setStoppingTime(maximumTime);
-    propagationModel->setNucleus(incl_target);
-    propagationModel->generateAllAvatars();
+  double maximumTime = 29.8 * std::pow(incl_target->getA(), 0.16);
+  propagationModel->setStoppingTime(maximumTime);
+  propagationModel->setNucleus(incl_target);
+  propagationModel->generateAllAvatars();
 
-    this->fillFinalState(evrec, finalState.get());
+  this->fillFinalState(evrec, finalState.get());
 
-/*
-    int idx = 0;
-    double TLab;
-    temfin = 29.8 * std::pow(incl_target->getA(), 0.16);
-    if(TLab > 2000.)
-      temfin *= (5.8E4-TLab)/5.6E4;
-*/
+  /*
+     int idx = 0;
+     double TLab;
+     temfin = 29.8 * std::pow(incl_target->getA(), 0.16);
+     if(TLab > 2000.)
+     temfin *= (5.8E4-TLab)/5.6E4;
+     */
 
-//    double maximumTime = temfin;
-//    propagationModel->setStoppingTime(maximumTime);
-//    propagationModel->setNucleus(incl_target);
-//    propagationModel->generateAllAvatars();
+  //    double maximumTime = temfin;
+  //    propagationModel->setStoppingTime(maximumTime);
+  //    propagationModel->setNucleus(incl_target);
+  //    propagationModel->generateAllAvatars();
 
-    // stopping time: 
-    // INCL don't have the stopping time for neutrino.
-    // we can calculate the longest stopping time for all the daughters from primary interaction.
+  // stopping time: 
+  // INCL don't have the stopping time for neutrino.
+  // we can calculate the longest stopping time for all the daughters from primary interaction.
 
+  incl_target->applyFinalState(finalState.get());
+  //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
+  incl_target->getStore()->getBook().incrementAcceptedCollisions();
+  int step = 0;
+
+  while(step < 10000000 && continueCascade()){
+    IAvatar *avatar = propagationModel->propagate(finalState.get());
+    finalState->reset();
+    if(avatar == 0) break; // No more avatars in the avatar list.
+    G4INCL::ParticleList mother_list = avatar->getParticles();
+    backup_mother.clear();
+    for(G4INCL::ParticleIter imom =  mother_list.begin(); imom != mother_list.end(); imom++){
+      this->fillStep(*imom, backup_mother, -1, -1);
+    }
+    avatar->fillFinalState(finalState.get());
+    // Must fill event record before incl nucleus applyFinalState
+    // applyFinalState will delete destroyed particles.
+    this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime(), avatar->getType());
     incl_target->applyFinalState(finalState.get());
-//    incl_target->getStore()->getBook().incrementCascading();   // FIXME
-    incl_target->getStore()->getBook().incrementAcceptedCollisions();
-    int step = 0;
+    delete avatar;
+    step++;
+  }
 
-    while(step < 10000000 && continueCascade()){
-      IAvatar *avatar = propagationModel->propagate(finalState.get());
-      finalState->reset();
-      if(avatar == 0) break; // No more avatars in the avatar list.
-      G4INCL::ParticleList mother_list = avatar->getParticles();
-      backup_mother.clear();
-      for(G4INCL::ParticleIter imom =  mother_list.begin(); imom != mother_list.end(); imom++){
-	this->fillStep(*imom, backup_mother, -1, -1);
-      }
-      avatar->fillFinalState(finalState.get());
-      // Must fill event record before incl nucleus applyFinalState
-      // applyFinalState will delete destroyed particles.
-      this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime(), avatar->getType());
-      incl_target->applyFinalState(finalState.get());
-      delete avatar;
-      step++;
+  // std::cout << incl_target->print() << std::endl;
+  // put the nuclear remnant in the event record
+
+  this->postCascade(evrec, finalState.get());
+
+  TObjArrayIter piter(evrec);
+  GHepParticle * p = nullptr;
+  int stable_finalstate = 0;
+  while ( (p = (GHepParticle *) piter.Next() ) ) {
+    if(p->Status() == kIStStableFinalState){
+      // FIXME: for NC QE, it is only neutron and proton
+      stable_finalstate++;
     }
+  }
 
-    // std::cout << incl_target->print() << std::endl;
-    // put the nuclear remnant in the event record
- 
-    this->postCascade(evrec, finalState.get());
+  const int n_outgoing = theEventInfo.nParticles;
 
-    TObjArrayIter piter(evrec);
-    GHepParticle * p = nullptr;
-    int stable_finalstate = 0;
-    while ( (p = (GHepParticle *) piter.Next() ) ) {
-      if(p->Status() == kIStStableFinalState){
-	// FIXME: for NC QE, it is only neutron and proton
-	stable_finalstate++;
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Before De-Excitation : " << stable_finalstate - theEventInfo.nParticles;
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants   : " << theEventInfo.nRemnants;
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants A : " << theEventInfo.ARem[0];
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants Z : " << theEventInfo.ZRem[0];
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants S : " << theEventInfo.SRem[0];
+  // LOG("INCLCascadeIntranuke", pNOTICE) << "nParticles   : " << theEventInfo.nParticles;
+  // for(int i = 0; i < theEventInfo.nParticles; i++){
+  //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
+  //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles px : " << theEventInfo.px[i];
+  //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles py : " << theEventInfo.py[i];
+  //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles pz : " << theEventInfo.pz[i];
+  // }
+
+  // LOG("INCLCascadeIntranuke", pINFO) << incl_target->print();
+
+  double Rem_p2 = theEventInfo.pxRem[0]*theEventInfo.pxRem[0]
+    + theEventInfo.pyRem[0]*theEventInfo.pyRem[0]
+    + theEventInfo.pzRem[0]*theEventInfo.pzRem[0];
+  double Rem_Kin = theEventInfo.EKinRem[0];
+  double Rem_M = (Rem_p2 - Rem_Kin*Rem_Kin) / ( 2.0 * Rem_Kin);
+
+  // GHepParticle *p4l = evrec->FinalStatePrimaryLepton();
+
+  double Rem_px = theEventInfo.pxRem[0]/1000.;
+  double Rem_py = theEventInfo.pyRem[0]/1000.;
+  double Rem_pz = theEventInfo.pzRem[0]/1000.;
+  double Rem_E =  std::sqrt(Rem_p2 + Rem_M*Rem_M)/1000.;
+
+  TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
+
+  TLorentzVector p4posi(0,0,0,0);
+  int A = incl_target->getA();
+  int Z = incl_target->getZ();
+  int S = incl_target->getS(); // INCL and ABLA support hypernuclei
+  int pdg = genie::pdg::IonPdgCode( A , Z, 0, 0 );
+
+  // LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
+  TParticlePDG * prem = PDGLibrary::Instance()->Find(pdg);
+  int PreDeExPDG = pdg;
+  if(!prem) PreDeExPDG = kPdgHadronicBlob;
+  evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
+
+  switch(theConfig->getDeExcitationType()){
+    case G4INCL::DeExcitationABLAXX:
+      {
+        std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<G4INCLAblaInterface>(theConfig);
+        theDeExcitation->deExcite(&theEventInfo);
+        break;
       }
+    case G4INCL::DeExcitationABLA07:
+      {
+        std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<ABLA07CXX::Abla07Interface>(theConfig);
+        theDeExcitation->deExcite(&theEventInfo);
+        break;
+      }
+    case G4INCL::DeExcitationGEMINIXX:
+      {
+        std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<G4INCLGEMINIXXInterface>(theConfig);
+        theDeExcitation->deExcite(&theEventInfo);
+        break;
+      }
+    default:
+      {
+        exit(1);
+        break;
+      }
+  }
+
+  // particle from de-excitation
+  const int remnant_id = evrec->GetEntries() - 1;
+  if(theEventInfo.nParticles > n_outgoing){
+    for(int i = n_outgoing; i < theEventInfo.nParticles; i++){
+      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
+      LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << this->INCLPDG_to_GHEPPDG(theEventInfo.PDGCode[i], theEventInfo.A[i], theEventInfo.Z[i], theEventInfo.S[i]);
+      int depdg = this->INCLPDG_to_GHEPPDG(theEventInfo.PDGCode[i], theEventInfo.A[i], theEventInfo.Z[i], theEventInfo.S[i]);
+      TParticlePDG * p = PDGLibrary::Instance()->Find(depdg);
+
+      LOG("INCLCascadeIntranuke", pNOTICE) << depdg;
+
+      double p2 = theEventInfo.px[i]*theEventInfo.px[i]
+        + theEventInfo.py[i]*theEventInfo.py[i]
+        + theEventInfo.pz[i]*theEventInfo.pz[i];
+
+      double M = p->Mass();
+
+      double E = sqrt(p2/1000000. + M*M);
+
+
+      TLorentzVector p4mom(theEventInfo.px[i] / 1000.,
+          theEventInfo.py[i] / 1000.,
+          theEventInfo.pz[i] / 1000., 
+          E);
+      TLorentzVector p4posi(0,0,0,0);
+
+      EGHepStatus ptype;
+      if(theEventInfo.A[i] > 4){
+        ptype = kIStFinalStateNuclearRemnant;
+      } else {
+        ptype = kIStStableFinalState;
+      }
+      evrec->AddParticle(depdg, ptype, remnant_id, -1, -1, -1, p4mom, p4posi);
     }
-
-    const int n_outgoing = theEventInfo.nParticles;
-
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Before De-Excitation : " << stable_finalstate - theEventInfo.nParticles;
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants   : " << theEventInfo.nRemnants;
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants A : " << theEventInfo.ARem[0];
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants Z : " << theEventInfo.ZRem[0];
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "nRemnants S : " << theEventInfo.SRem[0];
-    // LOG("INCLCascadeIntranuke", pNOTICE) << "nParticles   : " << theEventInfo.nParticles;
-    // for(int i = 0; i < theEventInfo.nParticles; i++){
-    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
-    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles px : " << theEventInfo.px[i];
-    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles py : " << theEventInfo.py[i];
-    //   LOG("INCLCascadeIntranuke", pNOTICE) << "Final State Particles pz : " << theEventInfo.pz[i];
-    // }
-
-    // LOG("INCLCascadeIntranuke", pINFO) << incl_target->print();
-
-    double Rem_p2 = theEventInfo.pxRem[0]*theEventInfo.pxRem[0]
-      + theEventInfo.pyRem[0]*theEventInfo.pyRem[0]
-      + theEventInfo.pzRem[0]*theEventInfo.pzRem[0];
-    double Rem_Kin = theEventInfo.EKinRem[0];
-    double Rem_M = (Rem_p2 - Rem_Kin*Rem_Kin) / ( 2.0 * Rem_Kin);
-
-    // GHepParticle *p4l = evrec->FinalStatePrimaryLepton();
-
-    double Rem_px = theEventInfo.pxRem[0]/1000.;
-    double Rem_py = theEventInfo.pyRem[0]/1000.;
-    double Rem_pz = theEventInfo.pzRem[0]/1000.;
-    double Rem_E =  std::sqrt(Rem_p2 + Rem_M*Rem_M)/1000.;
-
-    TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
-
+  }
+  else{
     TLorentzVector p4posi(0,0,0,0);
     int A = incl_target->getA();
     int Z = incl_target->getZ();
-    int S = incl_target->getS(); // INCL and ABLA support hypernuclei
-    int pdg = genie::pdg::IonPdgCode( A , Z, 0, 0 );
-
-    // LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
-    TParticlePDG * prem = PDGLibrary::Instance()->Find(pdg);
-    int PreDeExPDG = pdg;
-    if(!prem) PreDeExPDG = kPdgHadronicBlob;
-    evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, 3, -1, -1, -1, p4mom, p4posi);
-
-    switch(theConfig->getDeExcitationType()){
-      case G4INCL::DeExcitationABLAXX:
-	{
-	  std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<G4INCLAblaInterface>(theConfig);
-	  theDeExcitation->deExcite(&theEventInfo);
-	  break;
-	}
-      case G4INCL::DeExcitationABLA07:
-	{
-	  std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<ABLA07CXX::Abla07Interface>(theConfig);
-	  theDeExcitation->deExcite(&theEventInfo);
-	  break;
-	}
-      case G4INCL::DeExcitationGEMINIXX:
-	{
-	  std::unique_ptr<G4INCL::IDeExcitation> theDeExcitation = std::make_unique<G4INCLGEMINIXXInterface>(theConfig);
-	  theDeExcitation->deExcite(&theEventInfo);
-	  break;
-	}
-      default:
-	{
-	  exit(1);
-	  break;
-	}
-    }
+    int S = incl_target->getS();
+    int pdg = genie::pdg::IonPdgCode( A , Z, std::abs(S), 0 );
+    TParticlePDG * p = PDGLibrary::Instance()->Find(pdg);
+    double M = p->Mass();
+    double Rem_E = sqrt(Rem_p2/1000000. + M*M);
+    TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
+    LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
+    evrec->AddParticle(pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4mom, p4posi);
+  }
 
 
-    for(int i = 0; i < theEventInfo.nParticles; i++){
-      LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
-      LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles px : " << theEventInfo.px[i];
-      LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles py : " << theEventInfo.py[i];
-      LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles pz : " << theEventInfo.pz[i];
-    }
-
-    // particle from de-excitation
-    const int remnant_id = evrec->GetEntries() - 1;
-    if(theEventInfo.nParticles > n_outgoing){
-      for(int i = n_outgoing; i < theEventInfo.nParticles; i++){
-	LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles PDG: " << theEventInfo.PDGCode[i];
-	LOG("INCLCascadeIntranuke", pDEBUG) << "Final State Particles PDG: " << this->INCLPDG_to_GHEPPDG(theEventInfo.PDGCode[i], theEventInfo.A[i], theEventInfo.Z[i], theEventInfo.S[i]);
-	int depdg = this->INCLPDG_to_GHEPPDG(theEventInfo.PDGCode[i], theEventInfo.A[i], theEventInfo.Z[i], theEventInfo.S[i]);
-	TParticlePDG * p = PDGLibrary::Instance()->Find(depdg);
-
-	LOG("INCLCascadeIntranuke", pNOTICE) << depdg;
-
-	double p2 = theEventInfo.px[i]*theEventInfo.px[i]
-	  + theEventInfo.py[i]*theEventInfo.py[i]
-	  + theEventInfo.pz[i]*theEventInfo.pz[i];
-
-	double M = p->Mass();
-
-	double E = sqrt(p2/1000000. + M*M);
-
-
-	TLorentzVector p4mom(theEventInfo.px[i] / 1000.,
-	    theEventInfo.py[i] / 1000.,
-	    theEventInfo.pz[i] / 1000., 
-	    E);
-	TLorentzVector p4posi(0,0,0,0);
-
-	EGHepStatus ptype;
-	if(theEventInfo.A[i] > 4){
-	  ptype = kIStFinalStateNuclearRemnant;
-	} else {
-	  ptype = kIStStableFinalState;
-	}
-	evrec->AddParticle(depdg, ptype, remnant_id, -1, -1, -1, p4mom, p4posi);
+  // print interaction in each step
+  for(std::map<int, std::vector<INCLRecord>>::iterator it = stepFinalState.begin(); it != stepFinalState.end(); it++){
+    LOG("INCLCascadeIntranuke", pINFO) << "step : " << it->first;
+    for(auto ip = it->second.begin(); ip != it->second.end(); ip++){
+      std::string fs_particle;
+      switch (ip->mother_index) {
+        case -2: fs_particle = "Modified  particle "; break;
+        case -3: fs_particle = "Outgoing  particle "; break;
+        case -4: fs_particle = "Destoried particle "; break;
+        case -5: fs_particle = "Created   particle "; break;
+        case -6: fs_particle = "Mother    particle "; break;
+        default:;
       }
+      LOG("INCLCascadeIntranuke", pINFO)  << fs_particle  << "  global id : " << ip->global_index << "  " 
+        << "pdg id : " << ip->pdgid << "  "
+        << "mother id : " << ip->mother_index << "  "
+        << "local id : " << ip->local_index;
     }
-    else{
-      TLorentzVector p4posi(0,0,0,0);
-      int A = incl_target->getA();
-      int Z = incl_target->getZ();
-      int S = incl_target->getS();
-      int pdg = genie::pdg::IonPdgCode( A , Z, std::abs(S), 0 );
-      TParticlePDG * p = PDGLibrary::Instance()->Find(pdg);
-      double M = p->Mass();
-      double Rem_E = sqrt(Rem_p2/1000000. + M*M);
-      TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
-      LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
-      evrec->AddParticle(pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4mom, p4posi);
-    }
+  }
 
-
-    // print interaction in each step
-    for(std::map<int, std::vector<INCLRecord>>::iterator it = stepFinalState.begin(); it != stepFinalState.end(); it++){
-      LOG("INCLCascadeIntranuke", pINFO) << "step : " << it->first;
-      for(auto ip = it->second.begin(); ip != it->second.end(); ip++){
-	std::string fs_particle;
-	switch (ip->mother_index) {
-	  case -2: fs_particle = "Modified  particle "; break;
-	  case -3: fs_particle = "Outgoing  particle "; break;
-	  case -4: fs_particle = "Destoried particle "; break;
-	  case -5: fs_particle = "Created   particle "; break;
-	  case -6: fs_particle = "Mother    particle "; break;
-	  default:;
-	}
-	LOG("INCLCascadeIntranuke", pINFO)  << fs_particle  << "  global id : " << ip->global_index << "  " 
-	  << "pdg id : " << ip->pdgid << "  "
-	  << "mother id : " << ip->mother_index << "  "
-	  << "local id : " << ip->local_index;
-      }
-    }
-
-    LOG("INCLCascadeIntranuke", pINFO) << "Done with this event";
+  LOG("INCLCascadeIntranuke", pINFO) << "Done with this event";
 }
 
 bool INCLCascadeIntranuke::CanRescatter(const GHepParticle * p) const {
@@ -566,53 +558,53 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
     for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
       if(ip->mother_index != -6) continue;
       for(auto it = tempFinalState.begin(); it != tempFinalState.end(); ++it){
-	if(it->global_index == ip->global_index){
-	  mother_position = it->local_index;
-	}
+        if(it->global_index == ip->global_index){
+          mother_position = it->local_index;
+        }
       }
     }
 
     if(mother_position != -1){
 
       if(avaType == G4INCL::SurfaceAvatarType){
-	//
-	for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
-	  if(ip->mother_index == -6 || ip->mother_index == -4) continue;
-	  LOG("INCLCascadeIntranuke", pNOTICE) << "created: " << created.size();
-	  LOG("INCLCascadeIntranuke", pNOTICE) << "outgoing: " << outgoing.size();
-	  LOG("INCLCascadeIntranuke", pNOTICE) << "modified: " << modified.size();
-	  LOG("INCLCascadeIntranuke", pNOTICE) << "destroyed: " << destroyed.size();
-	  // put this particle in event record
-	  tempFinalState.emplace_back(ip->global_index, ip->pdgid, mother_position, index_++, ip->p4mom, ip->p4posi);
-	  evrec->Particle(mother_position)->SetRescatterCode(int(avaType));
+        //
+        for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
+          if(ip->mother_index == -6 || ip->mother_index == -4) continue;
+          LOG("INCLCascadeIntranuke", pNOTICE) << "created: " << created.size();
+          LOG("INCLCascadeIntranuke", pNOTICE) << "outgoing: " << outgoing.size();
+          LOG("INCLCascadeIntranuke", pNOTICE) << "modified: " << modified.size();
+          LOG("INCLCascadeIntranuke", pNOTICE) << "destroyed: " << destroyed.size();
+          // put this particle in event record
+          tempFinalState.emplace_back(ip->global_index, ip->pdgid, mother_position, index_++, ip->p4mom, ip->p4posi);
+          evrec->Particle(mother_position)->SetRescatterCode(int(avaType));
 
-	  // get the pdg in genie style
-      	  int pdg = ip->pdgid;
-	  LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << ip->pdgid;
-	  if(ip->theType == G4INCL::Composite){
-	    if(pdg != 2212 && pdg != 2112 && pdg != 3122){
-	      int S = pdg / 1000000;
-	      int pdg_no_s = pdg % 1000000;
-	      int A = pdg_no_s % 1000;
-	      int Z = pdg_no_s / 1000;
-	      pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
-	    }
-	  }
-	  LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
-	  // get the type of the particle
-	  EGHepStatus ptype;
+          // get the pdg in genie style
+          int pdg = ip->pdgid;
+          LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << ip->pdgid;
+          if(ip->theType == G4INCL::Composite){
+            if(pdg != 2212 && pdg != 2112 && pdg != 3122){
+              int S = pdg / 1000000;
+              int pdg_no_s = pdg % 1000000;
+              int A = pdg_no_s % 1000;
+              int Z = pdg_no_s / 1000;
+              pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
+            }
+          }
+          LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
+          // get the type of the particle
+          EGHepStatus ptype;
 
-	  if(ip->mother_index == -3){
-	    //ptype = kIStPreDecayResonantState;
-	    ptype = kIStStableFinalState;
-	  }
-	  else{
-	    ptype = kIStHadronInTheNucleus;
-	  }
+          if(ip->mother_index == -3){
+            //ptype = kIStPreDecayResonantState;
+            ptype = kIStStableFinalState;
+          }
+          else{
+            ptype = kIStHadronInTheNucleus;
+          }
 
-	  GHepParticle p(pdg, ptype, mother_position, -1, -1, -1, ip->p4mom, ip->p4posi);
-	  evrec->AddParticle(p);
-	}
+          GHepParticle p(pdg, ptype, mother_position, -1, -1, -1, ip->p4mom, ip->p4posi);
+          evrec->AddParticle(p);
+        }
       }
       else if(avaType == G4INCL::DecayAvatarType){
 
@@ -626,50 +618,50 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
          * conditions, for example, that evolve with time.}
          */
 
-	/* decay channel without daughters, skip it
-	 * a decay must have more than 1 daughters
-	 */
+        /* decay channel without daughters, skip it
+         * a decay must have more than 1 daughters
+         */
 
-	if((created.size() + outgoing.size() + modified.size()) != 1){
-	  evrec->Particle(mother_position)->SetRescatterCode(int(avaType));
-	  evrec->Particle(mother_position)->SetStatus(kIStDecayedState);
-	  for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
-	    if(ip->mother_index == -6 || ip->mother_index == -4) continue;
-	    LOG("INCLCascadeIntranuke", pNOTICE) << "created: " << created.size();
-	    LOG("INCLCascadeIntranuke", pNOTICE) << "outgoing: " << outgoing.size();
-	    LOG("INCLCascadeIntranuke", pNOTICE) << "modified: " << modified.size();
-	    LOG("INCLCascadeIntranuke", pNOTICE) << "destroyed: " << destroyed.size();
-	    // put this particle in event record
-	    tempFinalState.emplace_back(ip->global_index, ip->pdgid, mother_position, index_++, ip->p4mom, ip->p4posi);
+        if((created.size() + outgoing.size() + modified.size()) != 1){
+          evrec->Particle(mother_position)->SetRescatterCode(int(avaType));
+          evrec->Particle(mother_position)->SetStatus(kIStDecayedState);
+          for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
+            if(ip->mother_index == -6 || ip->mother_index == -4) continue;
+            LOG("INCLCascadeIntranuke", pNOTICE) << "created: " << created.size();
+            LOG("INCLCascadeIntranuke", pNOTICE) << "outgoing: " << outgoing.size();
+            LOG("INCLCascadeIntranuke", pNOTICE) << "modified: " << modified.size();
+            LOG("INCLCascadeIntranuke", pNOTICE) << "destroyed: " << destroyed.size();
+            // put this particle in event record
+            tempFinalState.emplace_back(ip->global_index, ip->pdgid, mother_position, index_++, ip->p4mom, ip->p4posi);
 
-	    // get the pdg in genie style
-	    int pdg = ip->pdgid;
-	    LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << ip->pdgid;
-	    if(ip->theType == G4INCL::Composite){
-	      if(pdg != 2212 && pdg != 2112 && pdg != 3122){
-		int S = pdg / 1000000;
-		int pdg_no_s = pdg % 1000000;
-		int A = pdg_no_s % 1000;
-		int Z = pdg_no_s / 1000;
-		pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
-	      }
-	    }
-	    LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
-	    // get the type of the particle
-	    EGHepStatus ptype;
+            // get the pdg in genie style
+            int pdg = ip->pdgid;
+            LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << ip->pdgid;
+            if(ip->theType == G4INCL::Composite){
+              if(pdg != 2212 && pdg != 2112 && pdg != 3122){
+                int S = pdg / 1000000;
+                int pdg_no_s = pdg % 1000000;
+                int A = pdg_no_s % 1000;
+                int Z = pdg_no_s / 1000;
+                pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
+              }
+            }
+            LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
+            // get the type of the particle
+            EGHepStatus ptype;
 
-	    if(ip->mother_index == -3){
-	      //ptype = kIStPreDecayResonantState;
-	      ptype = kIStStableFinalState;
-	    }
-	    else{
-	      ptype = kIStHadronInTheNucleus;
-	    }
+            if(ip->mother_index == -3){
+              //ptype = kIStPreDecayResonantState;
+              ptype = kIStStableFinalState;
+            }
+            else{
+              ptype = kIStHadronInTheNucleus;
+            }
 
-	    GHepParticle p(pdg, ptype, mother_position, -1, -1, -1, ip->p4mom, ip->p4posi);
-	    evrec->AddParticle(p);
-	  }
-	}
+            GHepParticle p(pdg, ptype, mother_position, -1, -1, -1, ip->p4mom, ip->p4posi);
+            evrec->AddParticle(p);
+          }
+        }
       }
       else if(avaType == G4INCL::UnknownParticle){
 
@@ -685,26 +677,26 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
       int mother_position = -1;
       bool is_spectator = true;
       for(auto it = tempFinalState.begin(); it != tempFinalState.end(); ++it){
-	if(it->global_index == ip->global_index){
-	  mother_position = it->local_index;
-	  is_spectator = false;
-	}
+        if(it->global_index == ip->global_index){
+          mother_position = it->local_index;
+          is_spectator = false;
+        }
       }
       if(is_spectator){
-	for(auto imom = backup_mother.begin(); imom != backup_mother.end(); ++imom){
-	  if(imom->global_index == ip->global_index){
-	    tempFinalState.emplace_back(ip->global_index, imom->pdgid, -1, index_++, imom->p4mom, imom->p4posi);
-	    GHepParticle p(imom->pdgid, kIStSpectator, -1, -1, -1, -1, imom->p4mom, imom->p4posi);
-	    evrec->AddParticle(p);
-	  }
-	}
-	mother_position = index_ - 1;
+        for(auto imom = backup_mother.begin(); imom != backup_mother.end(); ++imom){
+          if(imom->global_index == ip->global_index){
+            tempFinalState.emplace_back(ip->global_index, imom->pdgid, -1, index_++, imom->p4mom, imom->p4posi);
+            GHepParticle p(imom->pdgid, kIStSpectator, -1, -1, -1, -1, imom->p4mom, imom->p4posi);
+            evrec->AddParticle(p);
+          }
+        }
+        mother_position = index_ - 1;
       }
       // assign the mother index
       if(first_mother_position == -1)
-	first_mother_position = mother_position;
+        first_mother_position = mother_position;
       else
-	second_mother_position = mother_position;
+        second_mother_position = mother_position;
     }
 
     if(first_mother_position > second_mother_position){
@@ -730,13 +722,13 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
       int pdg = ip->pdgid;
       LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << ip->pdgid;
       if(ip->theType == G4INCL::Composite){
-	if(pdg != 2212 && pdg != 2112 && pdg != 3122){
-	  int S = pdg / 1000000;
-	  int pdg_no_s = pdg % 1000000;
-	  int A = pdg_no_s % 1000;
-	  int Z = pdg_no_s / 1000;
-	  pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
-	}
+        if(pdg != 2212 && pdg != 2112 && pdg != 3122){
+          int S = pdg / 1000000;
+          int pdg_no_s = pdg % 1000000;
+          int A = pdg_no_s % 1000;
+          int Z = pdg_no_s / 1000;
+          pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
+        }
       }
       LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
       // get the type of the particle
@@ -838,9 +830,11 @@ void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * 
 
   // If the normal cascade predicted complete fusion, use the tabulated
   // masses to compute the excitation energy, the recoil, etc.
-  if(false && incl_target->getStore()->getOutgoingParticles().size()==0
-      && (!incl_target->getProjectileRemnant()
-	|| incl_target->getProjectileRemnant()->getParticles().size()==0)) {
+  //if(incl_target->getStore()->getOutgoingParticles().size()==0
+  //    && (!incl_target->getProjectileRemnant()
+  //	|| incl_target->getProjectileRemnant()->getParticles().size()==0)) {
+  if( false && (!incl_target->getProjectileRemnant()
+        || incl_target->getProjectileRemnant()->getParticles().size()==0)) {
 
     LOG("INCLCascadeIntranuke", pINFO) << "Cascade resulted in complete fusion, using realistic fusion kinematics";
 
@@ -1001,7 +995,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx++);
     er++;
   }
-  evrec->Print(std::cout);
+  //evrec->Print(std::cout);
   delete avatar;
   return;
 
@@ -1043,7 +1037,7 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
     case 310: return G4INCL::KShort;
     case 130: return G4INCL::KLong;
     default:
-	      return G4INCL::UnknownParticle;
+              return G4INCL::UnknownParticle;
   }
 
 }
@@ -1055,7 +1049,7 @@ void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
     bool decay_flag = false;
     while ( (p = (GHepParticle *) piter.Next() ) ) {
       if(p->Status() == kIStPreDecayResonantState && p->FirstDaughter() == -1 && PDG_to_INCLType(p->Pdg()) == G4INCL::UnknownParticle){
-	decay_flag = true;
+        decay_flag = true;
       }
     }
     if(decay_flag){

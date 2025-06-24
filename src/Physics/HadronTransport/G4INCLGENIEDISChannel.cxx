@@ -22,13 +22,12 @@ namespace G4INCL {
     std::vector<GENIEParticleRecord>::iterator ip;
 
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      std::cout << "ip: " << ip->Pdg() << " " << ip->FirstMother() << "  " << ip->Status()  << "  " << hitParticle->getID() << std::endl;
       if(ip->Status() == 14){
-	Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
-	ip->setID(int(ihadron->getID()));
-	ihadron->setMass(ip->Mass());
-	ihadron->adjustEnergyFromMomentum();
-	fs->addCreatedParticle(ihadron);
+        Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
+        ip->setID(int(ihadron->getID()));
+        ihadron->setMass(ip->Mass());
+        ihadron->adjustEnergyFromMomentum();
+        fs->addCreatedParticle(ihadron);
       }
     }
     fs->addDestroyedParticle(hitParticle);
