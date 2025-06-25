@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::MECGenerator
+\class    genie::MECGeneratorINCL
 
 \brief    Simulate the primary MEC interaction
 
@@ -18,14 +18,15 @@
 */
 //____________________________________________________________________________
 
-#ifndef _MEC_GENERATOR_H_
-#define _MEC_GENERATOR_H_
+#ifndef _MEC_GENERATOR_INCL_H_
+#define _MEC_GENERATOR_INCL_H_
 
 #include <TGenPhaseSpace.h>
 #include "Framework/Utils/Range1.h"
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
 #include "Framework/ParticleData/PDGCodeList.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 
 namespace genie {
 
@@ -33,12 +34,12 @@ class Interaction;
 class NuclearModelI;
 class XSecAlgorithmI;
 
-class MECGenerator : public EventRecordVisitorI {
+class MECGeneratorINCL : public EventRecordVisitorI {
 
 public :
-  MECGenerator();
-  MECGenerator(string config);
- ~MECGenerator();
+  MECGeneratorINCL();
+  MECGeneratorINCL(string config);
+ ~MECGeneratorINCL();
 
   // implement the EventRecordVisitorI interface
   void ProcessEventRecord (GHepRecord * event) const;
@@ -70,6 +71,7 @@ private:
   mutable const XSecAlgorithmI * fXSecModel;
   mutable TGenPhaseSpace         fPhaseSpaceGenerator;
   const NuclearModelI *          fNuclModel;
+  const NucleusGenI   *  fNucleusGen;  ///< nucleus generator
 
   double fSafetyFactor ; 
   int fFunctionCalls ; 
@@ -85,4 +87,4 @@ private:
 };
 
 }      // genie namespace
-#endif // _MEC_GENERATOR_H_
+#endif // _MEC_GENERATOR_INCL_H_

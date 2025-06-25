@@ -9,5 +9,6 @@
 
 #pragma link C++ class genie::MECInteractionListGenerator;
 #pragma link C++ class genie::MECGenerator;
+#pragma link C++ class genie::MECGeneratorINCL;
 
 #endif

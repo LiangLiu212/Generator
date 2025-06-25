@@ -29,7 +29,7 @@
 #include "Framework/GHEP/GHepRecord.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Physics/Common/PrimaryLeptonUtils.h"
-#include "Physics/Multinucleon/EventGen/MECGenerator.h"
+#include "Physics/Multinucleon/EventGen/MECGeneratorINCL.h"
 #include "Physics/Multinucleon/XSection/MECUtils.h"
 #include "Physics/Multinucleon/XSection/SuSAv2MECPXSec.h"
 
@@ -49,24 +49,24 @@ using namespace genie::constants;
 using namespace genie::controls;
 
 //___________________________________________________________________________
-MECGenerator::MECGenerator() :
-EventRecordVisitorI("genie::MECGenerator")
+MECGeneratorINCL::MECGeneratorINCL() :
+EventRecordVisitorI("genie::MECGeneratorINCL")
 {
 
 }
 //___________________________________________________________________________
-MECGenerator::MECGenerator(string config) :
-EventRecordVisitorI("genie::MECGenerator", config)
+MECGeneratorINCL::MECGeneratorINCL(string config) :
+EventRecordVisitorI("genie::MECGeneratorINCL", config)
 {
 
 }
 //___________________________________________________________________________
-MECGenerator::~MECGenerator()
+MECGeneratorINCL::~MECGeneratorINCL()
 {
 
 }
 //___________________________________________________________________________
-void MECGenerator::ProcessEventRecord(GHepRecord * event) const
+void MECGeneratorINCL::ProcessEventRecord(GHepRecord * event) const
 {
   //-- Access cross section algorithm for running thread
   RunningThreadInfo * rtinfo = RunningThreadInfo::Instance();
@@ -94,20 +94,16 @@ void MECGenerator::ProcessEventRecord(GHepRecord * event) const
       // for this...
       this -> DecayNucleonCluster(event);
   }  else if (fXSecModel->Id().Name() == "genie::SuSAv2MECPXSec") {
-      event->Print();
       this -> SelectSuSALeptonKinematics(event);
-      event->Print();
       this -> AddTargetRemnant(event);
-      event->Print();
       this -> GenerateNSVInitialHadrons(event);
-      event->Print();
       // Note: this method in `MECTensor/MECTensorGenerator.cxx` appeared to be a straight
       // copy of an earlier version of the `DecayNucleonCluster` method here - but, watch
       // for this...
       this -> DecayNucleonCluster(event);
   }
   else {
-      LOG("MECGenerator",pFATAL) <<
+      LOG("MECGeneratorINCL",pFATAL) <<
           "ProcessEventRecord >> Cannot calculate kinematics for " <<
           fXSecModel->Id().Name();
   }
@@ -115,7 +111,7 @@ void MECGenerator::ProcessEventRecord(GHepRecord * event) const
 
 }
 //___________________________________________________________________________
-void MECGenerator::AddTargetRemnant(GHepRecord * event) const
+void MECGeneratorINCL::AddTargetRemnant(GHepRecord * event) const
 {
 // Add the remnant nucleus (= initial nucleus - nucleon cluster) in the
 // event record.
@@ -163,7 +159,7 @@ void MECGenerator::AddTargetRemnant(GHepRecord * event) const
 
 }
 //___________________________________________________________________________
-void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
+void MECGeneratorINCL::GenerateFermiMomentum(GHepRecord * event) const
 {
 // Generate the initial state di-nucleon cluster 4-momentum.
 // Draw Fermi momenta for each of the two nucleons.
@@ -182,25 +178,39 @@ void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
   Target tgt(target_nucleus->Pdg());
   PDGCodeList pdgv = this->NucleonClusterConstituents(nucleon_cluster->Pdg());
   assert(pdgv.size()==2);
-  tgt.SetHitNucPdg(pdgv[0]);
-  fNuclModel->GenerateNucleon(tgt);
-  TVector3 p3a = fNuclModel->Momentum3();
-  tgt.SetHitNucPdg(pdgv[1]);
-  fNuclModel->GenerateNucleon(tgt);
-  TVector3 p3b = fNuclModel->Momentum3();
+ // tgt.SetHitNucPdg(pdgv[0]);
+ // fNuclModel->GenerateNucleon(tgt);
+ // TVector3 p3a = fNuclModel->Momentum3();
+ // tgt.SetHitNucPdg(pdgv[1]);
+ // fNuclModel->GenerateNucleon(tgt);
+ // TVector3 p3b = fNuclModel->Momentum3();
+ 
 
-  LOG("FermiMover", pINFO)
-     << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
-     << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
-     << "|p| = " << p3a.Mag();
-  LOG("FermiMover", pINFO)
-     << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
-     << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
-     << "|p| = " << p3b.Mag();
+  TVector3 p3;
+  if(fNucleusGen){
+    // The new interface of nucleus model
+    // it will generate the momentum and position of a cluster simultaneously.
+    fNucleusGen->GenerateCluster(event);
+    // the p3 will be set again, the following code is duplicate with new interface
+    p3 = event->HitNucleon()->P4()->Vect();
+  }
+  else{
+    // the modified traditional interface
+    TVector3 p3a, p3b;
+    fNuclModel->GenerateCluster(tgt, pdgv, &p3a, &p3b);
+    LOG("FermiMover", pINFO)
+       << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
+       << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
+       << "|p| = " << p3a.Mag();
+    LOG("FermiMover", pINFO)
+       << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
+       << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
+       << "|p| = " << p3b.Mag();
+    p3 = p3a + p3b;
+  }
 
-  // calcute nucleon cluster momentum
+   // calcute nucleon cluster momentum
 
-  TVector3 p3 = p3a + p3b;
 
   LOG("FermiMover", pINFO)
      << "di-nucleon cluster momentum: ("
@@ -224,15 +234,14 @@ void MECGenerator::GenerateFermiMomentum(GHepRecord * event) const
   nucleon_cluster->SetMomentum(p4nclust);
   remnant_nucleus->SetMomentum(p4remnant);
 
-  // set the nucleon cluster 4-momentum at the interaction summary
 
   event->Summary()->InitStatePtr()->TgtPtr()->SetHitNucP4(p4nclust);
 }
 //___________________________________________________________________________
-void MECGenerator::SelectEmpiricalKinematics(GHepRecord * event) const
+void MECGeneratorINCL::SelectEmpiricalKinematics(GHepRecord * event) const
 {
 // Select interaction kinematics using the rejection method.
-//
+//c
 
   // Access cross section algorithm for running thread
   RunningThreadInfo * rtinfo = RunningThreadInfo::Instance();
@@ -324,7 +333,7 @@ void MECGenerator::SelectEmpiricalKinematics(GHepRecord * event) const
   }//iter
 }
 //___________________________________________________________________________
-void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
+void MECGeneratorINCL::AddFinalStateLepton(GHepRecord * event) const
 {
 // Add the final-state primary lepton in the event record.
 // Compute its 4-momentum based on the selected interaction kinematics.
@@ -396,7 +405,7 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   utils::SetPrimaryLeptonPolarization( event );
 }
 //___________________________________________________________________________
-void MECGenerator::RecoilNucleonCluster(GHepRecord * event) const
+void MECGeneratorINCL::RecoilNucleonCluster(GHepRecord * event) const
 {
   // get di-nucleon cluster & its 4-momentum
   GHepParticle * nucleon_cluster = event->HitNucleon();
@@ -435,7 +444,7 @@ void MECGenerator::RecoilNucleonCluster(GHepRecord * event) const
     2, -1, -1, -1, p4cluster_recoil, v4);
 }
 //___________________________________________________________________________
-void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
+void MECGeneratorINCL::DecayNucleonCluster(GHepRecord * event) const
 {
 // Perform a phase-space decay of the nucleon cluster and add its decay
 // products in the event record
@@ -560,7 +569,7 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   delete v4d;
 }
 //___________________________________________________________________________
-PDGCodeList MECGenerator::NucleonClusterConstituents(int pdgc) const
+PDGCodeList MECGeneratorINCL::NucleonClusterConstituents(int pdgc) const
 {
   bool allowdup = true;
   PDGCodeList pdgv(allowdup);
@@ -588,7 +597,7 @@ PDGCodeList MECGenerator::NucleonClusterConstituents(int pdgc) const
   return pdgv;
 }
 //___________________________________________________________________________
-void MECGenerator::SelectNSVLeptonKinematics (GHepRecord * event) const
+void MECGeneratorINCL::SelectNSVLeptonKinematics (GHepRecord * event) const
 {
   // -- implementation -- //
   // The IFIC Valencia model can provide three different hadron tensors.
@@ -854,7 +863,7 @@ void MECGenerator::SelectNSVLeptonKinematics (GHepRecord * event) const
   LOG("MEC",pDEBUG) << "~~~ LEPTON DONE ~~~";
 }
 //___________________________________________________________________________
-void MECGenerator::SelectSuSALeptonKinematics(GHepRecord* event) const
+void MECGeneratorINCL::SelectSuSALeptonKinematics(GHepRecord* event) const
 {
   // Event Properties
   Interaction* interaction = event->Summary();
@@ -1125,7 +1134,7 @@ void MECGenerator::SelectSuSALeptonKinematics(GHepRecord* event) const
   LOG("MEC", pDEBUG) << "~~~ LEPTON DONE ~~~";
 }
 //___________________________________________________________________________
-void MECGenerator::GenerateNSVInitialHadrons(GHepRecord * event) const
+void MECGeneratorINCL::GenerateNSVInitialHadrons(GHepRecord * event) const
 {
     // We need a kinematic limits accept/reject loop here, so generating the
     // initial hadrons is combined with generating the recoil hadrons...
@@ -1237,14 +1246,15 @@ void MECGenerator::GenerateNSVInitialHadrons(GHepRecord * event) const
         // Nieves et al. would use a local Fermi gas here, not this, but ok.
         // so momentum from global Fermi gas, local Fermi gas, or spectral function
         // and removal energy ~0.025 GeV, correlated with density, or from SF distribution
-        tgt.SetHitNucPdg(pdgv[0]);
-        fNuclModel->GenerateNucleon(tgt);
-        p31i = fNuclModel->Momentum3();
-        removalenergy1 = fNuclModel->RemovalEnergy();
-        tgt.SetHitNucPdg(pdgv[1]);
-        fNuclModel->GenerateNucleon(tgt);
-        p32i = fNuclModel->Momentum3();
-        removalenergy2 = fNuclModel->RemovalEnergy();
+        //tgt.SetHitNucPdg(pdgv[0]);
+        //fNuclModel->GenerateNucleon(tgt);
+        //p31i = fNuclModel->Momentum3();
+        //removalenergy1 = fNuclModel->RemovalEnergy();
+        //tgt.SetHitNucPdg(pdgv[1]);
+        //fNuclModel->GenerateNucleon(tgt);
+        //p32i = fNuclModel->Momentum3();
+        //removalenergy2 = fNuclModel->RemovalEnergy();
+	fNuclModel->GenerateCluster(tgt, pdgv, &p31i, &p32i, &removalenergy1, &removalenergy2);
 
         // not sure -- could give option to use Nieves q-value here.
 
@@ -1320,24 +1330,46 @@ void MECGenerator::GenerateNSVInitialHadrons(GHepRecord * event) const
     interaction->KinePtr()->SetHadSystP4(p4final_cluster);
 }
 //___________________________________________________________________________
-void MECGenerator::Configure(const Registry & config)
+void MECGeneratorINCL::Configure(const Registry & config)
 {
     Algorithm::Configure(config);
     this->LoadConfig();
 }
 //___________________________________________________________________________
-void MECGenerator::Configure(string config)
+void MECGeneratorINCL::Configure(string config)
 {
     Algorithm::Configure(config);
     this->LoadConfig();
 }
 //___________________________________________________________________________
-void MECGenerator::LoadConfig(void)
+void MECGeneratorINCL::LoadConfig(void)
 {
-    fNuclModel = 0;
-    RgKey nuclkey = "NuclearModel";
-    fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-    assert(fNuclModel);
+    //fNuclModel = 0;
+    //RgKey nuclkey = "NuclearModel";
+    //fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+    //assert(fNuclModel);
+    
+    try {
+      fNucleusGen = nullptr;
+      RgKey nuclgenkey = "NuclearModel";
+      fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+      if(fNucleusGen){
+        fNucleusGen->GetConfig().Print(std::cout);
+        assert(fNucleusGen);
+	fNuclModel = nullptr;
+	fNuclModel = fNucleusGen->GetNuclearModel();
+      }
+      else
+	throw std::runtime_error("undef!");
+    }
+    catch (const std::exception& e) {
+      fNuclModel = nullptr;
+      RgKey nuclkey = "NuclearModel";
+      fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+      assert(fNuclModel);
+      fNuclModel->GetConfig().Print(std::cout);
+    }
+
 
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6 ) ;
     GetParam( "MaxXSec-FunctionCalls", fFunctionCalls ) ;
@@ -1353,7 +1385,7 @@ void MECGenerator::LoadConfig(void)
     GetParamDef( "SuSA-MaxXSec-DiffTolerance", fSuSAMaxXSecDiffTolerance, 999999. );
 }
 //___________________________________________________________________________
-double MECGenerator::GetXSecMaxTlctl( const Interaction & in,
+double MECGeneratorINCL::GetXSecMaxTlctl( const Interaction & in,
 				      const Range1D_t & Tl_range,
 				      const Range1D_t & ctl_range ) const {
 

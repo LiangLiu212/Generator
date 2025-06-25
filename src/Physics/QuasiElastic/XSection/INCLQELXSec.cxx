@@ -17,6 +17,7 @@
 #include "Framework/Conventions/KineVar.h"
 #include "Framework/Conventions/RefFrame.h"
 #include "Physics/QuasiElastic/XSection/NewQELXSec.h"
+#include "Physics/QuasiElastic/XSection/INCLQELXSec.h"
 
 #include "Physics/NuclearState/NuclearModelI.h"
 #include "Physics/XSectionIntegration/GSLXSecFunc.h"
@@ -36,19 +37,19 @@ using namespace genie::constants;
 using namespace genie::utils::gsl;
 
 //____________________________________________________________________________
-NewQELXSec::NewQELXSec() : XSecIntegratorI("genie::NewQELXSec")
+INCLQELXSec::INCLQELXSec() : XSecIntegratorI("genie::INCLQELXSec")
 {
 
 }
 //____________________________________________________________________________
-NewQELXSec::NewQELXSec(std::string config) : XSecIntegratorI("genie::NewQELXSec", config)
+INCLQELXSec::INCLQELXSec(std::string config) : XSecIntegratorI("genie::INCLQELXSec", config)
 {
 
 }
 //____________________________________________________________________________
-double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in) const
+double INCLQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in) const
 {
-  LOG("NewQELXSec",pDEBUG) << "Beginning integrate";
+  LOG("INCLQELXSec",pDEBUG) << "Beginning integrate";
   if ( !model->ValidProcess(in) ) return 0.;
 
   Interaction* interaction = new Interaction( *in );
@@ -157,12 +158,12 @@ double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in)
     // The initial state variables have all been defined, so integrate over
     // the final lepton angles.
     double xsec = ig.Integral(kine_min, kine_max);
-    LOG("NewQELXSec",pNOTICE) << "Liang's " << "xsec : " << xsec ;
+    LOG("INCLQELXSec",pNOTICE) << "Liang's " << "xsec : " << xsec ;
 
     xsec_sum += xsec;
   }
 
-    LOG("NewQELXSec",pNOTICE) << "Liang's";
+    LOG("INCLQELXSec",pNOTICE) << "Liang's";
 
   delete func;
 
@@ -172,19 +173,19 @@ double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in)
   return xsec_mean;
 }
 //____________________________________________________________________________
-void NewQELXSec::Configure(const Registry & config)
+void INCLQELXSec::Configure(const Registry & config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NewQELXSec::Configure(string config)
+void INCLQELXSec::Configure(string config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NewQELXSec::LoadConfig(void)
+void INCLQELXSec::LoadConfig(void)
 {
   // Get GSL integration type & relative tolerance
   GetParamDef( "gsl-integration-type", fGSLIntgType, std::string("adaptive") ) ;
@@ -209,60 +210,3 @@ void NewQELXSec::LoadConfig(void)
   GetParamDef( "AverageOverNucleons", fAverageOverNucleons, true );
 }
 
-genie::utils::gsl::FullQELdXSec::FullQELdXSec(const XSecAlgorithmI* xsec_model,
-  const Interaction* interaction, QELEvGen_BindingMode_t binding_mode, double min_angle_EM)
-  : fXSecModel( xsec_model ), fInteraction( new Interaction(*interaction) ),
-  fHitNucleonBindingMode( binding_mode ), fMinAngleEM( min_angle_EM )
-{
-  fNuclModel = dynamic_cast<const NuclearModelI*>( fXSecModel->SubAlg("IntegralNuclearModel") );
-  assert( fNuclModel );
-}
-
-genie::utils::gsl::FullQELdXSec::~FullQELdXSec()
-{
-  delete fInteraction;
-}
-
-Interaction* genie::utils::gsl::FullQELdXSec::GetInteractionPtr()
-{
-  return fInteraction;
-}
-
-const Interaction& genie::utils::gsl::FullQELdXSec::GetInteraction() const
-{
-  return *fInteraction;
-}
-
-ROOT::Math::IBaseFunctionMultiDim* genie::utils::gsl::FullQELdXSec::Clone(void) const
-{
-  return new FullQELdXSec(fXSecModel, fInteraction, fHitNucleonBindingMode, fMinAngleEM);
-}
-
-unsigned int genie::utils::gsl::FullQELdXSec::NDim(void) const
-{
-  return 2;
-}
-
-double genie::utils::gsl::FullQELdXSec::DoEval(const double* xin) const
-{
-  // Elements of "xin"
-  //
-  // element 0: "cos_theta0" = Cosine of theta0, the angle between the COM frame
-  //                           3-momentum of the outgoing lepton and the COM frame velocity
-  //                           as measured in the laboratory frame
-  // element 1: "phi_theta0" = Azimuthal angle of the COM frame 3-momentum of the
-  //                           outgoing lepton measured with respect to the COM frame
-  //                           velocity as measured in the laboratory frame
-
-  double cos_theta0 = xin[0];
-  double phi0 = xin[1];
-
-  // Dummy storage for the binding energy of the hit nucleon
-  double dummy_Eb = 0.;
-
-  // Compute the full differential cross section
-  double xsec = genie::utils::ComputeFullQELPXSec(fInteraction, fNuclModel,
-    fXSecModel, cos_theta0, phi0, dummy_Eb, fHitNucleonBindingMode, fMinAngleEM, true);
-
-  return xsec;
-}

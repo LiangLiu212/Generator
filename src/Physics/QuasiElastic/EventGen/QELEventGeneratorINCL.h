@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::QELEventGenerator
+\class    genie::QELEventGeneratorINCL
 
 \brief    Generates values for the kinematic variables describing QEL neutrino
           interaction events.
@@ -16,10 +16,11 @@
 */
 //____________________________________________________________________________
 
-#ifndef _QEL_EVENT_GENERATOR_H_
-#define _QEL_EVENT_GENERATOR_H_
+#ifndef _QEL_EVENT_GENERATOR_INCL_H_
+#define _QEL_EVENT_GENERATOR_INCL_H_
 
 #include "Physics/NuclearState/NuclearModelI.h"
+#include "Physics/NuclearState/NucleusGenI.h"
 #include "Physics/Common/KineGeneratorWithCache.h"
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
 #include "Framework/Utils/Range1.h"
@@ -27,12 +28,12 @@
 
 namespace genie {
 
-class QELEventGenerator: public KineGeneratorWithCache {
+class QELEventGeneratorINCL: public KineGeneratorWithCache {
 
 public :
-  QELEventGenerator();
-  QELEventGenerator(string config);
- ~QELEventGenerator();
+  QELEventGeneratorINCL();
+  QELEventGeneratorINCL(string config);
+ ~QELEventGeneratorINCL();
 
   // implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
@@ -52,6 +53,7 @@ private:
   void AddTargetNucleusRemnant (GHepRecord * evrec) const; ///< add a recoiled nucleus remnant
 
   const NuclearModelI *  fNuclModel;   ///< nuclear model
+  const NucleusGenI   *  fNucleusGen;  ///< nucleus generator
 
   mutable double fMinAngleEM;
 
@@ -67,4 +69,4 @@ private:
 
 } // genie namespace
 
-#endif // _QEL_EVENT_GENERATOR_H_
+#endif // _QEL_EVENT_GENERATOR_INCL_H_

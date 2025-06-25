@@ -33,7 +33,7 @@
 #include "Framework/ParticleData/PDGLibrary.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
-#include "Physics/QuasiElastic/EventGen/QELEventGenerator.h"
+#include "Physics/QuasiElastic/EventGen/QELEventGeneratorINCL.h"
 #include "Physics/Common/PrimaryLeptonUtils.h"
 
 #include "Physics/NuclearState/NuclearModelI.h"
@@ -47,27 +47,29 @@ using namespace genie::constants;
 using namespace genie::utils;
 
 //___________________________________________________________________________
-QELEventGenerator::QELEventGenerator() :
-    KineGeneratorWithCache("genie::QELEventGenerator")
+QELEventGeneratorINCL::QELEventGeneratorINCL() :
+    KineGeneratorWithCache("genie::QELEventGeneratorINCL")
 {
 
 }
 //___________________________________________________________________________
-QELEventGenerator::QELEventGenerator(string config) :
-    KineGeneratorWithCache("genie::QELEventGenerator", config)
+QELEventGeneratorINCL::QELEventGeneratorINCL(string config) :
+    KineGeneratorWithCache("genie::QELEventGeneratorINCL", config)
 {
 
 }
 //___________________________________________________________________________
-QELEventGenerator::~QELEventGenerator()
+QELEventGeneratorINCL::~QELEventGeneratorINCL()
 {
 
 }
 //___________________________________________________________________________
-void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
+void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
 {
     LOG("QELEvent", pDEBUG) << "Generating QE event kinematics...";
-
+    if(fNucleusGen){
+      fNucleusGen->GenerateVertex(evrec);
+    }
     // Get the random number generators
     RandomGen * rnd = RandomGen::Instance();
 
@@ -156,6 +158,9 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
           fNuclModel->GenerateNucleon(*tgt, hitNucPos);
+	  if(fNucleusGen){
+	    fNucleusGen->setInitialStateVertex(evrec);
+	  }
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and
@@ -200,6 +205,7 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         LOG("QELEvent", pDEBUG)
             << "xsec= " << xsec << ", Rnd= " << t;
 #endif
+	LOG("QELEvent", pWARN) << "xsec max = " << xsec_max <<  ", xsec= " << xsec << ", Rnd= " << t;
         accept = (t < xsec);
 
         // If the generated kinematics are accepted, finish-up module's job
@@ -286,7 +292,7 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
     LOG("QELEvent", pINFO) << "Done generating QE event kinematics!";
 }
 //___________________________________________________________________________
-void QELEventGenerator::AddTargetNucleusRemnant(GHepRecord * evrec) const
+void QELEventGeneratorINCL::AddTargetNucleusRemnant(GHepRecord * evrec) const
 {
     // add the remnant nuclear target at the GHEP record
 
@@ -350,33 +356,49 @@ void QELEventGenerator::AddTargetNucleusRemnant(GHepRecord * evrec) const
     int imom = evrec->TargetNucleusPosition();
     evrec->AddParticle(
             ipdgc,kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+//    evrec->AddParticle(
+//            ipdgc,kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 
     LOG("QELEvent", pINFO) << "Done";
-    LOG("QELEvent", pINFO) << *evrec;
 }
 //___________________________________________________________________________
-void QELEventGenerator::Configure(const Registry & config)
+void QELEventGeneratorINCL::Configure(const Registry & config)
 {
     Algorithm::Configure(config);
     this->LoadConfig();
 }
 //____________________________________________________________________________
-void QELEventGenerator::Configure(string config)
+void QELEventGeneratorINCL::Configure(string config)
 {
     Algorithm::Configure(config);
     this->LoadConfig();
 }
 //____________________________________________________________________________
-void QELEventGenerator::LoadConfig(void)
+void QELEventGeneratorINCL::LoadConfig(void)
 {
     // Load sub-algorithms and config data to reduce the number of registry
     // lookups
-        fNuclModel = 0;
+    try{
+      fNucleusGen = nullptr;
+      RgKey nuclgenkey = "NuclearModel";
+      fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+      if(fNucleusGen){
+        fNucleusGen->GetConfig().Print(std::cout);
+        assert(fNucleusGen);
+	fNuclModel = nullptr;
+	fNuclModel = fNucleusGen->GetNuclearModel();
 
-    RgKey nuclkey = "NuclearModel";
-
-    fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-    assert(fNuclModel);
+      }
+      else
+	throw std::runtime_error("undef!");
+    }
+    catch (const std::exception& e) {
+      fNuclModel = nullptr;
+      RgKey nuclkey = "NuclearModel";
+      fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
+      assert(fNuclModel);
+      fNuclModel->GetConfig().Print(std::cout);
+    }
 
     // Safety factor for the maximum differential cross section
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6  ) ;
@@ -406,7 +428,7 @@ void QELEventGenerator::LoadConfig(void)
     GetParamDef( "MaxXSecNucleonThrows", fMaxXSecNucleonThrows, 800 );
 }
 //____________________________________________________________________________
-double QELEventGenerator::ComputeMaxXSec(const Interaction * in) const
+double QELEventGeneratorINCL::ComputeMaxXSec(const Interaction * in) const
 {
     // Computes the maximum differential cross section in the requested phase
     // space. This method overloads KineGeneratorWithCache::ComputeMaxXSec
