@@ -176,7 +176,7 @@ namespace G4INCL {
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->RecordCode() == kFinalStateLepton){
         ip->setMomentum(leptonMom);
-        ip->setMass(std::sqrt(leptonE*leptonE - leptonMom.mag2()));
+        ip->setMass(std::sqrt(std::max(leptonE*leptonE - leptonMom.mag2(), 0.)));
         //std::cout << "DEBUG: " << "\n" 
         //  << "Incident particle update potential: \n" 
         //  << "Particle type = electron\n" 

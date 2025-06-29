@@ -28,6 +28,7 @@
 #include "Framework/GHEP/GHepParticle.h"
 #include "Physics/NuclearState/FermiMomentumTable.h"
 #include "Framework/Interaction/Target.h"
+#include "Physics/QuasiElastic/XSection/QELUtils.h"
 
 namespace genie {
 
@@ -49,6 +50,12 @@ namespace genie {
       virtual void GenerateVertex(GHepRecord *event_rec) const  = 0;
       virtual void GenerateCluster(GHepRecord *event_rec) const  = 0;
       virtual void setInitialStateVertex   (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a position
+      virtual void BindHitNucleon() const = 0;
+      virtual void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const = 0;
+      virtual void GenerateNucleon(Interaction* interaction, bool isRadius = true) const = 0;
+      virtual bool isRPValid(double r, double p, const Target & tgt) const = 0;
+      virtual void SetHitNucleonOnShellMom(TVector3 p3) const  = 0;
+      
 
     protected:
       void LoadConfig (void);

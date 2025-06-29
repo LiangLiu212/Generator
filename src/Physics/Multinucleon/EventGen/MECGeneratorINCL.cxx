@@ -72,7 +72,7 @@ void MECGeneratorINCL::ProcessEventRecord(GHepRecord * event) const
   RunningThreadInfo * rtinfo = RunningThreadInfo::Instance();
   const EventGeneratorI * evg = rtinfo->RunningThread();
   fXSecModel = evg->CrossSectionAlg();
-  if (fXSecModel->Id().Name() == "genie::EmpiricalMECPXSec2015") {
+  if (fXSecModel->Id().Name() == "genie::EmpiricalMECPXSecINCL") {
       this -> AddTargetRemnant      (event); /// shortly, this will be handled by the InitialStateAppender module
       this -> GenerateFermiMomentum(event);
       this -> SelectEmpiricalKinematics(event);

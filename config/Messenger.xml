@@ -182,8 +182,9 @@
   <priority msgstream="PhysUtil">              WARN   </priority>
   <priority msgstream="QELXSec">               NOTICE </priority>
   <priority msgstream="NewQELXSec">               NOTICE </priority>
+  <priority msgstream="INCLQELXSec">               NOTICE </priority>
   <priority msgstream="QELCharmXSec">          NOTICE </priority>
-  <priority msgstream="QELEvent">              ERROR </priority>
+  <priority msgstream="QELEvent">              WARN </priority>
   <priority msgstream="QELHadronicVtx">        WARN   </priority>
   <priority msgstream="QELKinematics">         WARN   </priority>
   <priority msgstream="RESXSec">               INFO   </priority>

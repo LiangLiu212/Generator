@@ -46,15 +46,21 @@ public :
   void ProcessEventRecord(GHepRecord * event_rec) const;
 
 
+  // this two will be used in QEL-CC channel
+  void GenerateVertex(GHepRecord *event_rec) const;
+  void GenerateCluster(GHepRecord *event_rec) const;
+  void setInitialStateVertex   (GHepRecord * evrec) const; ///< give hit nucleon a position
+
+
+      void BindHitNucleon() const;
+      void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const;
+      void GenerateNucleon(Interaction* interaction, bool isRadius = true) const;
+
   //-- overload the Algorithm::Configure() methods to load private data
   //   members from configuration options
   void Configure(const Registry & config);
   void Configure(string config);
 
-  // this two will be used in QEL-CC channel
-  void GenerateVertex(GHepRecord *event_rec) const;
-  void GenerateCluster(GHepRecord *event_rec) const;
-  void setInitialStateVertex   (GHepRecord * evrec) const; ///< give hit nucleon a position
 
 private:
 
@@ -74,6 +80,9 @@ private:
   // const SecondNucleonEmissionI *  fSecondEmitter ; 
 
   std::string expandEnvironmentPath(const std::string& path);
+
+  // this flag only used for QEL XSec calculation;
+  mutable bool flag_isRadius = false;
 };
 
 }      // genie namespace

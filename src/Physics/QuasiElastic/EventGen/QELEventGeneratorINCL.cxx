@@ -36,7 +36,6 @@
 #include "Physics/QuasiElastic/EventGen/QELEventGeneratorINCL.h"
 #include "Physics/Common/PrimaryLeptonUtils.h"
 
-#include "Physics/NuclearState/NuclearModelI.h"
 #include "Framework/Numerical/MathUtils.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Framework/Utils/PrintUtils.h"
@@ -67,9 +66,7 @@ QELEventGeneratorINCL::~QELEventGeneratorINCL()
 void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
 {
     LOG("QELEvent", pDEBUG) << "Generating QE event kinematics...";
-    if(fNucleusGen){
-      fNucleusGen->GenerateVertex(evrec);
-    }
+
     // Get the random number generators
     RandomGen * rnd = RandomGen::Instance();
 
@@ -94,10 +91,20 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
     interaction->SetBit(kISkipProcessChk);
     interaction->SetBit(kISkipKinematicChk);
 
+
+    // using NucleusGenI to generate both the vertex and momentum of
+    // the initial nucleon. The momentum will be re-sampling in QEL 
+    // model, but the vertex will not be re-sampling. 
+    // The argument is we will not change the Woods-Saxon density.
+    // But, the re-sampling might change the input momentum distributiona
+    // TODO: understand the effect of the re-sampling
+    fNucleusGen->ProcessEventRecord(evrec);
+
     // Access the hit nucleon and target nucleus entries at the GHEP record
     GHepParticle * nucleon = evrec->HitNucleon();
     GHepParticle * nucleus = evrec->TargetNucleus();
     bool have_nucleus = (nucleus != 0);
+
 
     // Store the hit nucleon radius before computing the maximum differential
     // cross section (important when using the local Fermi gas model)
@@ -157,23 +164,18 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
         // If the target is a composite nucleus, then sample an initial nucleon
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
-          fNuclModel->GenerateNucleon(*tgt, hitNucPos);
-	  if(fNucleusGen){
-	    fNucleusGen->setInitialStateVertex(evrec);
-	  }
+          fNucleusGen->GenerateNucleon(interaction, hitNucPos);
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and
           // unbound. Use the nuclear model to make these assignments. The call
           // to BindHitNucleon() will apply them correctly below.
-          fNuclModel->SetMomentum3( TVector3(0., 0., 0.) );
-          fNuclModel->SetRemovalEnergy( 0. );
+	  fNucleusGen->SetHitNucleonOnShellMom(TVector3(0., 0., 0.));
         }
 
         // Put the hit nucleon off-shell (if needed) so that we can get the correct
         // value of cos_theta0_max
-        genie::utils::BindHitNucleon(*interaction, *fNuclModel,
-          fEb, fHitNucleonBindingMode);
+	fNucleusGen->BindHitNucleon(*interaction, fEb, fHitNucleonBindingMode);
 
         double cos_theta0_max = std::min(1., CosTheta0Max(*interaction));
 
@@ -193,7 +195,7 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
         // Set the "bind_nucleon" flag to false in this call to ComputeFullQELPXSec
         // since we've already done that above
         LOG("QELEvent", pDEBUG) << "cth0 = " << costheta << ", phi0 = " << phi;
-        double xsec = genie::utils::ComputeFullQELPXSec(interaction, fNuclModel,
+        double xsec = genie::utils::ComputeFullQELPXSec(interaction, fNucleusGen,
           fXSecModel, costheta, phi, fEb, fHitNucleonBindingMode, fMinAngleEM, false);
 
         // select/reject event
@@ -378,27 +380,10 @@ void QELEventGeneratorINCL::LoadConfig(void)
 {
     // Load sub-algorithms and config data to reduce the number of registry
     // lookups
-    try{
-      fNucleusGen = nullptr;
-      RgKey nuclgenkey = "NuclearModel";
-      fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
-      if(fNucleusGen){
-        fNucleusGen->GetConfig().Print(std::cout);
-        assert(fNucleusGen);
-	fNuclModel = nullptr;
-	fNuclModel = fNucleusGen->GetNuclearModel();
-
-      }
-      else
-	throw std::runtime_error("undef!");
-    }
-    catch (const std::exception& e) {
-      fNuclModel = nullptr;
-      RgKey nuclkey = "NuclearModel";
-      fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
-      assert(fNuclModel);
-      fNuclModel->GetConfig().Print(std::cout);
-    }
+    fNucleusGen = nullptr;
+    RgKey nuclgenkey = "NuclearModel";
+    fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+    assert(fNucleusGen);
 
     // Safety factor for the maximum differential cross section
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6  ) ;
@@ -460,32 +445,27 @@ double QELEventGeneratorINCL::ComputeMaxXSec(const Interaction * in) const
       double pNi_next = max_momentum + search_step;
 
       // Set the nucleon we're using to be upstream at max energy and unbound
-      fNuclModel->SetMomentum3( TVector3(0., 0., -pNi_next) );
-      fNuclModel->SetRemovalEnergy( 0. );
 
       // Set the nucleon total energy to be on-shell with a quick call to
       // BindHitNucleon()
-      genie::utils::BindHitNucleon(*interaction, *fNuclModel, dummy_Eb, kOnShell);
 
       // TODO: document this, won't work for spectral functions
-      double dummy_w = -1.;
-      double prob = fNuclModel->Prob(pNi_next, dummy_w, tgt,
-        tgt.HitNucPosition());
-
+      bool valid_mom = fNucleusGen->isRPValid(tgt.HitNucPosition(), -pNi_next, tgt);
+      fNucleusGen->SetHitNucleonOnShellMom(TVector3(0., 0., -pNi_next));
+      fNucleusGen->BindHitNucleon(*interaction, dummy_Eb, kOnShell);
       double costh0_max = genie::utils::CosTheta0Max( *interaction );
-
-      if ( prob > 0. && costh0_max > -1. ) max_momentum = pNi_next;
+      LOG("QELEvent", pINFO) << "pNi_next : " << pNi_next << " costh0_max: " << costh0_max;
+      if ( valid_mom && costh0_max > -1. ) max_momentum = pNi_next;
       else search_step /= 2.;
     }
 
     {
         // Set the nucleon we're using to be upstream at max energy and unbound
-        fNuclModel->SetMomentum3( TVector3(0., 0., -max_momentum) );
-        fNuclModel->SetRemovalEnergy( 0. );
+	fNucleusGen->SetHitNucleonOnShellMom(TVector3(0., 0., -max_momentum));
 
         // Set the nucleon total energy to be on-shell with a quick call to
         // BindHitNucleon()
-        genie::utils::BindHitNucleon(*interaction, *fNuclModel, dummy_Eb, kOnShell);
+	fNucleusGen->BindHitNucleon(*interaction, dummy_Eb, kOnShell);
 
         // Just a scoping block for now
         // OK, we're going to scan the COM frame angles to get the point of max xsec
@@ -518,8 +498,9 @@ double QELEventGeneratorINCL::ComputeMaxXSec(const Interaction * in) const
                   // argument is false because we've already called
                   // BindHitNucleon() above
                   double xs = genie::utils::ComputeFullQELPXSec(interaction,
-                    fNuclModel, fXSecModel, costh, phi, dummy_Eb, kOnShell, fMinAngleEM, false);
+                    fNucleusGen, fXSecModel, costh, phi, dummy_Eb, kOnShell, fMinAngleEM, false);
 
+                  //LOG("QELEvent", pINFO) << "costh : " << costh << " phi: " << phi << " xs : " << xs;
                   if (xs > this_nuc_xsec_max){
                       phi_at_xsec_max = phi;
                       costh_at_xsec_max = costh;

@@ -46,7 +46,12 @@ namespace genie {
       void GenerateCluster(GHepRecord *event_rec) const;
       void setInitialStateVertex   (GHepRecord * evrec) const{
 	// TODO: do noting for traditional nuclear model
-      }  
+      }
+      void BindHitNucleon() const;
+      void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const;
+      void GenerateNucleon(Interaction* interaction, bool isRadius = true) const;
+      bool isRPValid(double r, double p, const Target & tgt) const;
+      void SetHitNucleonOnShellMom(TVector3 p3) const;
 
       //-- overload the Algorithm::Configure() methods to load private data
       //   members from configuration options
@@ -59,7 +64,6 @@ namespace genie {
       // 
       const EventRecordVisitorI *fFermiMover;
       const EventRecordVisitorI *fVertexGenerator;
-
   };
 
 }      // genie namespace

@@ -57,8 +57,7 @@ namespace G4INCL {
 	public:
 	  Lepton(ThreeVector mom, double e):
 	    theMomentum(mom), theEnergy(e){
-            double m2 = theEnergy*theEnergy - theMomentum.mag2();
-            theMass = m2 <=0 ? 0 : std::sqrt(m2);
+	      theMass = std::sqrt(std::max( theEnergy*theEnergy - theMomentum.mag2(), 0.));
 	    }
 	  ~Lepton(){
 	  }

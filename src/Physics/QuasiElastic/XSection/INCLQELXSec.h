@@ -3,8 +3,9 @@
 
 \class    genie::INCLQELXSec
 
-\brief    Computes the Quasi Elastic (QEL) total cross section. \n
-          Is a concrete implementation of the XSecIntegratorI interface. \n
+\brief    Class genie::INCLQELXSec is derived from class genie::NewQELXSec.
+          INCLQELXSec will use the NucleusGenI interface instead of the old
+	  NuclearModelI.
 
 \author   Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
@@ -28,8 +29,36 @@
 
 namespace genie {
 
-class NuclearModelI;
-class VertexGenerator;
+class NucleusGenI;
+
+namespace utils {
+  namespace gsl   {
+
+    class INCLFullQELdXSec : public ROOT::Math::IBaseFunctionMultiDim
+    {
+     public:
+       INCLFullQELdXSec(const XSecAlgorithmI* xsec_model, const Interaction* interaction,
+         QELEvGen_BindingMode_t binding_mode, double min_angle_EM);
+       virtual ~INCLFullQELdXSec();
+
+       // ROOT::Math::IBaseFunctionMultiDim interface
+       unsigned int NDim(void) const;
+       double DoEval(const double* xin) const;
+       ROOT::Math::IBaseFunctionMultiDim* Clone(void) const;
+
+       Interaction* GetInteractionPtr();
+       const Interaction& GetInteraction() const;
+
+     private:
+       const XSecAlgorithmI* fXSecModel;
+       const NucleusGenI* fNucleusGen;
+       Interaction* fInteraction;
+       QELEvGen_BindingMode_t fHitNucleonBindingMode;
+       double fMinAngleEM;
+    };
+
+  } // gsl   namespace
+} // utils namespace
 
 class INCLQELXSec : public XSecIntegratorI {
 
@@ -54,13 +83,16 @@ private:
   //QELEvGen_BindingMode_t fBindingMode;
 
   // XML configuration parameters
+  // gsl parameters
   std::string fGSLIntgType;
   double fGSLRelTol;
   unsigned int fGSLMaxEval;
-  AlgId fVertexGenID;
+
+
   int fNumNucleonThrows;
   double fMinAngleEM;
 
+  // nucleus generator
   // If false, the total cross section will be computed by integrating over
   // lepton scattering angles while preserving the momentum and removal energy
   // of the initial hit nucleon (specified in the input Interaction object).

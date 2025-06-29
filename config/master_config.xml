@@ -283,5 +283,6 @@
    <config alg="genie::QELEventGeneratorINCL">               QELEventGeneratorINCL.xml               </config>
    <config alg="genie::INCLQELXSec">               INCLQELXSec.xml               </config>
    <config alg="genie::MECGeneratorINCL">               MECGeneratorINCL.xml               </config>
+   <config alg="genie::EmpiricalMECPXSecINCL">              EmpiricalMECPXSecINCL.xml              </config>
 
 </genie_config>

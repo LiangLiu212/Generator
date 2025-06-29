@@ -405,6 +405,71 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
        ipdgc, kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 }
 
+//___________________________________________________________________________
+void NucleusGenINCL::BindHitNucleon() const {
+}
+
+void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const {
+  // BindHitNucleon assign the value of four momentum to class Interaction
+  // Eb and hitNucleonBindingMode will not be used in INCL nuclear model
+  (void)Eb; (void)hitNucleonBindingMode;
+  Target* tgt = interaction.InitState().TgtPtr();
+  TLorentzVector* p4Ni = tgt->HitNucP4Ptr();
+
+  if(!flag_isRadius){
+    p4Ni->SetVect(TVector3(0.,0.,0.));
+    // Look up the (on-shell) mass of the initial nucleon
+    TDatabasePDG* tb = TDatabasePDG::Instance();
+    double mNi = tb->GetParticle( tgt->HitNucPdg() )->Mass();
+    p4Ni->SetE(mNi);
+    return;
+  }
+
+
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  //incl_nucleus->initialize(tgt);
+  //incl_nucleus->reset(tgt);
+  //incl_nucleus->initialize(tgt);
+
+  // get a random nucleon with respect to the isospin of evrec->HitNucleon();
+  // the removal energy maybe not necessary
+  TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
+  double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
+
+  // Update the initial nucleon lab-frame 4-momentum in the interaction with
+  // its current components
+  p4Ni->SetVect(TVector3(p3.X()/1000., p3.Y()/1000., p3.Z()/1000.));
+  p4Ni->SetE(hit_nucleon_energy/1000.);
+
+}
+//___________________________________________________________________________
+
+
+void NucleusGenINCL::GenerateNucleon(Interaction* interaction, bool isRadius) const{
+
+  // isRadius:
+  // isRadius == 0 (false) put the nucleon in origin
+  // isRadius == 1 (true) sampling the radius for nucleon
+  //
+  // Call the GenerateNucleon will reset the INCLNucleus and generate a new nucleus
+  if(! interaction->InitState().Tgt().IsNucleus()) return;
+  Target* tgt = interaction->InitState().TgtPtr();
+  if(!isRadius){
+    tgt->SetHitNucPosition(0.);
+    flag_isRadius = false;
+    return;
+  }
+
+  flag_isRadius = true; // initialize true 
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_nucleus->initialize(tgt);
+  incl_nucleus->reset(tgt);
+  incl_nucleus->initialize(tgt);
+  TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
+  double radius = vertex_pos.Mag();
+  tgt->SetHitNucPosition( radius );
+}
+
 
 //___________________________________________________________________________
 void NucleusGenINCL::Configure(const Registry & config)
