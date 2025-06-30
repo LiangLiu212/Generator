@@ -137,6 +137,7 @@ void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
   TVector3 p3a, p3b;
   double removalenergy1, removalenergy2;
   fNuclModel->GenerateCluster(tgt, pdgv, &p3a, &p3b, &removalenergy1, &removalenergy2);
+
   LOG("NucleusGenTraditional", pINFO)
     << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
     << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
@@ -153,6 +154,7 @@ void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
 
   TLorentzVector p4nclust   (   p3.Px(),    p3.Py(),    p3.Pz(),  EN   );
   nucleon_cluster->SetMomentum(p4nclust);
+  cluster_bind.SetPxPyPzE(0., 0., 0., -1.0 * (removalenergy1 + removalenergy2));
 
 }
 //___________________________________________________________________________
@@ -339,19 +341,19 @@ void NucleusGenTraditional::BindHitNucleon(Interaction& interaction, double& Eb,
 
 //___________________________________________________________________________
 
-void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, bool isRadius) const {
+void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const {
   // isRadius:
   // isRadius == 0 (false) put the nucleon in origin
   // isRadius == 1 (true) sampling the radius for nucleon
   Target* tgt = interaction->InitState().TgtPtr();
-  if(isRadius){
+  if(resampling_mode = BothRPResamping){
     const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
     TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
     double radius = vertex_pos.Mag();
     tgt->SetHitNucPosition( radius );
     fNuclModel->GenerateNucleon(*tgt, radius);
   }
-  else{
+  else if(resampling_mode == isOrigin){
     tgt->SetHitNucPosition(0.);
     if ( tgt->IsNucleus() ){
       fNuclModel->GenerateNucleon(*tgt, 0.);
@@ -362,7 +364,9 @@ void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, bool isRad
     }
     fNuclModel->SetMomentum3( TVector3(0., 0., 0.) );
   }
-
+  else if(resampling_mode == fixRadius){
+    fNuclModel->GenerateNucleon(*tgt, tgt->HitNucPosition());
+  }
 }
 
 

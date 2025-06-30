@@ -319,6 +319,8 @@ void INCLNucleus::initialize(const Target * tgt){
   nucleus_ = new G4INCL::Nucleus(targetSpecies.theA, targetSpecies.theZ, targetSpecies.theS, 
   theConfig_, maxUniverseRadius_, G4INCL::Def);
   nucleus_->getStore()->getBook().reset();
+  theDensity = nucleus_->getDensity();
+  thePotential = nucleus_->getPotential();
 
 
   // sample the index of nucleon hitted by lepton
@@ -646,5 +648,41 @@ G4INCL::Particle * INCLNucleus::getNucleon(const int pdg){
     return nucleus_->getStore()->getParticles().at(nucleon_index_);
 }
 
+bool INCLNucleus::isRPValid(double r, double p){
+  (void)r;
+  double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
+  // local energy
+  double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+
+  double theFermiEnergy = std::sqrt(theFermiMomentum*theFermiMomentum + hitNucleon_->getMass()*hitNucleon_->getMass());
+  double MaxMomAtR = std::sqrt((theFermiEnergy - locE) *  (theFermiEnergy - locE) - hitNucleon_->getMass()*hitNucleon_->getMass());
+
+  return (p < MaxMomAtR);
+
+}
+
+
+void INCLNucleus::ResamplingHitNucleon(){
+  // local energy
+  double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+
+  int iteration_count = 0;
+  const double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
+  while(true){
+    const G4INCL::ThreeVector momentumVector = G4INCL::Random::sphereVector(theFermiMomentum);
+    const double momentumAbs = momentumVector.mag();
+    iteration_count++;
+    if(momentumAbs > locE){
+      hitNucleon_->setMomentum(momentumVector);
+      hitNucleon_->setUncorrelatedMomentum(momentumAbs);
+      hitNucleon_->adjustEnergyFromMomentum();
+      break;
+    }
+    if(iteration_count > 10000){
+      LOG("INCLNucleus", pFATAL) << "Resamping the momentum of struck nucleon more than 10000 times!";
+      exit(1);
+    }
+  }
+}
 #endif // __GENIE_INCL_ENABLED__
 

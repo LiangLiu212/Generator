@@ -49,7 +49,7 @@ namespace genie {
       }
       void BindHitNucleon() const;
       void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const;
-      void GenerateNucleon(Interaction* interaction, bool isRadius = true) const;
+      void GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const;
       bool isRPValid(double r, double p, const Target & tgt) const;
       void SetHitNucleonOnShellMom(TVector3 p3) const;
 

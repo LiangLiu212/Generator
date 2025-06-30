@@ -229,6 +229,7 @@ double EmpiricalMECPXSecINCL::Integral(const Interaction * interaction) const
   double Z=interaction->InitState().Tgt().Z();
   double A=interaction->InitState().Tgt().A();
   double N=A-Z;
+  LOG("MEC", pINFO) <<  " nucleon_cluster_pdg: " << nucleon_cluster_pdg;
 
   if(iscc) {
 
@@ -269,6 +270,12 @@ double EmpiricalMECPXSecINCL::Integral(const Interaction * interaction) const
      if(pdg::IsAntiNeutrino(nupdg) && nucleon_cluster_pdg==2000000201) fFracCCQE_cluster= fFracPN_CC;   //n+p
      if(pdg::IsAntiNeutrino(nupdg) && nucleon_cluster_pdg==2000000202) fFracCCQE_cluster= 1.0-fFracPN_CC;   //p+p
 
+     LOG("MEC", pINFO) <<  " nucleon_cluster_pdg: " << nucleon_cluster_pdg;
+     LOG("MEC", pINFO) <<  " fFracPN_CC: " << fFracPN_CC;
+
+     LOG("MEC", pINFO) <<  " fFracCCQE: " << fFracCCQE 
+       <<  " fFracCCQE_cluster: " << fFracCCQE_cluster
+       <<  " fFracADep: " << fFracADep;
 
      xsec *= fFracCCQE*fFracCCQE_cluster*fFracADep;
 

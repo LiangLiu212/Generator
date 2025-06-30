@@ -164,7 +164,7 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
         // If the target is a composite nucleus, then sample an initial nucleon
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
-          fNucleusGen->GenerateNucleon(interaction, hitNucPos);
+          fNucleusGen->GenerateNucleon(interaction, fixRadius);
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and

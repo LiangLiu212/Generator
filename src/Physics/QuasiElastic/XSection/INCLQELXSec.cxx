@@ -64,8 +64,6 @@ double INCLQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in
   assert( fNucleusGen );
   LOG("INCLQELXSec",pNOTICE) << "Liang Liu";
 
-
-
   //const NuclearModelI* nucl_model = dynamic_cast<const NuclearModelI*>(
   //  model->SubAlg("IntegralNuclearModel") );
   //assert( nucl_model );
@@ -137,7 +135,7 @@ double INCLQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in
   LOG("INCLQELXSec",pNOTICE) << "Liang Liu";
   double probeE = interaction->InitState().ProbeE( kRfLab );
   if ( !tgt->IsNucleus() || probeE > E_lab_cutoff ) {
-    fNucleusGen->GenerateNucleon(interaction, 0);
+    fNucleusGen->GenerateNucleon(interaction, isOrigin);
     LOG("INCLQELXSec",pNOTICE) << "Liang Liu";
     //tgt->SetHitNucPosition(0.);
 
@@ -171,24 +169,24 @@ double INCLQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in
     // to the nucleon via a call to genie::utils::ComputeFullQELPXSec(), so
     // there's no need to mess with its 4-momentum here)
     // nucl_model->GenerateNucleon(*tgt, radius);
-    fNucleusGen->GenerateNucleon(interaction);
+    fNucleusGen->GenerateNucleon(interaction, BothRPResamping);
     // The initial state variables have all been defined, so integrate over
     // the final lepton angles.
     double xsec = ig.Integral(kine_min, kine_max);
 
     if(n%100 == 0){
-    LOG("INCLQELXSec",pNOTICE) << "index : " << n << "  " << fNumNucleonThrows;
+    LOG("INCLQELXSec",pNOTICE) << "index : " << n << "  " << fNumNucleonThrows << " xsec : " << xsec;
     }
 
     xsec_sum += xsec;
   }
 
-    LOG("INCLQELXSec",pNOTICE) << "Liang's";
 
   delete func;
 
   // MC estimator of the total cross section is the mean of the xsec values
   double xsec_mean = xsec_sum / fNumNucleonThrows;
+  LOG("INCLQELXSec",pNOTICE) << "Liang's"  << " xsec_mean : " << xsec_mean;
 
   return xsec_mean;
 }

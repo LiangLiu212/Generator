@@ -70,7 +70,6 @@ private:
 
   mutable const XSecAlgorithmI * fXSecModel;
   mutable TGenPhaseSpace         fPhaseSpaceGenerator;
-  const NuclearModelI *          fNuclModel;
   const NucleusGenI   *  fNucleusGen;  ///< nucleus generator
 
   double fSafetyFactor ; 

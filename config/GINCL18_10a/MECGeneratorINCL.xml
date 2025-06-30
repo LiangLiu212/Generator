@@ -3,7 +3,7 @@
 <alg_conf>
 
 <!--
-Configuration for MECGenerator
+Configuration for MECGeneratorINCL
 
 Configurable Parameters:
 .......................................................................................................
@@ -22,7 +22,7 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     
     <param type="string" name="CommonParam"> MultiNucleons </param>
     
-    <param type="alg" name="NuclearModel"> genie::NuclearModelMap/Default </param>
+    <param type="alg" name="NucleusGen"> genie::NucleusGenTraditional/Default </param>
 
     <!-- <param type="double" name="SuSA-MaxXSec-DiffTolerance"> 0.0 </param> -->
     
@@ -39,7 +39,7 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     
     <param type="string" name="CommonParam"> MultiNucleons </param>
     
-    <param type="alg" name="NuclearModel"> genie::NucleusGenTraditional/Default </param>
+    <param type="alg" name="NucleusGen"> genie::NucleusGenTraditional/Default </param>
 
     <!-- <param type="double" name="SuSA-MaxXSec-DiffTolerance"> 0.0 </param> -->
     
@@ -55,7 +55,7 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     
     <param type="string" name="CommonParam"> MultiNucleons </param>
     
-    <param type="alg" name="NuclearModel"> genie::NucleusGenINCL/Default </param>
+    <param type="alg" name="NucleusGen"> genie::NucleusGenINCL/Default </param>
 
     <!-- <param type="double" name="SuSA-MaxXSec-DiffTolerance"> 0.0 </param> -->
     
@@ -66,8 +66,6 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     <param type="int" name="MaxXSec-MinScanPointsCosth" > 100 </param>
      
   </param_set>
-  
- 
 
 </alg_conf>
 

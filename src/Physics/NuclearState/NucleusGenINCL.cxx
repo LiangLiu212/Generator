@@ -193,6 +193,7 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
       cluster_energy / 1000.   );
 
   nucleon_cluster->SetMomentum(p4nclust);
+  cluster_bind.SetPxPyPzE(0.,0.,0.,0.);
   LOG("NucleusGenINCL", pINFO) << "success!";
 //  abort();
 
@@ -427,15 +428,10 @@ void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvG
 
 
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  //incl_nucleus->initialize(tgt);
-  //incl_nucleus->reset(tgt);
-  //incl_nucleus->initialize(tgt);
-
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
   TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
   double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
-
   // Update the initial nucleon lab-frame 4-momentum in the interaction with
   // its current components
   p4Ni->SetVect(TVector3(p3.X()/1000., p3.Y()/1000., p3.Z()/1000.));
@@ -445,7 +441,7 @@ void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvG
 //___________________________________________________________________________
 
 
-void NucleusGenINCL::GenerateNucleon(Interaction* interaction, bool isRadius) const{
+void NucleusGenINCL::GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const{
 
   // isRadius:
   // isRadius == 0 (false) put the nucleon in origin
@@ -454,22 +450,42 @@ void NucleusGenINCL::GenerateNucleon(Interaction* interaction, bool isRadius) co
   // Call the GenerateNucleon will reset the INCLNucleus and generate a new nucleus
   if(! interaction->InitState().Tgt().IsNucleus()) return;
   Target* tgt = interaction->InitState().TgtPtr();
-  if(!isRadius){
+  flag_isRadius = true; // initialize true 
+  if(resampling_mode == isOrigin){
     tgt->SetHitNucPosition(0.);
     flag_isRadius = false;
     return;
   }
-
-  flag_isRadius = true; // initialize true 
-  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(tgt);
-  incl_nucleus->reset(tgt);
-  incl_nucleus->initialize(tgt);
-  TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
-  double radius = vertex_pos.Mag();
-  tgt->SetHitNucPosition( radius );
+  else if(resampling_mode == fixRadius){
+    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+    incl_nucleus->ResamplingHitNucleon();
+    //TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
+    //double radius = vertex_pos.Mag();
+    //tgt->SetHitNucPosition( radius );
+  }
+  else if(resampling_mode == BothRPResamping){
+    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+    incl_nucleus->initialize(tgt);
+    incl_nucleus->reset(tgt);
+    incl_nucleus->initialize(tgt);
+    TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
+    double radius = vertex_pos.Mag();
+    tgt->SetHitNucPosition( radius );
+  }
 }
 
+//___________________________________________________________________________
+
+// is function is a util function for QEL
+bool NucleusGenINCL::isRPValid(double r, double p, const Target & tgt) const {
+  (void) tgt;
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  return incl_nucleus->isRPValid(r, p);
+}
+
+void NucleusGenINCL::SetHitNucleonOnShellMom(TVector3 p3) const {
+
+}
 
 //___________________________________________________________________________
 void NucleusGenINCL::Configure(const Registry & config)

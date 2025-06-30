@@ -32,6 +32,12 @@
 
 namespace genie {
 
+  typedef enum ResamplingHitNucleon {
+    isOrigin,
+    fixRadius,
+    BothRPResamping
+  } ResamplingHitNucleon_t;
+
   // A nucleus generator that will handle fermi motion and 
   // position simultaneously.
   //
@@ -52,9 +58,12 @@ namespace genie {
       virtual void setInitialStateVertex   (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a position
       virtual void BindHitNucleon() const = 0;
       virtual void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const = 0;
-      virtual void GenerateNucleon(Interaction* interaction, bool isRadius = true) const = 0;
+      virtual void GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const = 0;
       virtual bool isRPValid(double r, double p, const Target & tgt) const = 0;
       virtual void SetHitNucleonOnShellMom(TVector3 p3) const  = 0;
+      virtual TLorentzVector GetClusterBindP4() const{
+	return cluster_bind;
+      }
       
 
     protected:
@@ -63,6 +72,7 @@ namespace genie {
       NucleusGenI(string name, string config);
       // 
       const NuclearModelI *  fNuclModel;   ///< nuclear model
+      mutable TLorentzVector cluster_bind;
   };
 }      // genie namespace
 #endif // _NUCLEUS_GENERATOR_H_

@@ -29,9 +29,6 @@ namespace G4INCL {
         hitParticle->setMomentum(ip->P3());
         hitParticle->setPosition(ip->X3());
         hitParticle->adjustEnergyFromMomentum();
-        //double energy = hitParticle->getEnergy() + hitParticle->getPotentialEnergy() - hitParticle->getEmissionQValueCorrection(theNucleus->getA(), theNucleus->getZ(), theNucleus->getS());  // FIXME
-        //hitParticle->setEnergy(energy); // FIXME
-        //hitParticle->adjustMomentumFromEnergy(); // FIXME
         fs->addModifiedParticle(hitParticle);
       }
       else if((ip->Status() == 14 && (ip->Type() == Proton || ip->Type() == Neutron))){
@@ -54,10 +51,5 @@ namespace G4INCL {
         fs->addCreatedParticle(ihadron);
       }
     }
-
-    //   fs->addModifiedParticle(particle1);
-    //   fs->addModifiedParticle(particle2);
-
   }
-
 }

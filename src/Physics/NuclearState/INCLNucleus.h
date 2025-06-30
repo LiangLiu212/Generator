@@ -107,6 +107,11 @@ namespace genie {
       void setGEMINIXXDataFilePath(std::string str){ geminixxDataFilePath_ = str; }
       void setDeExcitationType(G4INCL::DeExcitationType deExType){ deExcitationType_ = deExType; }
 
+
+      bool isRPValid(double r, double p);
+
+      void ResamplingHitNucleon();
+
     private:
       INCLNucleus();
       ~INCLNucleus();
@@ -131,6 +136,8 @@ namespace genie {
       G4INCL::StandardPropagationModel *propagationModel_;
       G4INCL::CascadeAction *cascadeAction_;
       const G4INCL::NuclearDensity *theDensityForLepton;
+      const G4INCL::NuclearDensity *theDensity;
+      const G4INCL::NuclearPotential::INuclearPotential *thePotential;
 
       int nucleon_index_;
       int cluster_index1_;
