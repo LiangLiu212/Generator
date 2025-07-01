@@ -346,7 +346,7 @@ void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, Resampling
   // isRadius == 0 (false) put the nucleon in origin
   // isRadius == 1 (true) sampling the radius for nucleon
   Target* tgt = interaction->InitState().TgtPtr();
-  if(resampling_mode = BothRPResamping){
+  if(resampling_mode == BothRPResamping){
     const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
     TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
     double radius = vertex_pos.Mag();
