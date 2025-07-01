@@ -98,6 +98,8 @@ namespace bt = boost::timer;
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Utils/StringUtils.h"
 #include "Framework/Utils/SystemUtils.h"
+#include "Framework/EventGen/EVGThreadException.h"
+#include "Framework/GHEP/GHepFlags.h"
 #include "Physics/NuclearState/INCLNucleus.h"
 #include "Physics/HadronTransport/G4INCLGENIEAvatar.h"
 #include "Physics/HadronTransport/G4INCLGENIEParticleRecord.h"
@@ -976,6 +978,16 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   else{
     avatar = new G4INCL::GENIEAvatar(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord);
     avatar->fillFinalState(finalState);
+  }
+
+  if(finalState->getValidity() != G4INCL::ValidFS){
+    LOG("INCLCascadeIntranuke", pWARN)
+        << "Enforcing energy conservation: failed! ";
+    evrec->EventFlags()->SetBitNumber(kKineGenErr, true);
+    genie::exceptions::EVGThreadException exception;
+    exception.SetReason("Couldn't select kinematics");
+    exception.SwitchOnFastForward();
+    throw exception;
   }
 
   // update the event record after INCL postInteraction

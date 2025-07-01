@@ -140,7 +140,10 @@ namespace G4INCL {
     bool success = enforceEnergyConservation(fs);
     if(!success){
       std::cout << "enforceEnergyConservation fs wrong!" << std::endl;
-      exit(1);
+      fs->reset();
+      fs->makeNoEnergyConservation();
+      fs->setTotalEnergyBeforeInteraction(0.0);
+      return; // Interaction is blocked. Return an empty final state.
     }
 
     for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){

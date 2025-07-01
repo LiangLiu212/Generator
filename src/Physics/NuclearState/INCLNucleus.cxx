@@ -657,7 +657,7 @@ bool INCLNucleus::isRPValid(double r, double p){
   double theFermiEnergy = std::sqrt(theFermiMomentum*theFermiMomentum + hitNucleon_->getMass()*hitNucleon_->getMass());
   double MaxMomAtR = std::sqrt((theFermiEnergy - locE) *  (theFermiEnergy - locE) - hitNucleon_->getMass()*hitNucleon_->getMass());
 
-  return (p < MaxMomAtR);
+  return (std::abs(p) < MaxMomAtR);
 
 }
 
