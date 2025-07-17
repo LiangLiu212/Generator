@@ -385,9 +385,14 @@ void ConvertToGST(void)
   int    brNiEM        = 0;      // Nu. of `primary' gammas and e-/e+ 
   int    brNiOther     = 0;      // Nu. of other `primary' hadron shower particles
   int    brNpar        = 0;      // Nu. of paritcle in event record
-  int    brPDG   [kNPmax];       // Pdg    of paritcle in event record
-  int    brMother[kNPmax];       // Index  of paritcle in event record
-  int    brStatus[kNPmax];       // Status of paritcle in event record
+  int    brPDG_evtre   [kNPmax]; // Pdg    of paritcle in event record
+  int    brFirstMother_evtre[kNPmax]; // Index  of first mother of paritcle in event record
+  int    brLastMother_evtre[kNPmax]; // Index  of last mother of paritcle in event record
+  int    brStatus_evtre[kNPmax]; // Status of paritcle in event record
+  double brPx_evtre[kNPmax];     // Px     of paritcle in event record
+  double brPy_evtre[kNPmax];     // Py     of paritcle in event record
+  double brPz_evtre[kNPmax];     // Pz     of paritcle in event record
+  double brE_evtre[kNPmax];      // E      of paritcle in event record
   int    brNf          = 0;      // Nu. of final state particles in hadronic system
   int    brPdgf  [kNPmax];       // Pdg code of k^th final state particle in hadronic system
   double brEf    [kNPmax];       // Energy     of k^th final state particle in hadronic system @ LAB
@@ -506,9 +511,14 @@ void ConvertToGST(void)
   s_tree->Branch("niem",          &brNiEM,	    "niem/I"	    );
   s_tree->Branch("niother",       &brNiOther,       "niother/I"     );
   s_tree->Branch("npar",	  &brNpar,	    "npar/I"	    );
-  s_tree->Branch("pdg",	           brPDG,	    "pdg[npar]/I"   );
-  s_tree->Branch("mother",	   brMother,	    "mother[npar]/I");
-  s_tree->Branch("status",	   brStatus,	    "status[npar]/I");
+  s_tree->Branch("pdg_evtre",	           brPDG_evtre,	    "pdg_evtre[npar]/I"   );
+  s_tree->Branch("first_mother_evtre",	   brFirstMother_evtre,	    "first_mother_evtre[npar]/I");
+  s_tree->Branch("last_mother_evtre",	   brLastMother_evtre,	    "last_mother_evtre[npar]/I");
+  s_tree->Branch("status_evtre",	   brStatus_evtre,	    "status_evtre[npar]/I");
+  s_tree->Branch("px_evtre",	   brPx_evtre,	    "px_evtre[npar]/D");
+  s_tree->Branch("py_evtre",	   brPy_evtre,	    "py_evtre[npar]/D");
+  s_tree->Branch("pz_evtre",	   brPz_evtre,	    "pz_evtre[npar]/D");
+  s_tree->Branch("E_evtre",	   brE_evtre,	    "E_evtre[npar]/D");
   s_tree->Branch("ni",	         &brNi,	            "ni/I"	    );
   s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I"   );
   s_tree->Branch("resc",          brResc,	    "resc[ni]/I"   );
@@ -791,13 +801,18 @@ void ConvertToGST(void)
     GHepParticle * pp = 0;
     brNpar=0;
     while( (pp = (GHepParticle *) piter1.Next())){
-      brPDG[brNpar] = pp->Pdg();
-      brMother[brNpar] = pp->FirstMother();
-      brStatus[brNpar] = pp->Status();
+      brPDG_evtre[brNpar] = pp->Pdg();
+      brFirstMother_evtre[brNpar] = pp->FirstMother();
+      brLastMother_evtre[brNpar] = pp->LastMother();
+      brStatus_evtre[brNpar] = pp->Status();
+      brPx_evtre[brNpar] = pp->P4()->Px();
+      brPy_evtre[brNpar] = pp->P4()->Py();
+      brPz_evtre[brNpar] = pp->P4()->Pz();
+      brE_evtre[brNpar] = pp->P4()->E();
       brNpar++;
       if(pp->Status() == kIStNucleonTarget){
  //       pp->X4()->Print();
-	vtx = pp->X4();
+	      vtx = pp->X4();
       }
     }
 

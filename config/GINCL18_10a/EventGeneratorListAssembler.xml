@@ -680,6 +680,11 @@ Generator-%d                alg     No
      <param type="alg" name="Generator-3">   genie::EventGenerator/MEC-CC-INCL       </param>
   </param_set>
 
+  <param_set name="RES-INCL"> 
+     <param type="int" name="NGenerators">   2                               </param>
+     <param type="alg" name="Generator-0">   genie::EventGenerator/RES-CC-INCL    </param>
+     <param type="alg" name="Generator-1">   genie::EventGenerator/RES-NC-INCL    </param>
+  </param_set>
 
 </alg_conf>
 
