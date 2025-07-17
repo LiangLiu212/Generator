@@ -296,6 +296,7 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
 //___________________________________________________________________________
 void QELEventGeneratorINCL::AddTargetNucleusRemnant(GHepRecord * evrec) const
 {
+  // update the momentum of the remnant after resampling
     // add the remnant nuclear target at the GHEP record
 
     LOG("QELEvent", pINFO) << "Adding final state nucleus";
@@ -315,11 +316,17 @@ void QELEventGeneratorINCL::AddTargetNucleusRemnant(GHepRecord * evrec) const
     int fd = nucleus->FirstDaughter();
     int ld = nucleus->LastDaughter();
 
+    GHepParticle *remnant;
+
     for(int id = fd; id <= ld; id++) {
 
         // compute A,Z for final state nucleus & get its PDG code and its mass
         GHepParticle * particle = evrec->Particle(id);
         assert(particle);
+	if(pdg::IsIon(particle->Pdg())){
+	  remnant = particle;
+	  continue; // skip the initilized remnant
+	}
         int  pdgc = particle->Pdg();
         bool is_p  = pdg::IsProton (pdgc);
         bool is_n  = pdg::IsNeutron(pdgc);
@@ -356,8 +363,9 @@ void QELEventGeneratorINCL::AddTargetNucleusRemnant(GHepRecord * evrec) const
         << ", pdgc = " << ipdgc << "]";
 
     int imom = evrec->TargetNucleusPosition();
-    evrec->AddParticle(
-            ipdgc,kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+    remnant->P4()->SetPxPyPzE(Px,Py,Pz,E);
+    //evrec->AddParticle(
+    //        ipdgc,kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 //    evrec->AddParticle(
 //            ipdgc,kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 
