@@ -970,13 +970,13 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   }
 
 
-  G4INCL::IAvatar *avatar;
+  std::shared_ptr<G4INCL::IAvatar> avatar;
   if(proc_info.IsMEC()){
-    avatar = new G4INCL::GENIEAvatar(0, incl_nucleus->getHitNNCluster(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, incl_nucleus->getHitNNCluster(), incl_nucleus->getNuclues(), &eventRecord);
     avatar->fillFinalState(finalState);
   }
   else{
-    avatar = new G4INCL::GENIEAvatar(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord);
     avatar->fillFinalState(finalState);
   }
 
@@ -1008,7 +1008,6 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     er++;
   }
   //evrec->Print(std::cout);
-  delete avatar;
   return;
 
 }
@@ -1055,19 +1054,24 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
 }
 
 void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
-  if(evrec->Summary()->ProcInfo().IsResonant()){
-    TObjArrayIter piter(evrec);
-    GHepParticle * p = nullptr;
-    bool decay_flag = false;
-    while ( (p = (GHepParticle *) piter.Next() ) ) {
-      if(p->Status() == kIStPreDecayResonantState && p->FirstDaughter() == -1 && PDG_to_INCLType(p->Pdg()) == G4INCL::UnknownParticle){
-        decay_flag = true;
-      }
+    evrec->Print(std::cout);
+    if(evrec->Summary()->ProcInfo().IsResonant()){
+        bool decay_flag = true;
+        while(decay_flag){
+            TObjArrayIter piter(evrec);
+            GHepParticle * p = nullptr;
+            decay_flag = false;
+            while ( (p = (GHepParticle *) piter.Next() ) ) {
+                if(p->Status() == kIStPreDecayResonantState && p->FirstDaughter() == -1 && PDG_to_INCLType(p->Pdg()) == G4INCL::UnknownParticle){
+                    decay_flag = true;
+                }
+            }
+            if(decay_flag){
+                fResonanceDecayer->ProcessEventRecord(evrec);
+            }
+        }
     }
-    if(decay_flag){
-      fResonanceDecayer->ProcessEventRecord(evrec);
-    }
-  }
+    evrec->Print(std::cout);
 }
 
 #include "INCLPostCascade.icc"
