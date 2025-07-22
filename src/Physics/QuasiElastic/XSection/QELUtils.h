@@ -27,6 +27,8 @@
 
 namespace genie {
 
+  class NucleusGenI;
+
   // Enumerated type used to specify the method for determining the off-shell energy
   // of the hit nucleon for quasielastic events
   typedef enum EQELEvGenBindingMode {
@@ -57,6 +59,12 @@ namespace genie {
 
     double ComputeFullQELPXSec(Interaction* interaction,
       const NuclearModelI* nucl_model, const XSecAlgorithmI* xsec_model,
+      double cos_theta_0, double phi_0, double& Eb,
+      QELEvGen_BindingMode_t hitNucleonBindingMode, double min_angle_EM = 0.,
+      bool bind_nucleon = true);
+
+    double ComputeFullQELPXSec(Interaction* interaction,
+      const NucleusGenI* nucl_gen, const XSecAlgorithmI* xsec_model,
       double cos_theta_0, double phi_0, double& Eb,
       QELEvGen_BindingMode_t hitNucleonBindingMode, double min_angle_EM = 0.,
       bool bind_nucleon = true);

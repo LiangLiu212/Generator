@@ -157,9 +157,12 @@ double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in)
     // The initial state variables have all been defined, so integrate over
     // the final lepton angles.
     double xsec = ig.Integral(kine_min, kine_max);
+    LOG("NewQELXSec",pNOTICE) << "Liang's " << "xsec : " << xsec ;
 
     xsec_sum += xsec;
   }
+
+    LOG("NewQELXSec",pNOTICE) << "Liang's";
 
   delete func;
 

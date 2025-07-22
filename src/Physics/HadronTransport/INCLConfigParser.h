@@ -1,3 +1,4 @@
+#ifdef __GENIE_INCL_ENABLED_Liang__
 #include "Framework/Conventions/GBuild.h"
 #ifdef __GENIE_INCL_ENABLED__
 
@@ -86,4 +87,5 @@ typedef ConfigParser INCLConfigParser;
 
 #endif // INCLCONFIGPARSER_HH_
 
-#endif // __GENIE_INCL_ENABLED__
+#endif // __GENIE_INCL_ENABLED__a
+#endif 

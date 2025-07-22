@@ -118,7 +118,7 @@
   <priority msgstream="IMDAnnihilation">       WARN   </priority>
   <priority msgstream="IntSel">                WARN </priority>
   <priority msgstream="IntLst">                NOTICE </priority>
-  <priority msgstream="Interaction">           NOTICE </priority>
+  <priority msgstream="Interaction">           ERROR </priority>
   <priority msgstream="Intranuke">             WARN   </priority>
   <priority msgstream="Intranuke2018">         WARN   </priority>
   <priority msgstream="Intranuke2019">         WARN   </priority>
@@ -135,6 +135,9 @@
   <priority msgstream="INukeUtils2018">        NOTICE </priority>
   <priority msgstream="INukeUtils2019">        NOTICE </priority>
   <priority msgstream="HINCLCascadeIntranuke"> NOTICE </priority>
+  <priority msgstream="INCLCascadeIntranuke">  WARN </priority>
+  <priority msgstream="INCLNucleus">  WARN </priority>
+  <priority msgstream="NucleusGenTraditional">  NOTICE </priority>
   <priority msgstream="HG4BertCascIntranuke">  NOTICE </priority>
   <priority msgstream="INukeNucleonCorr">      NOTICE </priority>
   <priority msgstream="TwoBodyCollision">      NOTICE </priority>
@@ -156,7 +159,7 @@
   <priority msgstream="Nieves">                NOTICE </priority>
   <priority msgstream="NucDeEx">               WARN   </priority>
   <priority msgstream="NucleonDecay">          NOTICE </priority>
-  <priority msgstream="ResonanceDecay">        WARN </priority>
+  <priority msgstream="ResonanceDecay">        NOTICE </priority>
   <priority msgstream="NucleonP">              INFO   </priority>
   <priority msgstream="Nuclear">               NOTICE </priority>
   <priority msgstream="Numerical">             INFO   </priority>
@@ -167,7 +170,7 @@
   <priority msgstream="NuEKinematics">         INFO   </priority>
   <priority msgstream="PartonModel">           INFO   </priority>
   <priority msgstream="PauliBlock">            NOTICE </priority>
-  <priority msgstream="ParticleDecayer">       NOTICE </priority>
+  <priority msgstream="ParticleDecayer">       WARN   </priority>
   <priority msgstream="PaschLal">              INFO   </priority>
   <priority msgstream="PythiaDec">             WARN </priority>
   <priority msgstream="Pythia6Decay">          WARN </priority>
@@ -179,7 +182,7 @@
   <priority msgstream="PhysUtil">              WARN   </priority>
   <priority msgstream="QELXSec">               NOTICE </priority>
   <priority msgstream="QELCharmXSec">          NOTICE </priority>
-  <priority msgstream="QELEvent">              NOTICE </priority>
+  <priority msgstream="QELEvent">              ERROR </priority>
   <priority msgstream="QELHadronicVtx">        WARN   </priority>
   <priority msgstream="QELKinematics">         WARN   </priority>
   <priority msgstream="RESXSec">               INFO   </priority>
