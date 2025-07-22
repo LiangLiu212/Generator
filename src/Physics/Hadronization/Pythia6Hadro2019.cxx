@@ -1,6 +1,6 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2024, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
  
  Costas Andreopoulos <c.andreopoulos \at cern.ch>
@@ -128,7 +128,7 @@ bool Pythia6Hadro2019::Hadronize(GHepRecord *
   GHepParticle * neutrino  = event->Probe();
   const TLorentzVector & vtx = *(neutrino->X4());
 
-  // Loop over PYTHIA8 event particles and copy relevant entries
+  // Loop over PYTHIA6 event particles and copy relevant entries
   unsigned int i = 0;
   TMCParticle * p = 0;
   TIter particle_iter(pythia_particles);
