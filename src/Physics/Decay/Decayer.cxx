@@ -20,6 +20,11 @@
 #include "Framework/Utils/StringUtils.h"
 #include "Physics/Decay/Decayer.h"
 
+#ifdef __GENIE_INCL_ENABLED__
+#include "G4INCLParticleSpecies.hh"
+#endif
+
+
 using std::count;
 using std::ostringstream;
 
@@ -100,6 +105,14 @@ bool Decayer::IsUnstable(int pdg_code) const
     // At this point we decay only baryon resonances
     //
     bool decay = utils::res::IsBaryonResonance(pdg_code);
+#ifdef __GENIE_INCL_ENABLED__
+    bool incl_unstable = false;
+    G4INCL::ParticleSpecies pSpec(pdg_code);
+    if(pSpec.theType == G4INCL::UnknownParticle && std::abs(pdg_code) > 99){ //  FIXME: need to be checked: leptons and fundamental paricles have pdg code < 100 
+      incl_unstable = true;
+    }
+    decay =  (decay || incl_unstable);
+#endif
     return decay;
   }
   else {
