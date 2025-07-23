@@ -111,7 +111,7 @@ bool Decayer::IsUnstable(int pdg_code) const
     if(pSpec.theType == G4INCL::UnknownParticle && std::abs(pdg_code) > 99){ //  FIXME: need to be checked: leptons and fundamental paricles have pdg code < 100 
       incl_unstable = true;
     }
-    decay =  (decay || incl_unstable);
+    decay = incl_unstable;
 #endif
     return decay;
   }
