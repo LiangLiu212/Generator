@@ -3855,7 +3855,7 @@
 # HypernuclearDataBase
 # Chart of Hypernuclides --- {H}ypernuclear Structure and Decay Data
 # P. Eckert and P. Achenbach and others, 2023
-# Fake hypernuclei (without experiment data, using isospin symmetry): H2L, He3L
+# Fake hypernuclei (without experiment data, assuming isospin symmetry): H2L, He3L
   999 n2L           1010000020 0 100 HyperIon    0 2.0593       0.00000e+00 -100  -1 -100 -1 -1 0
   999 H2L           1010010020 0 100 HyperIon    3 2.0540       0.00000e+00 -100  -1 -100 -1 -1 0
   999 H3L           1010010030 0 100 HyperIon    3 2.991132     0.00000e+00 -100  -1 -100 -1 -1 0

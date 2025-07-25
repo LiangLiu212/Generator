@@ -258,6 +258,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     avatar->fillFinalState(finalState.get());
     // Must fill event record before incl nucleus applyFinalState
     // applyFinalState will delete destroyed particles.
+    LOG("INCLCascadeIntranuke", pNOTICE) << finalState->print();
     this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime(), avatar->getType());
     incl_target->applyFinalState(finalState.get());
     delete avatar;
@@ -1054,7 +1055,6 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
 }
 
 void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
-    evrec->Print(std::cout);
     if(evrec->Summary()->ProcInfo().IsResonant()){
         bool decay_flag = true;
         while(decay_flag){
@@ -1071,7 +1071,6 @@ void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
             }
         }
     }
-    evrec->Print(std::cout);
 }
 
 #include "INCLPostCascade.icc"
