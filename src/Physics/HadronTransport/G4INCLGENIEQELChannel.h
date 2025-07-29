@@ -1,3 +1,5 @@
+#ifndef G4INCLGENIEQELChannel_HH_
+#define G4INCLGENIEQELChannel_HH_ 1
 
 #include "G4INCLParticle.hh"
 #include "G4INCLNucleus.hh"
@@ -6,24 +8,21 @@
 #include "G4INCLAllocationPool.hh"
 #include "Physics/HadronTransport/G4INCLGENIEParticleRecord.h"
 
-#ifndef G4INCLGENIEQELChannel_HH_
-#define G4INCLGENIEQELChannel_HH_ 1
-
 namespace G4INCL {
   class GENIEQELChannel : public IChannel {
 
-  public:
-    GENIEQELChannel(Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord);
-    virtual ~GENIEQELChannel();
+    public:
+      GENIEQELChannel(Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord);
+      virtual ~GENIEQELChannel();
 
-    void fillFinalState(FinalState *fs);
+      void fillFinalState(FinalState *fs);
 
-  private:
-    Particle *hitParticle;
-    Nucleus * theNucleus;
-    std::vector<GENIEParticleRecord> *genie_evtrec; // GENIE event record
+    private:
+      Particle *hitParticle;
+      Nucleus * theNucleus;
+      std::vector<GENIEParticleRecord> *genie_evtrec; // GENIE event record
 
-    INCL_DECLARE_ALLOCATION_POOL(GENIEQELChannel)
+      INCL_DECLARE_ALLOCATION_POOL(GENIEQELChannel)
   };
 
 }

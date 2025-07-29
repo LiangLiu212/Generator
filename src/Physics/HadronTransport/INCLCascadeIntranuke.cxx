@@ -175,7 +175,7 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-  // evrec->Print(std::cout);
+  evrec->Print(std::cout);
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
@@ -206,7 +206,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   std::unique_ptr<G4INCL::FinalState> finalState(new FinalState);
   primarylepton = evrec->FinalStatePrimaryLepton();
   prob = evrec->Probe();
-  target = evrec->TargetNucleus();
 
   this->preCascade();
 
@@ -316,7 +315,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   int A = incl_target->getA();
   int Z = incl_target->getZ();
   int S = incl_target->getS(); // INCL and ABLA support hypernuclei
-  int pdg = genie::pdg::IonPdgCode( A , Z, 0, 0 );
+  int pdg = genie::pdg::IonPdgCode( A , Z, S, 0 );
 
   // LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
   TParticlePDG * prem = PDGLibrary::Instance()->Find(pdg);
@@ -418,6 +417,11 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
         << "mother id : " << ip->mother_index << "  "
         << "local id : " << ip->local_index;
     }
+  }
+
+  bool is_conservation = this->BaryonNumberConservation(evrec);
+  if(!is_conservation){
+    exit(1);
   }
 
   LOG("INCLCascadeIntranuke", pINFO) << "Done with this event";
@@ -591,6 +595,7 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
               int A = pdg_no_s % 1000;
               int Z = pdg_no_s / 1000;
               pdg = genie::pdg::IonPdgCode( A , Z, S, 0);
+              pdg = this->INCLPDG_to_GHEPPDG(pdg, A, Z, S);
             }
           }
           LOG("INCLCascadeIntranuke", pINFO) << "PDG : " << pdg;
@@ -927,13 +932,23 @@ int INCLCascadeIntranuke::INCLPDG_to_GHEPPDG(int pdg, int A, int Z, int S) const
   TParticlePDG * p = fDatabasePDG->GetParticle(pdg);
   if(!p){
     if(A != 0){
-      return genie::pdg::IonPdgCode( A , Z, std::abs(S), 0 );
+      int ion_pdg =  genie::pdg::IonPdgCode( A , Z, std::abs(S), 0 );
+      TParticlePDG *ion = fDatabasePDG->GetParticle(ion_pdg);
+      if(S != 0 && !ion){
+        PDGLibrary *pdg_library = PDGLibrary::Instance();
+        pdg_library->AddHypernucleus(ion_pdg);
+      }
+      return ion_pdg;
     }
-    else 
-      return 0;
+    else{
+      LOG("INCLCascadeIntranuke", pERROR) << "Particle is not identified: pdg = " << pdg << "; A, Z, S => " 
+        << A << " " << Z << " " << S;
+      exit(1);
+    }
   }
-  else
+  else{
     return pdg;
+  }
 }
 
 void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState * finalState) const{
@@ -1071,6 +1086,52 @@ void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
             }
         }
     }
+}
+
+bool INCLCascadeIntranuke::BaryonNumberConservation(GHepRecord *evrec) const {
+  evrec->Print(std::cout);
+  int final_C = 0, final_A = 0;
+  Target *tgt = evrec->Summary()->InitStatePtr()->TgtPtr();
+  int inital_C = evrec->Probe()->Charge() + tgt->Charge();
+  int target_A = tgt->A();
+  LOG("INCLCascadeIntranuke", pINFO) << "Inital states charge and A: " << inital_C << " " << target_A;
+  TObjArrayIter piter(evrec);
+  GHepParticle * p = nullptr;
+  while ( (p = (GHepParticle *) piter.Next() ) ) {
+    // the code of the particles in primary neutrino interaction
+    std::string particle_class = std::string(PDGLibrary::Instance()->Find(p->Pdg())->ParticleClass());
+    if(p->Status() == kIStStableFinalState || p->Status() == kIStFinalStateNuclearRemnant){
+      if(genie::pdg::IsNeutronOrProton(p->Pdg())){
+        final_A++;
+      }
+      else if(genie::pdg::IsBaryonResonance(p->Pdg())){
+        final_A++;
+      }
+      else if(particle_class.find("Baryon") != std::string::npos){
+        if(p->Pdg() < 0){
+          final_A--;
+        }
+        else{
+          final_A++;
+        }
+      }
+      else if(genie::pdg::IsIon(p->Pdg())){
+        final_A+=p->A();
+      }
+      final_C += p->Charge()/3;
+      LOG("INCLCascadeIntranuke", pINFO) << "PDG and Charge: " << p->Pdg() << "  " << p->Charge();
+    }
+  }
+  LOG("INCLCascadeIntranuke", pINFO) << "Final states charge and A: " << final_C << " " << final_A;
+  if(inital_C != final_C || target_A != final_A){
+    LOG("INCLCascadeIntranuke", pFATAL) << "Violating charge number and baryon number!";
+    LOG("INCLCascadeIntranuke", pINFO) << "Inital states charge and A: " << inital_C << " " << target_A;
+    LOG("INCLCascadeIntranuke", pINFO) << "Final states charge and A: " << final_C << " " << final_A;
+    exit(1);
+    return false;
+  }
+  return true;
+
 }
 
 #include "INCLPostCascade.icc"

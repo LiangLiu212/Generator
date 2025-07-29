@@ -220,6 +220,30 @@ bool PDGLibrary::AddDarkSector()
   return true;
 }
 //____________________________________________________________________________
+#ifdef __GENIE_INCL_ENABLED__
+void PDGLibrary::AddHypernucleus(int pdg_hypernucleus){
+  // int pdg_hypernucleus,
+  // get the ragular ion from pdg database
+  int pdg_ion = pdg_hypernucleus - int(1e7);
+  TParticlePDG *ion = fDatabasePDG->GetParticle(pdg_ion);
+  const double mass = ion->Mass();
+  const char* name = ion->GetName();
+  const int charge = ion->Charge(); // hyper-nuclei have the same charge with ions
+  // name/title and mass of hyper-nucleus
+  std::string hypernucl_name = std::string(name) + "L";
+  double      hypernucl_mass = mass + 0.18; // FIXME the mass of hyper-nuclei is higher than the ion; this is a rough estimation.
+  TParticlePDG *hypernucleus = fDatabasePDG->GetParticle(pdg_hypernucleus);
+  if(!hypernucleus){
+    LOG("PDG", pINFO) << "Adding hyper-nucleus: " << hypernucl_name << " => " << pdg_hypernucleus;
+    fDatabasePDG->AddParticle(hypernucl_name.c_str(), hypernucl_name.c_str(), hypernucl_mass, true, 0, charge, "HyperIon", pdg_hypernucleus);
+  }
+  else{
+    LOG("PDG", pINFO) << "Find hyper-nucleus " << hypernucl_name << "(" << pdg_hypernucleus <<") in PDG library!";
+    return;
+  }
+}
+#endif
+//____________________________________________________________________________
 // EDIT: need a way to clear and then reload the PDG database
 void PDGLibrary::ReloadDBase(void)
 {

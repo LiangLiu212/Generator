@@ -28,6 +28,7 @@ namespace G4INCL {
       ~GENIEParticleRecord();
       // Basic properties
       int           Pdg            (void) const { return  fPdgCode;            }
+      int           Charge         (void) const { return  fCharge;             }
       int           ID             (void) const { return  fID;                 }
       int           Status         (void) const { return  fStatus;             }
       int           FirstMother    (void) const { return  fFirstMother;        }
@@ -49,6 +50,7 @@ namespace G4INCL {
 
     private:
       int           fPdgCode;        ///< particle PDG code
+      int           fCharge;         ///< particle charge number
       int           fID;             ///< particle INCL ID
       int           fStatus;         ///< particle status (Convert GENIE status code to INCL FSI code 0: no rescattering, 1: do rescattering)
       int           fFirstMother;    ///< first mother idx
@@ -65,43 +67,43 @@ namespace G4INCL {
 
 
       ParticleType PDG_to_INCLType(int pdg) const {
-	switch(pdg){
-	  case 2212: return G4INCL::Proton;
-	  case 2112: return G4INCL::Neutron;
-	  case 211: return G4INCL::PiPlus;
-	  case -211: return G4INCL::PiMinus;
-	  case 111: return G4INCL::PiZero;
-	  case 2224: return G4INCL::DeltaPlusPlus;
-	  case 2214: return G4INCL::DeltaPlus;
-	  case 2114: return G4INCL::DeltaZero;
-	  case 1114: return G4INCL::DeltaMinus;
-	  case 221: return G4INCL::Eta;
-	  case 223: return G4INCL::Omega;
-	  case 331: return G4INCL::EtaPrime;
-	  case 22: return G4INCL::Photon;
-	  case 3122: return G4INCL::Lambda;
-	  case 3222: return G4INCL::SigmaPlus;
-	  case 3212: return G4INCL::SigmaZero;
-	  case 3112: return G4INCL::SigmaMinus;
-	  case -2212: return G4INCL::antiProton;
-	  case 3312: return G4INCL::XiMinus;
-	  case 3322: return G4INCL::XiZero;
-	  case -2112: return G4INCL::antiNeutron;
-	  case -3122: return G4INCL::antiLambda;
-	  case -3222: return G4INCL::antiSigmaPlus;
-	  case -3212: return G4INCL::antiSigmaZero;
-	  case -3112: return G4INCL::antiSigmaMinus;
-	  case -3312: return G4INCL::antiXiMinus;
-	  case -3322: return G4INCL::antiXiZero;
-	  case 321: return G4INCL::KPlus;
-	  case 311: return G4INCL::KZero;
-	  case -311: return G4INCL::KZeroBar;
-	  case -321: return G4INCL::KMinus;
-	  case 310: return G4INCL::KShort;
-	  case 130: return G4INCL::KLong;
-	  default:
-		    return G4INCL::UnknownParticle;
-	}
+        switch(pdg){
+          case 2212: return G4INCL::Proton;
+          case 2112: return G4INCL::Neutron;
+          case 211: return G4INCL::PiPlus;
+          case -211: return G4INCL::PiMinus;
+          case 111: return G4INCL::PiZero;
+          case 2224: return G4INCL::DeltaPlusPlus;
+          case 2214: return G4INCL::DeltaPlus;
+          case 2114: return G4INCL::DeltaZero;
+          case 1114: return G4INCL::DeltaMinus;
+          case 221: return G4INCL::Eta;
+          case 223: return G4INCL::Omega;
+          case 331: return G4INCL::EtaPrime;
+          case 22: return G4INCL::Photon;
+          case 3122: return G4INCL::Lambda;
+          case 3222: return G4INCL::SigmaPlus;
+          case 3212: return G4INCL::SigmaZero;
+          case 3112: return G4INCL::SigmaMinus;
+          case -2212: return G4INCL::antiProton;
+          case 3312: return G4INCL::XiMinus;
+          case 3322: return G4INCL::XiZero;
+          case -2112: return G4INCL::antiNeutron;
+          case -3122: return G4INCL::antiLambda;
+          case -3222: return G4INCL::antiSigmaPlus;
+          case -3212: return G4INCL::antiSigmaZero;
+          case -3112: return G4INCL::antiSigmaMinus;
+          case -3312: return G4INCL::antiXiMinus;
+          case -3322: return G4INCL::antiXiZero;
+          case 321: return G4INCL::KPlus;
+          case 311: return G4INCL::KZero;
+          case -311: return G4INCL::KZeroBar;
+          case -321: return G4INCL::KMinus;
+          case 310: return G4INCL::KZero; //case 310: return G4INCL::KShort; // INCL don't use the representation, KShort and KLong inside nucleus, convert them to K0 K0bar
+          case 130: return G4INCL::KZero; //case 130: return G4INCL::KLong;
+          default:
+                    return G4INCL::UnknownParticle;
+        }
       }
   };
 }

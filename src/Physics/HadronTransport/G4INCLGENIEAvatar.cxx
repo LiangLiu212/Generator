@@ -18,6 +18,8 @@ namespace G4INCL {
     genie_evtrec(eventRecord)
   {
     //    setType(GENIEAvatarType);
+    delta_Z = 0;
+    delta_Z += particle1->getZ();
   }
 
 
@@ -27,6 +29,8 @@ namespace G4INCL {
     genie_evtrec(eventRecord)
   {
     //    setType(GENIEAvatarType);
+    delta_Z = 0;
+    delta_Z += cluster->getZ();
   }
 
 
@@ -53,7 +57,6 @@ namespace G4INCL {
 
 
   void GENIEAvatar::preInteraction() {
-
     if((*genie_evtrec)[0].ScatteringType() != 10){
       int index = 0;
       double lepton_initial_energy = 0;
@@ -119,7 +122,6 @@ namespace G4INCL {
       }
       boostVector = local_mom / local_energy;
     }
-    return;
   }
 
   void GENIEAvatar::postInteraction(FinalState *fs) {
@@ -170,15 +172,18 @@ namespace G4INCL {
 
     for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
       (*i)->makeParticipant(); //FIXME
+      delta_Z -= (*i)->getZ();
       theNucleus->getStore()->getBook().incrementCascading(); // FIXME
     }
     for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
       (*i)->makeParticipant(); //FIXME
+      delta_Z -= (*i)->getZ();
       //theNucleus->getStore()->getBook().incrementCascading(); // FIXME
     }
     for(ParticleIter i=Destroyed.begin(), e=Destroyed.end(); i!=e; ++i ){
       theNucleus->getStore()->getBook().incrementCascading(); // FIXME
     }
+    theNucleus->setZ(theNucleus->getZ() - delta_Z);
     return;
   }
 

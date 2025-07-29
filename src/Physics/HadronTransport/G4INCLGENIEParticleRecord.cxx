@@ -6,6 +6,7 @@
 namespace G4INCL{
   GENIEParticleRecord::GENIEParticleRecord(genie::GHepParticle *p, int scType, GENIERecordCode recordCode){
     fPdgCode        = p->Pdg();
+    fCharge         = p->Charge()/3;
     // if(p->Status() == genie::kIStHadronInTheNucleus) fStatus = 1;
     // else fStatus = 0;
     fStatus         = p->Status();

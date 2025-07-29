@@ -23,11 +23,11 @@ namespace G4INCL {
 
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->Status() == 14){
-	ip->setID(int(hitParticle->getID()));
-	hitParticle->setType(ip->Type());
-	hitParticle->setMomentum(ip->P3());
-	hitParticle->setPosition(ip->X3());
-	hitParticle->adjustEnergyFromMomentum();
+        ip->setID(int(hitParticle->getID()));
+        hitParticle->setType(ip->Type());
+        hitParticle->setMomentum(ip->P3());
+        hitParticle->setPosition(ip->X3());
+        hitParticle->adjustEnergyFromMomentum();
       }
     }
     fs->addModifiedParticle(hitParticle);

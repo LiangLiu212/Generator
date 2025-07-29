@@ -390,6 +390,7 @@ bool INCLCascadeIntranuke::decayOutgoingClusters(GHepRecord * evrec, G4INCL::Fin
     //#endif
     cluster->deleteParticles(); // Don't need them
     ParticleList decayProducts = ClusterDecay::decay(cluster);
+    finalState->addOutgoingParticle(cluster);
     for(ParticleIter j=decayProducts.begin(), end=decayProducts.end(); j!=end; ++j){
       (*j)->setBiasCollisionVector(cluster->getBiasCollisionVector());
       incl_target->getStore()->addToOutgoing(*j);

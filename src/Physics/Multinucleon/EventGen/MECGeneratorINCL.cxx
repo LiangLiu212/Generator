@@ -145,6 +145,7 @@ void MECGeneratorINCL::AddTargetRemnant(GHepRecord * event) const
   }
   */
 
+  //event->AddParticle(ipdgc,kIStIntermediateState, momidx,-1,-1,-1, p4,v4);
   event->AddParticle(ipdgc,kIStStableFinalState, momidx,-1,-1,-1, p4,v4);
 
 }
@@ -192,6 +193,7 @@ void MECGeneratorINCL::GenerateFermiMomentum(GHepRecord * event) const
 
   nucleon_cluster->SetMomentum(p4nclust);
   remnant_nucleus->SetMomentum(p4remnant);
+  remnant_nucleus->SetStatus(kIStIntermediateState);
 
 
   event->Summary()->InitStatePtr()->TgtPtr()->SetHitNucP4(p4nclust);
