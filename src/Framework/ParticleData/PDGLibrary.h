@@ -49,6 +49,7 @@ public:
   void AddDarkMatter  (double mass, double med_ratio);
 #ifdef __GENIE_INCL_ENABLED__
   void AddHypernucleus(int pdg_hypernucleus);
+  void AddVirtualCluster(int pdg_virtual);
 #endif
 
 private:

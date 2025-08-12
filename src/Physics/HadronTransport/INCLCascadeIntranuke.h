@@ -121,6 +121,23 @@ namespace genie {
        * \return true if any cluster was forced to decay.
        */
       bool decayOutgoingClusters(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+
+      /** \brief Force the transformation of outgoing Neutral Kaon into propation eigenstate.
+       * \return true if any kaon was forced to decay.
+       */
+      bool decayOutgoingNeutralKaon(GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+
+      /** \brief Force the decay of outgoing Neutral Sigma.
+       * \return true if any Sigma was forced to decay.
+       */
+      bool decayOutgoingSigmaZero(double timeThreshold, GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+
+      /** \brief Force the decay of outgoing PionResonances (eta/omega).
+       * \return true if any eta was forced to decay.
+       */
+
+      bool decayOutgoingPionResonances(double timeThreshold, GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+
       /** \brief Force the phase-space decay of the Nucleus.
        *
        * Only applied if Z==0 or N==0.

@@ -541,6 +541,9 @@ void GHepParticle::AssertIsKnownParticle(void) const
     if(S != 0){
       PDGLibrary::Instance()->AddHypernucleus(fPdgCode);
       return;
+    } else if(fPdgCode > int(1e9)) {
+      PDGLibrary::Instance()->AddVirtualCluster(fPdgCode);
+      return;
     }
 #endif
     LOG("GHepParticle", pFATAL)

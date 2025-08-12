@@ -28,6 +28,7 @@
 #include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGLibrary.h"
+#include "Framework/Conventions/Constants.h"
 
 
 using std::string;
@@ -239,6 +240,21 @@ void PDGLibrary::AddHypernucleus(int pdg_hypernucleus){
   }
   else{
     LOG("PDG", pINFO) << "Find hyper-nucleus " << hypernucl_name << "(" << pdg_hypernucleus <<") in PDG library!";
+    return;
+  }
+}
+void PDGLibrary::AddVirtualCluster(int pdg_virtual){
+  int A = (pdg_virtual/10)%1000;
+  int Z = (pdg_virtual/10000)%1000;
+  double virtual_cluster_mass = A*genie::constants::kNucleonMass; // au: atomic mass; me: electron mass
+  int charge = Z;
+  TParticlePDG *virtualcluster = fDatabasePDG->GetParticle(pdg_virtual);
+  if(!virtualcluster){
+    LOG("PDG", pINFO) << "Adding virtual cluster => " << pdg_virtual;
+    fDatabasePDG->AddParticle("VCluster", "VCluster", virtual_cluster_mass, true, 0, charge, "VirtualCluster", pdg_virtual);
+  }
+  else{
+    LOG("PDG", pINFO) << "Find virtual cluster (" << pdg_virtual << ") in PDG library!";
     return;
   }
 }
