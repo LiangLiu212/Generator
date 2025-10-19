@@ -1,3 +1,5 @@
+#ifdef __GENIE_INCL_ENABLED_Liang__
+
 #include "Framework/Conventions/GBuild.h"
 #ifdef __GENIE_INCL_ENABLED__
 
@@ -102,3 +104,5 @@ namespace G4INCL {
 #endif
 
 #endif // __GENIE_INCL_ENABLED__
+
+#endif

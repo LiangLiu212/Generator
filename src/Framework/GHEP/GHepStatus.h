@@ -36,7 +36,10 @@ typedef enum EGHepStatus {
    kIStPreDecayResonantState      = 13,
    kIStHadronInTheNucleus         = 14,   /* hadrons inside the nucleus: marked for hadron transport modules to act on */
    kIStFinalStateNuclearRemnant   = 15,   /* low energy nuclear fragments entering the record collectively as a 'hadronic blob' pseudo-particle */
-   kIStNucleonClusterTarget       = 16    // for composite nucleons before phase space decay
+   kIStNucleonClusterTarget       = 16,    // for composite nucleons before phase space decay
+   kIStPreDeExNuclearRemnant      = 17,   /* nuclear fragments before de-excitation */
+   kIStDeExFinalState             = 18,    /* generator-level final state: particles from de-excitation */
+   kIStSpectator                           /* the spectator particle in FSI collision */
 }
 GHepStatus_t;
 
