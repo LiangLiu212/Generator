@@ -38,6 +38,7 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/Target.h"
+#include "Physics/NuclearState/NuclearModel.h"
 #include "G4INCLParticle.hh"
 #include "G4INCLNucleus.hh"
 #include "G4INCLIPropagationModel.hh"
@@ -48,8 +49,6 @@
 #include "G4INCLLogger.hh"
 #include "G4INCLConfig.hh"
 #include "G4INCLRootFinder.hh"
-
-
 
 
 namespace genie {
@@ -70,8 +69,11 @@ namespace genie {
       double   getRemovalEnergy();
       G4INCL::Nucleus * getNuclues();
       G4INCL::StandardPropagationModel * getPropagationModel();
+
+      void setHitParticle(const int pdg, TVector3 &posi);
+      void setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi);
       G4INCL::Particle *getHitParticle();
-      G4INCL::Cluster  *getHitNNCluster();
+      std::shared_ptr<G4INCL::Cluster>  getHitNNCluster();
 
       G4INCL::Config *getConfig(){return theConfig_;}
 
@@ -112,12 +114,20 @@ namespace genie {
 
       void ResamplingHitNucleon();
 
+      void setHybridModel(NuclearModel_t model){
+        model_type_ = model;
+      }
+
+      NuclearModel_t getHybridModel(){
+        return model_type_;
+      }
+
     private:
       INCLNucleus();
       ~INCLNucleus();
       void initUniverseRadius(const int A, const int Z);
       G4INCL::Particle* getNucleon(const int pdg);
-      G4INCL::Cluster* getNNCluster(const int pdg1, const int pdg2);
+      std::shared_ptr<G4INCL::Cluster> getNNCluster(const int pdg1, const int pdg2);
       static INCLNucleus *fInstance;
 
       //TVector3 v3_; // position of initial nucleon 
@@ -127,7 +137,7 @@ namespace genie {
       G4INCL::Nucleus *nucleus_;
       G4INCL::Particle *hitNucleon_;
       // NN cluster for MEC channel
-      G4INCL::Cluster  *clusterNN_;
+      std::shared_ptr<G4INCL::Cluster>  clusterNN_;
 //      const int maxClusterMass = 2;
 //      G4INCL::Particle *selectedParticles[maxClusterMass];
 
@@ -154,6 +164,7 @@ namespace genie {
 
       G4INCL::DeExcitationType deExcitationType_;
 
+      NuclearModel_t model_type_;
   };
 
 }         // genie namespace

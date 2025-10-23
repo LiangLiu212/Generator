@@ -22,27 +22,27 @@
 
 namespace genie {
 
-NucleusGenI::NucleusGenI(string name ) :
-EventRecordVisitorI( name )
-{
+  NucleusGenI::NucleusGenI(string name ) :
+    EventRecordVisitorI( name )
+  {
 
-}
-//___________________________________________________________________________
-NucleusGenI::NucleusGenI(string name, string config) :
-EventRecordVisitorI( name, config)
-{
+  }
+  //___________________________________________________________________________
+  NucleusGenI::NucleusGenI(string name, string config) :
+    EventRecordVisitorI( name, config)
+  {
 
-}
-//___________________________________________________________________________
-NucleusGenI::~NucleusGenI()
-{
+  }
+  //___________________________________________________________________________
+  NucleusGenI::~NucleusGenI()
+  {
 
-}
-//____________________________________________________________________________
-void NucleusGenI::LoadConfig(void)
-{
+  }
+  //____________________________________________________________________________
+  void NucleusGenI::LoadConfig(void)
+  {
 
-}
-//____________________________________________________________________________
+  }
+  //____________________________________________________________________________
 }
 

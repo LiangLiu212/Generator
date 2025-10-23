@@ -10,6 +10,7 @@
 // GENIE
 #include "INCLCascadeIntranuke.h"
 #include "Framework/ParticleData/BaryonResUtils.h"
+#include "Framework/Algorithm/AlgConfigPool.h"
 
 // INCL++
 #include "G4INCLConfig.hh"
@@ -175,7 +176,9 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-  // evrec->Print(std::cout);
+  // evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
+  evrec->Print(std::cout);
+  // exit(1);
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
@@ -1070,14 +1073,28 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     eventRecord.emplace_back(p, int(proc_info.ScatteringTypeId()), recordCode);
   }
 
+  NuclearModel_t nucl_model = incl_nucleus->getHybridModel();
+  LOG("INCLCascadeIntranuke", pWARN) << "Nuclear model " << NuclearModel::AsString(nucl_model);
+
+  bool isHybridModel;
+  if(nucl_model == kNucmINCL){
+    isHybridModel = false;
+  }
+  else if(nucl_model == kNucmUndefined){
+    exit(1);
+  }
+  else{
+    isHybridModel = true;
+  }
+
 
   std::shared_ptr<G4INCL::IAvatar> avatar;
   if(proc_info.IsMEC()){
-    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, incl_nucleus->getHitNNCluster(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, (incl_nucleus->getHitNNCluster()).get(), incl_nucleus->getNuclues(), &eventRecord, isHybridModel);
     avatar->fillFinalState(finalState);
   }
   else{
-    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord);
+    avatar = std::make_shared<G4INCL::GENIEAvatar>(0, incl_nucleus->getHitParticle(), incl_nucleus->getNuclues(), &eventRecord, isHybridModel);
     avatar->fillFinalState(finalState);
   }
 
@@ -1203,7 +1220,7 @@ bool INCLCascadeIntranuke::BaryonNumberConservation(GHepRecord *evrec) const {
         final_A+=p->A();
       }
       final_C += p->Charge()/3;
-      LOG("INCLCascadeIntranuke", pINFO) << "PDG and Charge: " << p->Pdg() << "  " << p->Charge();
+      LOG("INCLCascadeIntranuke", pINFO) << "PDG and Charge: " << p->Pdg() << "  " << p->Charge() << "  " << p->A() << "  " << final_A << "  " << final_C;
     }
   }
   LOG("INCLCascadeIntranuke", pINFO) << "Final states charge and A: " << final_C << " " << final_A;

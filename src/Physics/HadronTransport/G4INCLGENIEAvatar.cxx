@@ -12,10 +12,10 @@
 
 namespace G4INCL {
 
-  GENIEAvatar::GENIEAvatar(double time, Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord)
+  GENIEAvatar::GENIEAvatar(double time, Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord, bool ishybrid)
     : InteractionAvatar(time, n, p),
     particle1(p), theNucleus(n),
-    genie_evtrec(eventRecord)
+    genie_evtrec(eventRecord), fHybridModel(ishybrid)
   {
     //    setType(GENIEAvatarType);
     delta_Z = 0;
@@ -23,14 +23,15 @@ namespace G4INCL {
   }
 
 
-  GENIEAvatar::GENIEAvatar(double time, Cluster *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord)
+  GENIEAvatar::GENIEAvatar(double time, Cluster *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord, bool ishybrid)
     : InteractionAvatar(time, n, nullptr),
     theNucleus(n), cluster(p),
-    genie_evtrec(eventRecord)
+    genie_evtrec(eventRecord), fHybridModel(ishybrid)
   {
     //    setType(GENIEAvatarType);
     delta_Z = 0;
     delta_Z += cluster->getZ();
+    fHybridModel = false;
   }
 
 
@@ -74,7 +75,8 @@ namespace G4INCL {
           leptonMom = ip->P3();
         }
         else if(ip->RecordCode() == kHitNucleon){
-          if(ip->ScatteringType() != 10){
+          //if(ip->ScatteringType() != 10 && !fHybridModel){
+          if(!fHybridModel){
             ThreeVector n_mom = particle1->getMomentum();
             ip->setMomentum(n_mom);
             ip->setMass(particle1->getMass());
@@ -138,7 +140,66 @@ namespace G4INCL {
     modifiedAndCreated = modified;
     modifiedAndCreated.insert(modifiedAndCreated.end(), created.begin(), created.end());
 
+    // using genie nuclear model for primary vertex
+    // only put the final 
 
+    if(fHybridModel){
+      // put hadrons into potential and make them off-shell
+      // FIXME: need to add the Q-value for hadron from primary vertex.
+
+      for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
+
+        std::cout << "DEBUG " << (*i)->print() << std::endl;
+        std::cout << "DEBUG " << (*i)->getPotentialEnergy() << std::endl;
+        if(theNucleus){
+          theNucleus->updatePotentialEnergy(*i);
+        } else {
+          (*i)->setPotentialEnergy(0.);
+        }
+        std::cout << "DEBUG " << (*i)->getPotentialEnergy() << std::endl;
+        std::cout << "DEBUG " << (*i)->print() << std::endl;
+        std::cout << "DEBUG: getEmissionQValueCorrection " << (*i)->getEmissionQValueCorrection(theNucleus->getA(),theNucleus->getZ(),theNucleus->getS()) << std::endl;
+        double Qval = (*i)->getEmissionQValueCorrection(theNucleus->getA(),theNucleus->getZ(),theNucleus->getS());
+        (*i)->setEnergy((*i)->getEnergy() + (*i)->getPotentialEnergy() - Qval); // put hadrons off-shell
+        (*i)->adjustMomentumFromEnergy();
+        std::cout << "DEBUG " << (*i)->print() << std::endl;
+        std::cout << "DEBUG " << (*i)->getPotentialEnergy() << std::endl;
+      }
+
+
+      /// update the event record after call enforceEnergyConservation;
+      int index = 0;
+      std::vector<GENIEParticleRecord>::iterator ip;
+      ParticleIter imc = modifiedAndCreated.begin();
+      for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
+        if(ip->Status() == 14 || ip->Status() == 13){
+          ThreeVector p_mom = (*imc)->getMomentum();
+          ip->setMomentum(p_mom);
+          ip->setMass((*imc)->getMass());
+          imc++;
+        }
+        index++;
+      }
+
+      for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
+        (*i)->makeParticipant(); //FIXME
+        delta_Z -= (*i)->getZ();
+        theNucleus->getStore()->getBook().incrementCascading(); // FIXME
+      }
+      for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
+        (*i)->makeParticipant(); //FIXME
+        delta_Z -= (*i)->getZ();
+        //theNucleus->getStore()->getBook().incrementCascading(); // FIXME
+      }
+      for(ParticleIter i=Destroyed.begin(), e=Destroyed.end(); i!=e; ++i ){
+        theNucleus->getStore()->getBook().incrementCascading(); // FIXME
+      }
+      theNucleus->setZ(theNucleus->getZ() - delta_Z);
+
+      return;
+    }
+
+    // using INCL nuclear model for primary vertex
     bool success = enforceEnergyConservation(fs);
     if(!success){
       std::cout << "enforceEnergyConservation fs wrong!" << std::endl;
@@ -236,7 +297,7 @@ namespace G4INCL {
 
 
   double GENIEAvatar::ViolationLeptonEMomentumFunctor::operator()(const double alpha) const {
-      //LOG("INCLCascadeIntranuke", pNOTICE) << "alpha : " << alpha;
+    //LOG("INCLCascadeIntranuke", pNOTICE) << "alpha : " << alpha;
     scaleParticleMomenta(alpha);
 
     double deltaE = 0.0;

@@ -47,14 +47,13 @@ public :
 
 
   // this two will be used in QEL-CC channel
-  void GenerateVertex(GHepRecord *event_rec) const;
-  void GenerateCluster(GHepRecord *event_rec) const;
-  void setInitialStateVertex   (GHepRecord * evrec) const; ///< give hit nucleon a position
-  void BindHitNucleon() const;
+  void setInitialStateVertex     (GHepRecord * evrec) const; ///< give hit nucleon a position
+  void setInitialStateMomentum   (GHepRecord * evrec) const; ///< give hit nucleon a position
   void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const;
   void GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const;
   bool isRPValid(double r, double p, const Target & tgt) const;
   void SetHitNucleonOnShellMom(TVector3 p3) const;
+  void GenerateCluster(GHepRecord *event_rec) const;
 
   //-- overload the Algorithm::Configure() methods to load private data
   //   members from configuration options
@@ -63,9 +62,6 @@ public :
 
 
 private:
-
-
-  void setInitialStateMomentum (GHepRecord * evrec) const; ///< give hit nucleon a momentum
 
   void setTargetNucleusRemnant (GHepRecord * evrec) const; ///< add a recoiled nucleus remnant
 

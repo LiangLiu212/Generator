@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-  \class    genie::NucleusGenTraditional
+  \class    genie::NucleusGenHybridStruck
 
   \brief    It visits the event record & combines the FermoMover and VertexGenerator
   computes a Fermi motion momentum and position for initial state nucleons 
@@ -31,23 +31,19 @@
 namespace genie {
 
 
-  class NucleusGenTraditional : public NucleusGenI {
+  class NucleusGenHybridStruck : public NucleusGenI {
 
     public :
-      NucleusGenTraditional();
-      NucleusGenTraditional(string config);
-      ~NucleusGenTraditional();
+      NucleusGenHybridStruck();
+      NucleusGenHybridStruck(string config);
+      ~NucleusGenHybridStruck();
 
       //-- implement the EventRecordVisitorI interface
       void ProcessEventRecord(GHepRecord * event_rec) const;
 
-
-      void GenerateVertex(GHepRecord *event_rec) const;
       void GenerateCluster(GHepRecord *event_rec) const;
-      void setInitialStateVertex   (GHepRecord * evrec) const{
-	// TODO: do noting for traditional nuclear model
-      }
-      void BindHitNucleon() const;
+      void setInitialStateVertex   (GHepRecord * evrec) const;
+      void setInitialStateMomentum   (GHepRecord * evrec) const;
       void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const;
       void GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const;
       bool isRPValid(double r, double p, const Target & tgt) const;
@@ -61,9 +57,24 @@ namespace genie {
     private:
 
       void LoadConfig (void);
-      // 
+
+      void setClusterVertex(GHepRecord * evrec) const;
+      TVector3 GetVertex(Interaction* interaction) const;
+
+      // Hybrid nuclear model combines the following 
+      // 1. INCL vertex  + GENIE nuclear model + INCL FSI
+      // 2. GENIE vertex + GENIE nuclear model + INCL FSI
+      // 3. GENIE vertex + GENIE nuclear model + GENIE FSI
+      // The third option should be identical with prior GENIE
+      // nuclear model in genie
       const EventRecordVisitorI *fFermiMover;
+      // vertex model in genie
       const EventRecordVisitorI *fVertexGenerator;
+      // nuclear model of INCL
+      const NucleusGenI *fNucleusGen; 
+
+      bool fINCLVertex;
+      bool fINCLFSI;
   };
 
 }      // genie namespace

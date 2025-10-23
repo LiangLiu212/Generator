@@ -18,8 +18,8 @@ namespace G4INCL {
    */
   class GENIEAvatar: public InteractionAvatar {
     public:
-      GENIEAvatar(double time, Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord);
-      GENIEAvatar(double time, Cluster *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord);
+      GENIEAvatar(double time, Particle *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord, bool ishybrid);
+      GENIEAvatar(double time, Cluster *p, Nucleus *n, std::vector<GENIEParticleRecord> *eventRecord, bool ishybrid);
       virtual ~GENIEAvatar();
 
       IChannel* getChannel();
@@ -50,6 +50,8 @@ namespace G4INCL {
       bool enforceEnergyConservation(FinalState * const fs);
 
       int delta_Z;
+
+      bool fHybridModel;
 
     private:
 

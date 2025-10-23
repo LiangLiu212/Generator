@@ -22,7 +22,7 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     
     <param type="string" name="CommonParam"> MultiNucleons </param>
     
-    <param type="alg" name="NucleusGen"> genie::NucleusGenTraditional/Default </param>
+    <param type="alg" name="NucleusGen"> genie::NucleusGenHybridStruck/Default </param>
 
     <!-- <param type="double" name="SuSA-MaxXSec-DiffTolerance"> 0.0 </param> -->
     
@@ -39,7 +39,7 @@ MaxXSec-MinScanPointsCosth int      No         Number of scan points for Costh r
     
     <param type="string" name="CommonParam"> MultiNucleons </param>
     
-    <param type="alg" name="NucleusGen"> genie::NucleusGenTraditional/Default </param>
+    <param type="alg" name="NucleusGen"> genie::NucleusGenHybridStruck/Default </param>
 
     <!-- <param type="double" name="SuSA-MaxXSec-DiffTolerance"> 0.0 </param> -->
     

@@ -74,6 +74,7 @@ University of Liverpool
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-NC">         genie::AhrensNCELPXSec/Default          </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-EM">         genie::RosenbluthPXSec/Default          </param>
 
+  <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC-Traditional">     genie::NievesQELCCPXSec/ZExp         </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC-INCL">     genie::NievesQELCCPXSec/ZExp         </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-NC-INCL">         genie::AhrensNCELPXSec/Default          </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-EM-INCL">         genie::RosenbluthPXSec/Default          </param>

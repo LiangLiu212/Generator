@@ -4,10 +4,10 @@
   \class    genie::NucleusGenI
 
   \brief    Interface of nucleus generator. It combines the 
-            vertex generator and fermi mover for triditional 
-	    nuclear model.
-	    INCL nuclear model will provide a nucleon with both
-	    position and momnetum
+  vertex generator and fermi mover for triditional 
+  nuclear model.
+  INCL nuclear model will provide a nucleon with both
+  position and momnetum
 
   \author   Liang Liu <liangliu \at fnal.gov>
   Fermi National Accelerator Laboratory
@@ -51,20 +51,19 @@ namespace genie {
     public :
       virtual ~NucleusGenI();
       virtual const NuclearModelI* GetNuclearModel() const{
-	return fNuclModel;
+        return fNuclModel;
       }
-      virtual void GenerateVertex(GHepRecord *event_rec) const  = 0;
-      virtual void GenerateCluster(GHepRecord *event_rec) const  = 0;
-      virtual void setInitialStateVertex   (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a position
-      virtual void BindHitNucleon() const = 0;
+      virtual void setInitialStateVertex     (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a position
+      virtual void setInitialStateMomentum   (GHepRecord * event_rec) const = 0; // ///< give hit nucleon a momentum and remnant momentum
       virtual void BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const = 0;
       virtual void GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const = 0;
       virtual bool isRPValid(double r, double p, const Target & tgt) const = 0;
       virtual void SetHitNucleonOnShellMom(TVector3 p3) const  = 0;
       virtual TLorentzVector GetClusterBindP4() const{
-	return cluster_bind;
+        return cluster_bind;
       }
-      
+      virtual void GenerateCluster(GHepRecord *event_rec) const  = 0;
+
 
     protected:
       void LoadConfig (void);

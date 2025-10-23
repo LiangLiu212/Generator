@@ -190,6 +190,7 @@ INCLNucleus::INCLNucleus():propagationModel_(0)
   nucleus_ = nullptr;
   theConfig_ = nullptr;
   hitNucleon_ = nullptr;
+  model_type_ = kNucmINCL; // default value, will be override in NucleusGenHybridStruck
 }
 //____________________________________________________________________________
 INCLNucleus::~INCLNucleus()
@@ -515,7 +516,7 @@ G4INCL::Particle * INCLNucleus::getHitParticle(){
   }
   return hitNucleon_;
 }
-G4INCL::Cluster * INCLNucleus::getHitNNCluster(){
+std::shared_ptr<G4INCL::Cluster> INCLNucleus::getHitNNCluster(){
   if(!clusterNN_){
     LOG("INCLNucleus", pFATAL) << "cluster is not valid!";
     exit(1);
@@ -569,7 +570,7 @@ void INCLNucleus::initUniverseRadius(const int A, const int Z){
 //  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
 }
 
-G4INCL::Cluster* INCLNucleus::getNNCluster(const int pdg1, const int pdg2){
+std::shared_ptr<G4INCL::Cluster> INCLNucleus::getNNCluster(const int pdg1, const int pdg2){
 
   nucleus_->initializeParticles();
   LOG("INCLNucleus", pINFO) << "get cluster";
@@ -624,7 +625,7 @@ G4INCL::Cluster* INCLNucleus::getNNCluster(const int pdg1, const int pdg2){
   G4INCL::ParticleList selectedParticles;
   selectedParticles.push_back(cluster_N1);
   selectedParticles.push_back(cluster_N2);
-  return (new G4INCL::Cluster(selectedParticles.begin(), selectedParticles.end()));
+  return std::make_shared<G4INCL::Cluster>(selectedParticles.begin(), selectedParticles.end());
 
 }
 
@@ -684,5 +685,109 @@ void INCLNucleus::ResamplingHitNucleon(){
     }
   }
 }
+void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
+  nucleus_->initializeParticles();
+  LOG("INCLNucleus", pINFO) << "set hit nucleon according to position";
+  nucleon_index_ = -1;
+  G4INCL::ThreeVector hitposi(posi.X(), posi.Y(), posi.Z());
+
+  G4INCL::ParticleList const &particles = nucleus_->getStore()->getParticles();
+  if(pdg::IsProton(pdg)){
+    double size = 1e16;
+    for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+      if((*i)->getType() != G4INCL::Proton) continue;
+      double space    = ((*i)->getPosition() - hitposi).mag2();
+      // we don't consider the momentum now. 
+      // double momentum = ...... ; 
+      double temp_size     = space;
+      if(temp_size < size){ // TODO: maybe need to find a reasonable way to get the cluster
+	      size =  temp_size;
+	      hitNucleon_ = (*i);
+      }
+    }
+  }
+  else if(pdg::IsNeutron(pdg)){
+    double size = 1e16;
+    for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+      if((*i)->getType() != G4INCL::Neutron) continue;
+      double space    = ((*i)->getPosition() - hitposi).mag2();
+      // we don't consider the momentum now. 
+      // double momentum = ...... ; 
+      double temp_size     = space;
+      if(temp_size < size){
+      	size =  temp_size;
+      	hitNucleon_ = (*i);
+      }
+    }
+  }
+  else{
+    LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon! " << pdg;
+    exit(1);
+  }
+  propagationModel_->setNucleus(nucleus_);
+
+}
+void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi){
+  nucleus_->initializeParticles();
+  LOG("INCLNucleus", pINFO) << "get cluster";
+  G4INCL::ThreeVector hitposi(posi.X(), posi.Y(), posi.Z());
+
+  int cluster_index[2];
+  int cluster_pdg[2];
+  cluster_pdg[0] = pdg1;
+  cluster_pdg[1] = pdg2;
+  G4INCL::Particle *cluster_N[2];
+  for(int idx = 0; idx < 2; idx++){
+    cluster_index[idx] = -1;
+    int pdg_ = cluster_pdg[idx];
+
+    //cluster_N1 = nucleus_->getStore()->getParticles().at(cluster_index1_);
+    //
+    G4INCL::ParticleList const &particles = nucleus_->getStore()->getParticles();
+    if(pdg::IsProton(pdg_)){
+      double size = 1e16;
+      for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+        if(idx == 1){ //  the second nucleon and the first nucleon should have different ID.
+          if((*i)->getID() == cluster_N[0]->getID()) continue;
+        }
+        if((*i)->getType() != G4INCL::Proton) continue;
+        double space    = ((*i)->getPosition() - hitposi).mag2();
+        // double momentum = ((*i)->getMomentum() - cluster_N1->getMomentum()).mag2();
+        double temp_size     = space;
+        if(temp_size < size){ // TODO: maybe need to find a reasonable way to get the cluster
+          size =  temp_size;
+          cluster_N[idx] = (*i);
+        }
+      }
+    }
+    else if(pdg::IsNeutron(pdg_)){
+      double size = 1e16;
+      for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
+        if(idx == 1){ //  the second nucleon and the first nucleon should have different ID.
+          if((*i)->getID() == cluster_N[0]->getID()) continue;
+        }
+        if((*i)->getType() != G4INCL::Neutron) continue;
+        double space    = ((*i)->getPosition() - hitposi).mag2();
+        //double momentum = ((*i)->getMomentum() - cluster_N1->getMomentum()).mag2();
+        double temp_size     = space;
+        if(temp_size < size){
+          size =  temp_size;
+          cluster_N[idx] = (*i);
+        }
+      }
+    }
+    else{
+      LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon! " << pdg2;
+      exit(1);
+    }
+  }
+
+  G4INCL::ParticleList selectedParticles;
+  selectedParticles.push_back(cluster_N[0]);
+  selectedParticles.push_back(cluster_N[1]);
+  //clusterNN_ = std::make_shared<G4INCL::Cluster>(selectedParticles.begin(), selectedParticles.end()).get();
+  clusterNN_ = std::make_shared<G4INCL::Cluster>(selectedParticles.begin(), selectedParticles.end());
+}
+
 #endif // __GENIE_INCL_ENABLED__
 

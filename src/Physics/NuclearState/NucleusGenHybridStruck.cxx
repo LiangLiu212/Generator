@@ -1,7 +1,7 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::NucleusGenTraditional
+\class    genie::NucleusGenHybridStruck
 
 \brief    It visits the event record & combines the FermoMover and VertexGenerator
           computes a Fermi motion momentum and position for initial state nucleons 
@@ -31,7 +31,7 @@
 #include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Conventions/Constants.h"
 #include "Framework/Conventions/Units.h"
-#include "Physics/NuclearState/NucleusGenTraditional.h"
+#include "Physics/NuclearState/NucleusGenHybridStruck.h"
 
 #include "Physics/NuclearState/NuclearModel.h"
 #include "Physics/NuclearState/NuclearModelI.h"
@@ -57,45 +57,132 @@ using namespace genie;
 using namespace genie::constants;
 
 //___________________________________________________________________________
-NucleusGenTraditional::NucleusGenTraditional() :
-NucleusGenI("genie::NucleusGenTraditional")
+NucleusGenHybridStruck::NucleusGenHybridStruck() :
+NucleusGenI("genie::NucleusGenHybridStruck")
 {
 
 }
 //___________________________________________________________________________
-NucleusGenTraditional::NucleusGenTraditional(string config) :
-NucleusGenI("genie::NucleusGenTraditional", config)
+NucleusGenHybridStruck::NucleusGenHybridStruck(string config) :
+NucleusGenI("genie::NucleusGenHybridStruck", config)
 {
 
 }
 //___________________________________________________________________________
-NucleusGenTraditional::~NucleusGenTraditional()
+NucleusGenHybridStruck::~NucleusGenHybridStruck()
 {
 
 }
 
 //___________________________________________________________________________
-void NucleusGenTraditional::ProcessEventRecord(GHepRecord * evrec) const
+void NucleusGenHybridStruck::ProcessEventRecord(GHepRecord * evrec) const
 {
   // skip if not a nuclear target
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-  fVertexGenerator->ProcessEventRecord(evrec);
+  this->setInitialStateVertex(evrec);
+  this->setInitialStateMomentum(evrec);
+}
+
+void NucleusGenHybridStruck::setInitialStateVertex(GHepRecord * evrec) const{
+  if(fINCLVertex){
+    // randomly pick up a nucleon from INCL nucleus as the struck nucleon
+    fNucleusGen->setInitialStateVertex(evrec);
+  }
+  else{
+    // using the GENIE vertex model
+    fVertexGenerator->ProcessEventRecord(evrec);
+    if(fINCLFSI){
+      // find the closet nucleon in INCL as the struck nucleon
+      // get the target and use it to initialize the incl nucleus
+      Target* tgt = evrec->Summary()->InitState().TgtPtr();
+      INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+      incl_nucleus->initialize(tgt);
+      incl_nucleus->reset(tgt);
+      incl_nucleus->initialize(tgt);
+      // Get the position of hit nucelon
+      GHepParticle * nucleon = evrec->HitNucleon();
+      TVector3 posi = nucleon->X4()->Vect();
+      incl_nucleus->setHitParticle(nucleon->Pdg(), posi);
+    }
+  }
+}
+
+void NucleusGenHybridStruck::setInitialStateMomentum(GHepRecord * evrec) const{
   fFermiMover->ProcessEventRecord(evrec);
+  evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
 }
 
-void NucleusGenTraditional::GenerateVertex(GHepRecord * evrec) const{
-  // This is function will be used in QEL-CC channel
-  // skip if not a nuclear target
-  LOG("NucleusGenTraditional", pNOTICE) << "new events";
-  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-  fVertexGenerator->ProcessEventRecord(evrec);
+void NucleusGenHybridStruck::setClusterVertex(GHepRecord * evrec) const{
+  if(fINCLVertex){
+    // randomly pick up a nucleon from INCL nucleus as the struck nucleon
+
+    GHepParticle * target_nucleus = evrec->TargetNucleus();
+    assert(target_nucleus);
+    GHepParticle * nucleon_cluster = evrec->HitNucleon();
+    assert(nucleon_cluster);
+    Target tgt(target_nucleus->Pdg());
+    tgt.SetHitNucPdg(nucleon_cluster->Pdg());
+
+    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+    incl_nucleus->initialize(&tgt);
+    incl_nucleus->reset(&tgt);
+    incl_nucleus->initialize(&tgt);
+
+    std::shared_ptr<G4INCL::Cluster> incl_cluster =  incl_nucleus->getHitNNCluster();
+    LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
+    LOG("NucleusGenINCL", pINFO) << incl_cluster->getMomentum().print();
+    LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
+    G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
+    TVector3 vtx(cluster_posi.getX(), cluster_posi.getY(), cluster_posi.getZ());
+    // Copy the vertex info to the particles already in the event  record
+    TObjArrayIter piter(evrec);
+    GHepParticle * p = 0;
+    while( (p = (GHepParticle *) piter.Next()) )
+    {
+      if(pdg::IsPseudoParticle(p->Pdg())) continue;
+      if(pdg::IsIon           (p->Pdg())) continue;
+
+      LOG("NucleusGenINCL", pDEBUG) << "Setting vertex position for: " << p->Name();
+      p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
+    }
+  }
+  else{
+    // using the GENIE vertex model
+    fVertexGenerator->ProcessEventRecord(evrec);
+    if(fINCLFSI){
+      // find the closet nucleon in INCL as the struck nucleon
+      // get the target and use it to initialize the incl nucleus
+      Target* tgt = evrec->Summary()->InitState().TgtPtr();
+      INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+      incl_nucleus->initialize(tgt);
+      incl_nucleus->reset(tgt);
+      incl_nucleus->initialize(tgt);
+      // Get the position of hit nucelon
+      GHepParticle * nucleon = evrec->HitNucleon();
+      TVector3 posi = nucleon->X4()->Vect();
+      int nucleon_pdg = tgt->HitNucPdg();
+      if(nucleon_pdg == kPdgClusterNN){
+        incl_nucleus->setHitNNCluster(kPdgNeutron, kPdgNeutron, posi);
+      }
+      else if(nucleon_pdg == kPdgClusterNP){
+        incl_nucleus->setHitNNCluster(kPdgNeutron, kPdgProton, posi);
+      }
+      else if(nucleon_pdg == kPdgClusterPP){
+        incl_nucleus->setHitNNCluster(kPdgProton, kPdgProton, posi);
+      }
+      else{
+        LOG("INCLNucleus", pFATAL) << "Can't get";
+        exit(1);
+      }
+    }
+  }
 }
 
-void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
+void NucleusGenHybridStruck::GenerateCluster(GHepRecord * evrec) const{
   // This is function will be used in MEC channela
   // first, generate vertex for hit cluster
   if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-  fVertexGenerator->ProcessEventRecord(evrec);
+  this->setClusterVertex(evrec);
 
   GHepParticle * target_nucleus = evrec->TargetNucleus();
   assert(target_nucleus);
@@ -112,25 +199,25 @@ void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
   PDGCodeList pdgv(allowdup);
 
   if(nucleon_cluster->Pdg() == kPdgClusterNN) {
-     pdgv.push_back(kPdgNeutron);
-     pdgv.push_back(kPdgNeutron);
+    pdgv.push_back(kPdgNeutron);
+    pdgv.push_back(kPdgNeutron);
   }
   else
-  if(nucleon_cluster->Pdg() == kPdgClusterNP) {
-     pdgv.push_back(kPdgNeutron);
-     pdgv.push_back(kPdgProton);
-  }
-  else
-  if(nucleon_cluster->Pdg() == kPdgClusterPP) {
-     pdgv.push_back(kPdgProton);
-     pdgv.push_back(kPdgProton);
-  }
-  else
-  {
-     LOG("NucleusGenTraditional", pERROR)
-        << "Unknown di-nucleon cluster PDG code (" << nucleon_cluster->Pdg() << ")";
-     exit(1);
-  }
+    if(nucleon_cluster->Pdg() == kPdgClusterNP) {
+      pdgv.push_back(kPdgNeutron);
+      pdgv.push_back(kPdgProton);
+    }
+    else
+      if(nucleon_cluster->Pdg() == kPdgClusterPP) {
+        pdgv.push_back(kPdgProton);
+        pdgv.push_back(kPdgProton);
+      }
+      else
+      {
+        LOG("NucleusGenHybridStruck", pERROR)
+          << "Unknown di-nucleon cluster PDG code (" << nucleon_cluster->Pdg() << ")";
+        exit(1);
+      }
 
   assert(pdgv.size()==2);
 
@@ -138,11 +225,11 @@ void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
   double removalenergy1, removalenergy2;
   fNuclModel->GenerateCluster(tgt, pdgv, &p3a, &p3b, &removalenergy1, &removalenergy2);
 
-  LOG("NucleusGenTraditional", pINFO)
+  LOG("NucleusGenHybridStruck", pINFO)
     << "1st nucleon (code = " << pdgv[0] << ") generated momentum: ("
     << p3a.Px() << ", " << p3a.Py() << ", " << p3a.Pz() << "), "
     << "|p| = " << p3a.Mag();
-  LOG("NucleusGenTraditional", pINFO)
+  LOG("NucleusGenHybridStruck", pINFO)
     << "2nd nucleon (code = " << pdgv[1] << ") generated momentum: ("
     << p3b.Px() << ", " << p3b.Py() << ", " << p3b.Pz() << "), "
     << "|p| = " << p3b.Mag();
@@ -158,11 +245,7 @@ void NucleusGenTraditional::GenerateCluster(GHepRecord * evrec) const{
 
 }
 //___________________________________________________________________________
-
-void NucleusGenTraditional::BindHitNucleon() const {
-}
-
-void NucleusGenTraditional::BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const {
+void NucleusGenHybridStruck::BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const {
 
   Target* tgt = interaction.InitState().TgtPtr();
   TLorentzVector* p4Ni = tgt->HitNucP4Ptr();
@@ -271,11 +354,11 @@ void NucleusGenTraditional::BindHitNucleon(Interaction& interaction, double& Eb,
         const double mN = genie::constants::kNucleonMass;
 
         double kF_Ni = fNuclModel->LocalFermiMomentum( *tgt,
-          tgt->HitNucPdg(), hit_nucleon_radius );
+            tgt->HitNucPdg(), hit_nucleon_radius );
         double EFermi_Ni = std::sqrt( std::max(0., mN*mN + kF_Ni*kF_Ni) );
 
         double kF_Nf = fNuclModel->LocalFermiMomentum( *tgt,
-          interaction.RecoilNucleonPdg(), hit_nucleon_radius );
+            interaction.RecoilNucleonPdg(), hit_nucleon_radius );
         // (On-shell) final nucleon mass
         //double mNf = interaction.RecoilNucleon()->Mass();
         double EFermi_Nf = std::sqrt( std::max(0., mN*mN + kF_Nf*kF_Nf) );
@@ -341,14 +424,15 @@ void NucleusGenTraditional::BindHitNucleon(Interaction& interaction, double& Eb,
 
 //___________________________________________________________________________
 
-void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const {
+void NucleusGenHybridStruck::GenerateNucleon(Interaction* interaction, ResamplingHitNucleon_t resampling_mode) const {
   // isRadius:
   // isRadius == 0 (false) put the nucleon in origin
   // isRadius == 1 (true) sampling the radius for nucleon
   Target* tgt = interaction->InitState().TgtPtr();
   if(resampling_mode == BothRPResamping){
-    const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
-    TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
+    //const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
+    //TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
+    TVector3 vertex_pos = this->GetVertex(interaction);
     double radius = vertex_pos.Mag();
     tgt->SetHitNucPosition( radius );
     fNuclModel->GenerateNucleon(*tgt, radius);
@@ -369,11 +453,31 @@ void NucleusGenTraditional::GenerateNucleon(Interaction* interaction, Resampling
   }
 }
 
+TVector3 NucleusGenHybridStruck::GetVertex(Interaction* interaction) const{
+  Target* tgt = interaction->InitState().TgtPtr();
+  if(fINCLVertex){
+    // randomly pick up a nucleon from INCL nucleus as the struck nucleon
+    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+    incl_nucleus->initialize(tgt);
+    incl_nucleus->reset(tgt);
+    incl_nucleus->initialize(tgt);
+    TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
+    return vertex_pos;
+
+  }
+  else{
+    // using the GENIE vertex model
+    const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
+    TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
+    return vertex_pos;
+  }
+}
+
 
 //___________________________________________________________________________
 
 // is function is a util function for QEL
-bool NucleusGenTraditional::isRPValid(double r, double p, const Target & tgt) const {
+bool NucleusGenHybridStruck::isRPValid(double r, double p, const Target & tgt) const {
   // TODO: document this, won't work for spectral functions
   double dummy_w = -1.;
   double prob = fNuclModel->Prob(p, dummy_w, tgt, r);
@@ -382,43 +486,50 @@ bool NucleusGenTraditional::isRPValid(double r, double p, const Target & tgt) co
 
 //___________________________________________________________________________
 
-void NucleusGenTraditional::SetHitNucleonOnShellMom(TVector3 p3) const {
+void NucleusGenHybridStruck::SetHitNucleonOnShellMom(TVector3 p3) const {
   // Set the nucleon we're using to be upstream at max energy and unbound
   fNuclModel->SetMomentum3( p3 );
   fNuclModel->SetRemovalEnergy( 0. );
 }
 
 //___________________________________________________________________________
-void NucleusGenTraditional::Configure(const Registry & config)
+void NucleusGenHybridStruck::Configure(const Registry & config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NucleusGenTraditional::Configure(string config)
+void NucleusGenHybridStruck::Configure(string config)
 {
   Algorithm::Configure(config);
   this->LoadConfig();
 }
 //____________________________________________________________________________
-void NucleusGenTraditional::LoadConfig(void)
+void NucleusGenHybridStruck::LoadConfig(void)
 {
   bool is_configed = true;
   fFermiMover = nullptr;
   fVertexGenerator = nullptr;
+  fINCLVertex = true;
+
+  this->GetParam("INCL-vertex", fINCLVertex);
+  std::cout << "DEBUG : " << fINCLVertex << std::endl;
+
   fFermiMover = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg("FermiMover"));
   if(!fFermiMover){
     is_configed = false;
-    LOG("NucleusGenTraditional", pERROR) << "The SubAlg FermiMover is not configed";
+    LOG("NucleusGenHybridStruck", pERROR) << "The SubAlg FermiMover is not configed";
   }
+
+
   fVertexGenerator = dynamic_cast<const EventRecordVisitorI *> (this->SubAlg("VertexGenerator"));
   if(!fVertexGenerator){
     is_configed = false;
-    LOG("NucleusGenTraditional", pERROR) << "The SubAlg VertexGenerator is not configed";
+    LOG("NucleusGenHybridStruck", pERROR) << "The SubAlg VertexGenerator is not configed";
   }
 
   if(!is_configed){
-    LOG("NucleusGenTraditional", pERROR) << "Configuration has failed.";
+    LOG("NucleusGenHybridStruck", pERROR) << "Configuration has failed.";
     exit(78);
   }
 
@@ -426,6 +537,32 @@ void NucleusGenTraditional::LoadConfig(void)
   fNuclModel = nullptr;
   fNuclModel = dynamic_cast<const NuclearModelI *>(fFermiMover->SubAlg(nuclkey));
   assert(fNuclModel);
+
+  fINCLFSI = false;
+  Registry * algos = AlgConfigPool::Instance() -> GlobalParameterList() ;
+  algos->Print(std::cout);
+  bool fHadronTranspEnable = algos -> GetBool("HadronTransp-Enable");
+  string fsi_model_name = algos -> GetAlg("HadronTransp-Model").name;
+  std::cout << "DEBUG : " << fsi_model_name << std::endl;
+  if(fHadronTranspEnable && fsi_model_name == string("genie::INCLCascadeIntranuke")){
+    std::cout << "DEBUG : " << fsi_model_name << "  OK!!" << std::endl;
+    fINCLFSI = true;
+  }
+  std::cout << "DEBUG : " << fINCLFSI << std::endl;
+  std::cout << "DEBUG : " << fINCLVertex << std::endl;
+
+  // Using NucleusGenINCL to setup the configuration of INCL nuclear model.
+  // Using INCLNucleus directly instead of NucleusGenINCL 
+  if(fINCLVertex || fINCLFSI){
+    std::cout << "DEBUG : " << fINCLFSI << std::endl;
+    std::cout << "DEBUG : " << fINCLVertex << std::endl;
+    RgKey nuclgenkey = "NucleusGenerator";
+    fNucleusGen = nullptr;
+    fNucleusGen = dynamic_cast<const NucleusGenI *> (this->SubAlg(nuclgenkey));
+    assert(fNucleusGen);
+    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+    incl_nucleus->setHybridModel(fNuclModel->ModelType(Target()));
+  }
 }
 //____________________________________________________________________________
 

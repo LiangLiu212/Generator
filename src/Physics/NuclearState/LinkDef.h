@@ -23,8 +23,7 @@
 #pragma link C++ class genie::FermiMover;
 #pragma link C++ class genie::NucleusGenerator;
 #pragma link C++ class genie::NucleusGenINCL;
-#pragma link C++ class genie::INCLNuclearModel;
-#pragma link C++ class genie::NucleusGenTraditional;
+#pragma link C++ class genie::NucleusGenHybridStruck;
 #pragma link C++ class genie::PauliBlocker;
 #pragma link C++ class genie::SRCNuclearRecoil;
 #pragma link C++ class genie::SecondNucleonEmissionI;

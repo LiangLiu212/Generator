@@ -84,53 +84,16 @@ void NucleusGenINCL::ProcessEventRecord(GHepRecord * evrec) const
   // skip if no hit nucleon is set
   if(! evrec->HitNucleon()) return;
 
-  // get the target and use it to initialize the incl nucleus
-  Target* tgt = evrec->Summary()->InitState().TgtPtr();
 
   LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
-  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(tgt);
-  incl_nucleus->reset(tgt);
-  incl_nucleus->initialize(tgt);
 
   // give hit nucleon a vertex
   this->setInitialStateVertex(evrec);
   // give hit nucleon a Fermi momentum
   this->setInitialStateMomentum(evrec);
-
-  // handle the addition of the recoil nucleon
-  // TODO:  INCL has it own SRC model
-  //  if ( fSecondEmitter ) fSecondEmitter -> ProcessEventRecord( evrec ) ;
-
-  // add a recoiled nucleus remnant
-  this->setTargetNucleusRemnant(evrec);
 }
-
 
 //___________________________________________________________________________
-void NucleusGenINCL::GenerateVertex(GHepRecord * evrec) const
-{
-  // INCL nuclear model don't need to generate vertex separately.
-  // Vertex will be setup with momentum simultaneously.
-  return;
-//  // skip if not a nuclear target
-//  if(! evrec->Summary()->InitState().Tgt().IsNucleus()) return;
-//  // skip if no hit nucleon is set
-//  if(! evrec->HitNucleon()) return;
-//
-//  // get the target and use it to initialize the incl nucleus
-//  Target* tgt = evrec->Summary()->InitState().TgtPtr();
-//
-//  LOG("NucleusGenINCL", pINFO) << "Initialize a nucleus for a new event!";
-//  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-//  incl_nucleus->initialize(tgt);
-//  incl_nucleus->reset(tgt);
-//  incl_nucleus->initialize(tgt);
-//  // give hit nucleon a vertex
-//  this->setInitialStateVertex(evrec);
-
-}
-
 
 void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
 
@@ -148,7 +111,7 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
   incl_nucleus->reset(&tgt);
   incl_nucleus->initialize(&tgt);
 
-  G4INCL::Cluster *incl_cluster =  incl_nucleus->getHitNNCluster();
+  std::shared_ptr<G4INCL::Cluster> incl_cluster =  incl_nucleus->getHitNNCluster();
   G4INCL::Nucleus *nucleus =  incl_nucleus->getNuclues();
   LOG("NucleusGenINCL", pINFO) << incl_cluster->print();
   LOG("NucleusGenINCL", pINFO) << incl_cluster->getMomentum().print();
@@ -203,11 +166,13 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
 //  using INCL model to get the position and momentum of 
 //  Hit  nucleon
 void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
-  if(fNuclModel->Id().Name().compare("genie::INCLNuclearModel") != 0)
-    return;
-  LOG("NucleusGenINCL", pDEBUG) << fNuclModel->Id().Name();
 
+  // get the target and use it to initialize the incl nucleus
+  Target* tgt = evrec->Summary()->InitState().TgtPtr();
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  incl_nucleus->initialize(tgt);
+  incl_nucleus->reset(tgt);
+  incl_nucleus->initialize(tgt);
 
 // generate a vtx and set it to all GHEP physical particles
   Interaction * interaction = evrec->Summary();
@@ -332,6 +297,7 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
      throw exception;
   }
 
+  this->setTargetNucleusRemnant(evrec);
 }
 
 void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
@@ -407,9 +373,6 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
 }
 
 //___________________________________________________________________________
-void NucleusGenINCL::BindHitNucleon() const {
-}
-
 void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvGen_BindingMode_t hitNucleonBindingMode) const {
   // BindHitNucleon assign the value of four momentum to class Interaction
   // Eb and hitNucleonBindingMode will not be used in INCL nuclear model
@@ -548,11 +511,6 @@ void NucleusGenINCL::LoadConfig(void)
   incl_nucleus->setGEMINIXXDataFilePath(this->expandEnvironmentPath(geminixxpath));
   incl_nucleus->setDeExcitationType(deExcitationType);
   incl_nucleus->configure();
-
-  RgKey nuclkey = "NuclearModel";
-  fNuclModel = nullptr;
-  fNuclModel = dynamic_cast<const NuclearModelI *>(this->SubAlg(nuclkey));
-  assert(fNuclModel);
 }
 //____________________________________________________________________________
 

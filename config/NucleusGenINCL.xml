@@ -17,7 +17,7 @@ Name                          Type    Optional   Comment                        
     <param type="string" name="inclxx-abla07-dir"  >   ${INCLXX_DATA_DIR}/de-excitation/abla07/upstream/tables/ </param>
     <param type="string" name="inclxx-geminixx-dir">   ${INCLXX_DATA_DIR}/de-excitation/geminixx/upstream/ </param>
     <param type="string" name="inclxx-de-excitation" > ABLAXX </param>
-    <param type="alg"    name="NuclearModel" > genie::INCLNuclearModel/Default </param>
+    <!-- param type="alg"    name="NuclearModel" > genie::INCLNuclearModel/Default </param -->
   </param_set>
  
 </alg_conf>

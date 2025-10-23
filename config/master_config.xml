@@ -278,7 +278,7 @@
 
    <config alg="genie::NucleusGenerator">                    NucleusGenerator.xml                      </config>
    <config alg="genie::NucleusGenINCL">                      NucleusGenINCL.xml                        </config>
-   <config alg="genie::NucleusGenTraditional">               NucleusGenTraditional.xml                 </config>
+   <config alg="genie::NucleusGenHybridStruck">              NucleusGenHybridStruck.xml                </config>
    <config alg="genie::INCLCascadeIntranuke">                INCLCascadeIntranuke.xml                  </config>
    <config alg="genie::INCLNuclearModel">                    INCLNuclearModel.xml                  </config>
    <config alg="genie::QELEventGeneratorINCL">               QELEventGeneratorINCL.xml               </config>
