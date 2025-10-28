@@ -75,6 +75,7 @@ namespace genie {
       // handle higher order resonances, 
       // Will decay the kIStPreDecayResonantState except delta
       // resonances
+      void PreparePrimaryVertex(GHepRecord * event_rec) const;
       void DecayResonance(GHepRecord * event_rec) const;
 
       bool BaryonNumberConservation(GHepRecord * event_rec) const;

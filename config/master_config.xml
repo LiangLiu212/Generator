@@ -284,7 +284,7 @@
    <config alg="genie::QELEventGeneratorINCL">               QELEventGeneratorINCL.xml               </config>
    <config alg="genie::INCLQELXSec">               INCLQELXSec.xml               </config>
    <config alg="genie::MECGeneratorINCL">               MECGeneratorINCL.xml               </config>
-   <config alg="genie::EmpiricalMECPXSecINCL">              EmpiricalMECPXSecINCL.xml              </config>
+   <config alg="genie::QELEventGeneratorSuSAINCL">           QELEventGeneratorSuSAINCL.xml           </config>
 
 
    <!-- ****** CONFIGURATION FOR HELEPTON W DECAY ALGORITHMS ****** -->

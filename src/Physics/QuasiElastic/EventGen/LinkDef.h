@@ -11,6 +11,7 @@
 #pragma link C++ class genie::QELInteractionListGenerator;
 #pragma link C++ class genie::QELKinematicsGenerator;
 #pragma link C++ class genie::QELEventGeneratorSuSA;
+#pragma link C++ class genie::QELEventGeneratorSuSAINCL;
 #pragma link C++ class genie::QELEventGenerator;
 #pragma link C++ class genie::QELEventGeneratorSM;
 #pragma link C++ class genie::QELEventGeneratorINCL;

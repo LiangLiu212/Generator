@@ -172,7 +172,10 @@ double INCLQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in
     fNucleusGen->GenerateNucleon(interaction, BothRPResamping);
     // The initial state variables have all been defined, so integrate over
     // the final lepton angles.
+    LOG("INCLQELXSec",pDEBUG) << "kine_min, kine_max : " << kine_min[0] << ", " << kine_max[0];
+    LOG("INCLQELXSec",pDEBUG) << "kine_min, kine_max : " << kine_min[1] << ", " << kine_max[1];
     double xsec = ig.Integral(kine_min, kine_max);
+    LOG("INCLQELXSec",pDEBUG) << "xsec : " << xsec;
 
     if(n%100 == 0){
     LOG("INCLQELXSec",pNOTICE) << "index : " << n << "  " << fNumNucleonThrows << " xsec : " << xsec;
@@ -281,6 +284,8 @@ double genie::utils::gsl::INCLFullQELdXSec::DoEval(const double* xin) const
 
   // Dummy storage for the binding energy of the hit nucleon
   double dummy_Eb = 0.;
+
+  LOG("INCLQELXSec",pDEBUG) << "Do Eval";
 
   // Compute the full differential cross section
   double xsec = genie::utils::ComputeFullQELPXSec(fInteraction, fNucleusGen,

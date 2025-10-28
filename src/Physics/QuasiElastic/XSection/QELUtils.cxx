@@ -463,12 +463,21 @@ double genie::utils::ComputeFullQELPXSec(genie::Interaction* interaction,
 {
   // If requested, set the initial hit nucleon 4-momentum to be off-shell
   // according to the binding mode specified in the function call
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
   if ( bind_nucleon ) {
     nucl_gen->BindHitNucleon(*interaction, Eb, hitNucleonBindingMode);
   }
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
+
+  // A very high-momentum bound nucleon (which is far off the mass shell)
+  // can have a momentum greater than its total energy. This leads to numerical
+  // issues (NaNs) since the invariant mass of the nucleon becomes imaginary.
+  // In such cases, just return zero to avoid trouble.
+  if ( interaction->InitState().Tgt().HitNucP4().M() <= 0. ) return 0.;
 
   // Mass of the outgoing lepton
   double lepMass = interaction->FSPrimLepton()->Mass();
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
 
   // Look up the (on-shell) mass of the final nucleon
   TDatabasePDG *tb = TDatabasePDG::Instance();
@@ -530,27 +539,37 @@ double genie::utils::ComputeFullQELPXSec(genie::Interaction* interaction,
   lepton.Boost(beta);
   outNucleon.Boost(beta);
 
-  // Check if event is at a low angle - if so return 0 and stop wasting time
-  if (180 * lepton.Theta() / genie::constants::kPi < min_angle_EM && interaction->ProcInfo().IsEM()) {
-    return 0;
+  // For electromagnetic interactions, check if the event has a lepton
+  // scattering angle below the cutoff. If it does, just return zero.
+  if ( interaction->ProcInfo().IsEM() ) {
+    if ( 180. * lepton.Theta() / genie::constants::kPi < min_angle_EM ) {
+      return 0;
+    }
   }
+
+
+
 
   TLorentzVector * nuP4 = interaction->InitState().GetProbeP4( genie::kRfLab );
   TLorentzVector qP4 = *nuP4 - lepton;
   delete nuP4;
   double Q2 = -1 * qP4.Mag2();
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
 
   interaction->KinePtr()->SetFSLeptonP4( lepton );
   interaction->KinePtr()->SetHadSystP4( outNucleon );
   interaction->KinePtr()->SetQ2( Q2 );
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
 
   // Check the Q2 range. If we're outside of it, don't bother
   // with the rest of the calculation.
   Range1D_t Q2lim = interaction->PhaseSpace().Q2Lim();
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
   if (Q2 < Q2lim.min || Q2 > Q2lim.max) return 0.;
 
   // Compute the QE cross section for the current kinematics
   double xsec = xsec_model->XSec(interaction, genie::kPSQELEvGen);
+  // std::cout << "DEBUG: " << __FILE__ <<  ":" << __LINE__ << " : " << "check point!" << std::endl; 
 
   return xsec;
 }

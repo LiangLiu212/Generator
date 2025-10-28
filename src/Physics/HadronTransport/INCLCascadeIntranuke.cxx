@@ -177,15 +177,14 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
   // evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
-  evrec->Print(std::cout);
-  // exit(1);
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
   // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
   // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
-  this->DecayResonance(evrec);
+  this->PreparePrimaryVertex(evrec);
+  //this->DecayResonance(evrec);
 
   // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
 
@@ -1169,6 +1168,18 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
               return G4INCL::UnknownParticle;
   }
 
+}
+
+void INCLCascadeIntranuke::PreparePrimaryVertex(GHepRecord * event_rec) const{
+  // 1. for CCQE
+  event_rec->Print(std::cout);
+  int inucl = -1;
+  inucl = event_rec->RemnantNucleusPosition();
+  GHepParticle * nucl = event_rec->Particle(inucl);
+  nucl->SetStatus(kIStIntermediateState);
+  event_rec->Print(std::cout);
+
+  //exit(1);
 }
 
 void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{

@@ -109,7 +109,7 @@ void NucleusGenHybridStruck::setInitialStateVertex(GHepRecord * evrec) const{
 
 void NucleusGenHybridStruck::setInitialStateMomentum(GHepRecord * evrec) const{
   fFermiMover->ProcessEventRecord(evrec);
-  evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
+  //evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
 }
 
 void NucleusGenHybridStruck::setClusterVertex(GHepRecord * evrec) const{
@@ -434,6 +434,9 @@ void NucleusGenHybridStruck::GenerateNucleon(Interaction* interaction, Resamplin
     //TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
     TVector3 vertex_pos = this->GetVertex(interaction);
     double radius = vertex_pos.Mag();
+
+    LOG("NucleusGenHybridStruck", pDEBUG) << "radius : " << radius;
+
     tgt->SetHitNucPosition( radius );
     fNuclModel->GenerateNucleon(*tgt, radius);
   }
@@ -467,6 +470,7 @@ TVector3 NucleusGenHybridStruck::GetVertex(Interaction* interaction) const{
   }
   else{
     // using the GENIE vertex model
+    LOG("NucleusGenHybridStruck", pDEBUG) << "Get new vertex";
     const VertexGenerator* vtx_gen = dynamic_cast<const VertexGenerator*>(fVertexGenerator);
     TVector3 vertex_pos = vtx_gen->GenerateVertex( interaction, tgt->A() );
     return vertex_pos;
