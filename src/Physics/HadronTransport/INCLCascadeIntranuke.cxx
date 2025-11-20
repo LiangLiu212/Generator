@@ -176,28 +176,10 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   LOG("INCLCascadeIntranuke", pINFO) << "Start with this event";
 
-  // evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
-  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeAsString();
-  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().ScatteringTypeId();
-  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeId();
-  // LOG("INCLCascadeIntranuke", pINFO) << evrec->Summary()->ProcInfo().InteractionTypeAsString();
-  // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
-
   this->PreparePrimaryVertex(evrec);
   //this->DecayResonance(evrec);
 
   // LOG("INCLCascadeIntranuke", pNOTICE) << "is resonacne : " << evrec->Summary()->ProcInfo().IsResonant();
-
-  //  Get 'nuclear environment' at the beginning of hadron transport
-  //  and keep track of the remnant nucleus A,Z
-
-  //    GEvGenMode_t fGMode = evrec->EventGenerationMode();
-  //    if(fGMode == kGMdLeptonNucleus ||
-  //	  fGMode == kGMdDarkMatterNucleus ||
-  //	  fGMode == kGMdNucleonDecay) {
-  //      int inucl = evrec->RemnantNucleusPosition();
-  //      evrec->Particle(inucl)->SetStatus(kIStIntermediateState);
-  //    }
 
   // FIXME: start with the NC process
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
@@ -206,13 +188,13 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   propagationModel =  incl_nucleus->getPropagationModel();
   incl_target->setParticleNucleusCollision();
   std::unique_ptr<G4INCL::FinalState> finalState(new FinalState);
-  primarylepton = evrec->FinalStatePrimaryLepton();
+  // primarylepton = evrec->FinalStatePrimaryLepton();
   prob = evrec->Probe();
 
   this->preCascade();
 
   double currentTime = 0.0;
-  //    double temfin;
+  // double temfin;
 
   tempFinalState.clear();
   stepFinalState.clear();
@@ -243,6 +225,8 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   // we can calculate the longest stopping time for all the daughters from primary interaction.
 
   incl_target->applyFinalState(finalState.get());
+
+  // LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
   incl_target->getStore()->getBook().incrementAcceptedCollisions();
   int step = 0;
@@ -262,13 +246,17 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     LOG("INCLCascadeIntranuke", pNOTICE) << finalState->print();
     this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime(), avatar->getType());
     incl_target->applyFinalState(finalState.get());
-    LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
+    LOG("INCLCascadeIntranuke", pNOTICE) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
     delete avatar;
     step++;
   }
 
+
+  primarylepton = evrec->FinalStatePrimaryLepton();
   // std::cout << incl_target->print() << std::endl;
   // put the nuclear remnant in the event record
+  //
+  LOG("INCLCascadeIntranuke", pWARN) << "cascade step: " << step;
 
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
   double debug_A = incl_target->getA();
@@ -509,21 +497,29 @@ bool INCLCascadeIntranuke::continueCascade() const{
 
   bool continueCascade_ = true;
 
+
   if(propagationModel->getCurrentTime() > propagationModel->getStoppingTime()){
     continueCascade_ = false;
+    LOG("INCLCascadeIntranuke", pWARN) << "stop time : " << propagationModel->getCurrentTime() << " : " << propagationModel->getStoppingTime();
+    
   }
   if(incl_target->getStore()->getBook().getCascading()==0 &&
       incl_target->getStore()->getIncomingParticles().empty()){
     continueCascade_ = false;
+    LOG("INCLCascadeIntranuke", pWARN) << "stop cascading ";
   }
   int minRemnantSize = 4;
   if(incl_target->getA() <= minRemnantSize) {
     continueCascade_ = false;
+    LOG("INCLCascadeIntranuke", pWARN) << "stop min size ";
   }
 
   if(incl_target->getTryCompoundNucleus()) {
     continueCascade_ = false;
+    LOG("INCLCascadeIntranuke", pWARN) << "stop Compound ";
   }
+
+
   return continueCascade_;
 
 }
@@ -537,7 +533,7 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
     this->fillStep(*iter, stepParticleList, -6, time);
     ParticleSpecies ptype = (*iter)->getSpecies();
     stepFinalState[istep].emplace_back((*iter)->getID(), ptype.getPDGCode(), -6, 0);
-    LOG("INCLCascadeIntranuke", pWARN) << "mother list ID : " << (*iter)->getID() << " pdg : " << ptype.getPDGCode(); 
+    LOG("INCLCascadeIntranuke", pDEBUG) << "mother list ID : " << (*iter)->getID() << " pdg : " << ptype.getPDGCode(); 
   }
   ParticleList modified = fs->getModifiedParticles();
   for(ParticleIter iter=modified.begin(); iter!=modified.end(); ++iter){
@@ -1086,6 +1082,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     isHybridModel = true;
   }
 
+  LOG("INCLCascadeIntranuke", pWARN) << "Nuclear model " << NuclearModel::AsString(nucl_model) << "  :  " << isHybridModel;
 
   std::shared_ptr<G4INCL::IAvatar> avatar;
   if(proc_info.IsMEC()){
@@ -1122,9 +1119,41 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     p4->SetPz(er->P3().getZ()/1000.);
     p4->SetE(std::sqrt(er->P3().mag2() + er->Mass()*er->Mass())/1000.);
     tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx++);
+    LOG("INCLCascadeIntranuke", pWARN) << er->ID();
     er++;
   }
   //evrec->Print(std::cout);
+  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+
+  // put the out-going particle into event record
+  
+  ParticleList outgoing = finalState->getOutgoingParticles();
+
+  for(ParticleIter iter=outgoing.begin(); iter!=outgoing.end(); ++iter){
+    int outp_mother_idx = -1;
+    int idx = -1;
+    int pdg = 0;
+    GHepParticle * p1 = nullptr;
+    for(auto er = eventRecord.begin(); er != eventRecord.end(); er++){
+      idx++;
+      if((*iter)->getID() == er->ID()){
+        outp_mother_idx = idx;
+        pdg = er->Pdg();
+      }
+    }
+
+    GHepParticle p(pdg, kIStStableFinalState, outp_mother_idx, -1, -1, -1, 
+        TLorentzVector((*iter)->getMomentum().getX() / 1000,
+          (*iter)->getMomentum().getY() / 1000,
+          (*iter)->getMomentum().getZ() / 1000,
+          (*iter)->getEnergy() / 1000),
+        TLorentzVector((*iter)->getPosition().getX(),
+          (*iter)->getPosition().getY(),
+          (*iter)->getPosition().getZ(),
+          0)
+        );
+    evrec->AddParticle(p);
+  }
   return;
 
 }
@@ -1172,12 +1201,10 @@ G4INCL::ParticleType INCLCascadeIntranuke::PDG_to_INCLType(int pdg) const {
 
 void INCLCascadeIntranuke::PreparePrimaryVertex(GHepRecord * event_rec) const{
   // 1. for CCQE
-  event_rec->Print(std::cout);
   int inucl = -1;
   inucl = event_rec->RemnantNucleusPosition();
   GHepParticle * nucl = event_rec->Particle(inucl);
   nucl->SetStatus(kIStIntermediateState);
-  event_rec->Print(std::cout);
 
   //exit(1);
 }

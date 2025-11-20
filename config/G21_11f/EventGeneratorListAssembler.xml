@@ -582,8 +582,8 @@ Generator-%d                alg     No
      <param type="int" name="NGenerators">   4                                  </param>
      <param type="alg" name="Generator-0">   genie::EventGenerator/QEL-CC       </param>
      <param type="alg" name="Generator-1">   genie::EventGenerator/RES-CC       </param>
-     <param type="alg" name="Generator-2">   genie::EventGenerator/MEC-CC       </param>
-     <param type="alg" name="Generator-3">   genie::EventGenerator/DIS-CC       </param>
+     <param type="alg" name="Generator-2">   genie::EventGenerator/DIS-CC       </param>
+     <param type="alg" name="Generator-3">   genie::EventGenerator/MEC-CC       </param>
   </param_set>
 
 </alg_conf>

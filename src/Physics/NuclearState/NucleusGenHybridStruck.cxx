@@ -108,13 +108,16 @@ void NucleusGenHybridStruck::setInitialStateVertex(GHepRecord * evrec) const{
 }
 
 void NucleusGenHybridStruck::setInitialStateMomentum(GHepRecord * evrec) const{
+  std::cout << "DEBUG:" << __FILE__ << " Liang Liu"  << __LINE__ << std::endl;
   fFermiMover->ProcessEventRecord(evrec);
   //evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStIntermediateState);
 }
 
 void NucleusGenHybridStruck::setClusterVertex(GHepRecord * evrec) const{
+  std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << std::endl;
   if(fINCLVertex){
     // randomly pick up a nucleon from INCL nucleus as the struck nucleon
+  std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << std::endl;
 
     GHepParticle * target_nucleus = evrec->TargetNucleus();
     assert(target_nucleus);
@@ -134,21 +137,32 @@ void NucleusGenHybridStruck::setClusterVertex(GHepRecord * evrec) const{
     LOG("NucleusGenINCL", pINFO) << incl_cluster->getPosition().print();
     G4INCL::ThreeVector cluster_posi = incl_cluster->getPosition();
     TVector3 vtx(cluster_posi.getX(), cluster_posi.getY(), cluster_posi.getZ());
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << "  " << vtx.x() << std::endl;
     // Copy the vertex info to the particles already in the event  record
     TObjArrayIter piter(evrec);
     GHepParticle * p = 0;
     while( (p = (GHepParticle *) piter.Next()) )
     {
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << "  " << p->Pdg() << "  " << vtx.x() << std::endl;
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << "  " << p->Pdg() << "  " << pdg::IsPseudoParticle(p->Pdg()) << std::endl;
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << "  " << p->Pdg() << "  " << pdg::IsIon           (p->Pdg()) << std::endl;
       if(pdg::IsPseudoParticle(p->Pdg())) continue;
       if(pdg::IsIon           (p->Pdg())) continue;
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << "  " << p->Pdg() << "  " << vtx.x() << std::endl;
 
       LOG("NucleusGenINCL", pDEBUG) << "Setting vertex position for: " << p->Name();
       p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
     }
+    
+    evrec->HitNucleon()->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
+    
   }
   else{
+  std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__ << std::endl;
     // using the GENIE vertex model
     fVertexGenerator->ProcessEventRecord(evrec);
+    evrec->HitNucleon()->SetPosition(*evrec->Probe()->X4());
+
     if(fINCLFSI){
       // find the closet nucleon in INCL as the struck nucleon
       // get the target and use it to initialize the incl nucleus
@@ -452,6 +466,7 @@ void NucleusGenHybridStruck::GenerateNucleon(Interaction* interaction, Resamplin
     fNuclModel->SetMomentum3( TVector3(0., 0., 0.) );
   }
   else if(resampling_mode == fixRadius){
+    LOG("NucleusGenHybridStruck", pNOTICE) << "radius : " << tgt->HitNucPosition();
     fNuclModel->GenerateNucleon(*tgt, tgt->HitNucPosition());
   }
 }

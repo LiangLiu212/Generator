@@ -437,6 +437,9 @@ void QELEventGeneratorSuSAINCL::GenerateNucleon(GHepRecord * event) const
 
         double hitNucPos = initial_nucleon->X4()->Vect().Mag();
         tgt.SetHitNucPdg(initial_nucleon_pdg);
+        Target *inte_tgt = interaction->InitState().TgtPtr();
+        inte_tgt->SetHitNucPdg(initial_nucleon_pdg);
+        inte_tgt->SetHitNucPosition(hitNucPos);
         //fNuclModel->GenerateNucleon(tgt,hitNucPos);
         fNucleusGen->GenerateNucleon(interaction, fixRadius);
 
@@ -599,7 +602,7 @@ void QELEventGeneratorSuSAINCL::Configure(string config)
 void QELEventGeneratorSuSAINCL::LoadConfig(void)
 {
     fNucleusGen = 0;
-    RgKey nuclkey = "NuclearModel";
+    RgKey nuclkey = "NucleusGen";
     fNucleusGen = dynamic_cast<const NucleusGenI *> ( this->SubAlg(nuclkey) );
     assert( fNucleusGen );
 

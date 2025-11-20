@@ -49,9 +49,12 @@ namespace G4INCL {
 
       bool enforceEnergyConservation(FinalState * const fs);
 
+      bool putIntoPotential(const double theQValueCorrection, Particle * const theParticle);
+
       int delta_Z;
 
       bool fHybridModel;
+
 
     private:
 
@@ -161,6 +164,8 @@ namespace G4INCL {
       };
 
       RootFunctor *violationEFunctor;
+
+
 
       INCL_DECLARE_ALLOCATION_POOL(GENIEAvatar)
   };

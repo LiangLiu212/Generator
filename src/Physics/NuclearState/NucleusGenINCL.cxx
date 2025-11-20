@@ -132,6 +132,9 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
     p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
   }
 
+  evrec->HitNucleon()->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
+
+
   G4INCL::ThreeVector cluster_mom(0, 0, 0);
   double cluster_energy = 0;
   G4INCL::ParticleList particles = incl_cluster->getParticleList();
@@ -369,7 +372,7 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
 
   int imom = evrec->TargetNucleusPosition();
   evrec->AddParticle(
-       ipdgc, kIStIntermediateState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
+       ipdgc, kIStStableFinalState, imom,-1,-1,-1, Px,Py,Pz,E, 0,0,0,0);
 }
 
 //___________________________________________________________________________

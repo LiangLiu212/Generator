@@ -1019,6 +1019,9 @@ void MECGeneratorINCL::GenerateNSVInitialHadrons(GHepRecord * event) const
     // or for sophisticated treatments of intranuclear rescattering.
     TLorentzVector v4(*neutrino->X4());
 
+    
+    std::cout << "DEBUG:" << __FILE__ << " Liang Liu  "  << __LINE__  << "  " << v4.X() << std::endl;
+
     // Now write the (undecayed) final two-nucleon system
     GHepParticle p1(final_nucleon_cluster_pdg, kIStDecayedState,
             2, -1, -1, -1, p4final_cluster, v4);

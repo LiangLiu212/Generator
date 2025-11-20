@@ -23,17 +23,22 @@ namespace G4INCL {
 
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->Status() == 14){
-        Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
-        ip->setID(int(ihadron->getID()));
-        ihadron->setMass(ip->Mass());
-        ihadron->adjustEnergyFromMomentum();
-        fs->addCreatedParticle(ihadron);
+        if(ip->Pdg() == 2112 || ip->Pdg() == 2212){
+          ip->setID(int(hitParticle->getID()));
+          hitParticle->setType(ip->Type());
+          hitParticle->setMomentum(ip->P3());
+          hitParticle->setPosition(ip->X3());
+          hitParticle->adjustEnergyFromMomentum();
+          fs->addModifiedParticle(hitParticle);
+        }
+        else{
+          Particle *ihadron = new Particle(ip->Type(), ip->P3(), ip->X3());
+          ip->setID(int(ihadron->getID()));
+          ihadron->setMass(ip->Mass());
+          ihadron->adjustEnergyFromMomentum();
+          fs->addCreatedParticle(ihadron);
+        }
       }
     }
-    fs->addDestroyedParticle(hitParticle);
-
-    //exit(1);
-
   }
-
 }

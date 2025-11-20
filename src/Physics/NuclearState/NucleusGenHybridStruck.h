@@ -58,8 +58,8 @@ namespace genie {
 
       void LoadConfig (void);
 
-      void setClusterVertex(GHepRecord * evrec) const;
       TVector3 GetVertex(Interaction* interaction) const;
+      void setClusterVertex(GHepRecord * evrec) const;
 
       // Hybrid nuclear model combines the following 
       // 1. INCL vertex  + GENIE nuclear model + INCL FSI
