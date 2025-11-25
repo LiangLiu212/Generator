@@ -224,7 +224,9 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   // INCL don't have the stopping time for neutrino.
   // we can calculate the longest stopping time for all the daughters from primary interaction.
 
+  LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   incl_target->applyFinalState(finalState.get());
+  LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
 
   // LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
@@ -1122,8 +1124,9 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     LOG("INCLCascadeIntranuke", pWARN) << er->ID();
     er++;
   }
-  //evrec->Print(std::cout);
-  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+  evrec->Print(std::cout);
+  
+  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   // put the out-going particle into event record
   
@@ -1154,6 +1157,52 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
         );
     evrec->AddParticle(p);
   }
+  evrec->Print(std::cout);
+  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+
+  if(!outgoing.empty()){
+
+    std::unique_ptr<G4INCL::FinalState> tmpfs(new FinalState);
+    G4INCL::ParticleList modified  = finalState->getModifiedParticles();
+    G4INCL::ParticleList created   = finalState->getCreatedParticles();
+    G4INCL::ParticleList Destroyed = finalState->getDestroyedParticles();
+
+    for(ParticleIter i = modified.begin(), e = modified.end(); i!=e; ++i){
+      tmpfs->addModifiedParticle((*i));
+    }
+    for(ParticleIter i = Destroyed.begin(), e = Destroyed.end(); i!=e; ++i){
+      tmpfs->addDestroyedParticle((*i));
+    }
+    for(ParticleIter i = created.begin(), e = created.end(); i!=e; ++i){
+      if(!((*i)->isOutOfWell())){
+        tmpfs->addCreatedParticle((*i));
+      }
+    }
+    for(ParticleIter i = outgoing.begin(), e = outgoing.end(); i!=e; ++i){
+      tmpfs->addOutgoingParticle((*i));
+    }
+
+    finalState->reset();
+    modified  = tmpfs->getModifiedParticles();
+    created   = tmpfs->getCreatedParticles();
+    Destroyed = tmpfs->getDestroyedParticles();
+    outgoing =  tmpfs->getOutgoingParticles();
+
+    for(ParticleIter i = modified.begin(), e = modified.end(); i!=e; ++i){
+      finalState->addModifiedParticle((*i));
+    }
+    for(ParticleIter i = Destroyed.begin(), e = Destroyed.end(); i!=e; ++i){
+      finalState->addDestroyedParticle((*i));
+    }
+    for(ParticleIter i = created.begin(), e = created.end(); i!=e; ++i){
+      finalState->addCreatedParticle((*i));
+    }
+    for(ParticleIter i = outgoing.begin(), e = outgoing.end(); i!=e; ++i){
+      finalState->addOutgoingParticle((*i));
+    }
+  }
+  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+
   return;
 
 }
@@ -1210,22 +1259,22 @@ void INCLCascadeIntranuke::PreparePrimaryVertex(GHepRecord * event_rec) const{
 }
 
 void INCLCascadeIntranuke::DecayResonance(GHepRecord *evrec) const{
-    if(evrec->Summary()->ProcInfo().IsResonant()){
-        bool decay_flag = true;
-        while(decay_flag){
-            TObjArrayIter piter(evrec);
-            GHepParticle * p = nullptr;
-            decay_flag = false;
-            while ( (p = (GHepParticle *) piter.Next() ) ) {
-                if(p->Status() == kIStPreDecayResonantState && p->FirstDaughter() == -1 && PDG_to_INCLType(p->Pdg()) == G4INCL::UnknownParticle){
-                    decay_flag = true;
-                }
-            }
-            if(decay_flag){
-                fResonanceDecayer->ProcessEventRecord(evrec);
-            }
+  if(evrec->Summary()->ProcInfo().IsResonant()){
+    bool decay_flag = true;
+    while(decay_flag){
+      TObjArrayIter piter(evrec);
+      GHepParticle * p = nullptr;
+      decay_flag = false;
+      while ( (p = (GHepParticle *) piter.Next() ) ) {
+        if(p->Status() == kIStPreDecayResonantState && p->FirstDaughter() == -1 && PDG_to_INCLType(p->Pdg()) == G4INCL::UnknownParticle){
+          decay_flag = true;
         }
+      }
+      if(decay_flag){
+        fResonanceDecayer->ProcessEventRecord(evrec);
+      }
     }
+  }
 }
 
 bool INCLCascadeIntranuke::BaryonNumberConservation(GHepRecord *evrec) const {

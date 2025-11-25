@@ -222,7 +222,7 @@ void INCLNucleus::configure(){
   theConfig_->setGEMINIXXDataFilePath(geminixxDataFilePath_);
   theConfig_->setDeExcitationType(deExcitationType_);
 
-  theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
+  //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
 
   // initialize INCL model
   G4INCL::Random::initialize(theConfig_);
@@ -261,31 +261,17 @@ void INCLNucleus::configure(){
     cascadeAction_ = new G4INCL::AvatarDumpAction();
   else
     cascadeAction_ = new G4INCL::CascadeAction();
-//  cascadeAction_->beforeRunAction(theConfig_);
 }
 
 void INCLNucleus::initialize(const Target * tgt){
   // Skip to initialize a new nucleus if the INCL nucleus is not empty 
   // and the same species with GENIE target 
-  
-
-  // Initialize the INCL particle table:
-  // FIXME: this is a temp set, 
-//  if(!theDensityForLepton){
-//  theConfig_->setRPCorrelationCoefficient(1.0);
-//  G4INCL::ParticleTable::initialize(theConfig_);
-//  // create the density that will use in neutrino interactiona
-//  theDensityForLepton = G4INCL::NuclearDensityFactoryHitByLepton::createDensity(tgt->A(), tgt->Z(), 0); // parameters are  A, Z, S = 0;
-//  theConfig_->setRPCorrelationCoefficient(G4INCL::Proton, 0.5); // FIXME, the default value for proton r-p correlation
-//  theConfig_->setRPCorrelationCoefficient(G4INCL::Neutron, 0.73); // FIXME, the default value for neutron r-p correlation
-//  G4INCL::ParticleTable::initialize(theConfig_);
-//  }
 
 
   if(nucleus_){
     if(!nucleus_->getStore()->getParticles().empty())
       if(nucleus_->getA() == tgt->A() && nucleus_->getZ() == tgt->Z())
-	return ;
+        return ;
   }
   // initialize according process Event in INCL
   G4INCL::ParticleSpecies targetSpecies = G4INCL::ParticleSpecies(tgt->A(), tgt->Z());
@@ -293,7 +279,7 @@ void INCLNucleus::initialize(const Target * tgt){
   theConfig_->setTargetZ(targetSpecies.theZ);
   theConfig_->setTargetS(targetSpecies.theS);
   // define Nucleus and initialize it
-  
+
   // ReInitialize the bias vector
   G4INCL::Particle::INCLBiasVector.clear();
   //Particle::INCLBiasVector.Clear();
@@ -301,7 +287,7 @@ void INCLNucleus::initialize(const Target * tgt){
 
   // Set the target and the projectile 
   // implement prepare reaction
-  
+
   // Reset the forced-transparent flag
   // forceTransparent = false; FIXME
   //
@@ -318,7 +304,7 @@ void INCLNucleus::initialize(const Target * tgt){
     delete nucleus_;
   }
   nucleus_ = new G4INCL::Nucleus(targetSpecies.theA, targetSpecies.theZ, targetSpecies.theS, 
-  theConfig_, maxUniverseRadius_, G4INCL::Def);
+      theConfig_, maxUniverseRadius_, G4INCL::Def);
   nucleus_->getStore()->getBook().reset();
   theDensity = nucleus_->getDensity();
   thePotential = nucleus_->getPotential();
@@ -353,20 +339,20 @@ void INCLNucleus::initialize(const Target * tgt){
   //  TODO :: delete the comment
   // set the index of nucleon hitted by lepton before initialize a nucleus
   // FIXME
-//  nucleus_->setLeptonScatteringDensity(theDensityForLepton);
-//  nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
+  //  nucleus_->setLeptonScatteringDensity(theDensityForLepton);
+  //  nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
   //nucleus_->initializeParticles();
 
 
 
-//  propagationModel_->setNucleus(nucleus_);
-//  if(hitNucleon_) hitNucleon_ = nullptr;
-//  hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
-//  LOG("INCLNucleus", pNOTICE) << hitNucleon_->print();
+  //  propagationModel_->setNucleus(nucleus_);
+  //  if(hitNucleon_) hitNucleon_ = nullptr;
+  //  hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
+  //  LOG("INCLNucleus", pNOTICE) << hitNucleon_->print();
 
   // initialize max interaction distance
   // FIXME: in INCL, composite has non-zero max interaction distance.
-  
+
   // maxInteractionDistance_ = 0;
 
   // set the min Remnant size to be 4
@@ -426,13 +412,13 @@ void INCLNucleus::reset(const Target * tgt){
     }
 
     // set the index of nucleon hitted by lepton before initialize a nucleus
-//    nucleus_->setLeptonScatteringDensity(theDensityForLepton);
-//    nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
-//    nucleus_->initializeParticles();
+    //    nucleus_->setLeptonScatteringDensity(theDensityForLepton);
+    //    nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
+    //    nucleus_->initializeParticles();
     // reset the hit nucleon
-//    if(hitNucleon_) hitNucleon_ = nullptr;
-//    hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
-//    LOG("INCLNucleus", pNOTICE) << hitNucleon_->print();
+    //    if(hitNucleon_) hitNucleon_ = nullptr;
+    //    hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
+    //    LOG("INCLNucleus", pNOTICE) << hitNucleon_->print();
 
     if(propagationModel_){
       delete propagationModel_;
@@ -444,8 +430,8 @@ void INCLNucleus::reset(const Target * tgt){
 
 TVector3 INCLNucleus::getHitNucleonPosition(){
   if(!hitNucleon_){
-	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+    exit(1);
   }
   TVector3 v3(999999.,999999.,999999.);
   v3.SetXYZ(hitNucleon_->getPosition().getX(),
@@ -456,8 +442,8 @@ TVector3 INCLNucleus::getHitNucleonPosition(){
 
 TVector3 INCLNucleus::getHitNucleonMomentum(){
   if(!hitNucleon_){
-	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+    exit(1);
   }
   // INCL initial state;
   // we need to subtract the local energy from INCL nucleon before interaction
@@ -477,8 +463,8 @@ TVector3 INCLNucleus::getHitNucleonMomentum(){
 }
 double INCLNucleus::getHitNucleonEnergy(){
   if(!hitNucleon_){
-	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+    exit(1);
   }
   double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
   double oldEnergy = hitNucleon_->getEnergy();
@@ -487,24 +473,24 @@ double INCLNucleus::getHitNucleonEnergy(){
 
 double INCLNucleus::getHitNucleonMass(){
   if(!hitNucleon_){
-	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+    exit(1);
   }
   return hitNucleon_->getMass();
 }
 
 double INCLNucleus::getMass(){
   if(!nucleus_){
-	LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
+    exit(1);
   }
   return nucleus_->getMass();
 }
 
 G4INCL::Nucleus * INCLNucleus::getNuclues(){
   if(!nucleus_){
-	LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "nucleus is not valid!";
+    exit(1);
   }
   return nucleus_;
 }
@@ -531,15 +517,15 @@ G4INCL::StandardPropagationModel * INCLNucleus::getPropagationModel(){
 
 double INCLNucleus::getRemovalEnergy(){
   if(!hitNucleon_){
-	LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
-	exit(1);
+    LOG("INCLNucleus", pFATAL) << "hit nucleon is not valid!";
+    exit(1);
   }
   // FIXME: need to find the correct way for removal energy
- //   double removal_energy = 0;
- //   double nucleon_mass = hitNucleon_->getRealMass();
- //   double mag = hitNucleon_->getMomentum().mag();
- //   removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - hitNucleon_->getEnergy();
-    // return removal_energy;
+  //   double removal_energy = 0;
+  //   double nucleon_mass = hitNucleon_->getRealMass();
+  //   double mag = hitNucleon_->getMomentum().mag();
+  //   removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - hitNucleon_->getEnergy();
+  // return removal_energy;
   //return hitNucleon_->getPotentialEnergy();
   //return nucleus_->getPotential()->getSeparationEnergy(hitNucleon_->getType());
   // FIXME: removal = potential - qvalue
@@ -567,7 +553,7 @@ void INCLNucleus::initUniverseRadius(const int A, const int Z){
   const double maximumRadius = std::max(pMaximumRadius, nMaximumRadius);
   rMax = std::max(maximumRadius, rMax);
   maxUniverseRadius_ = rMax;
-//  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
+  //  LOG("INCLNucleus", pINFO) << "max Universe Radius : " << maxUniverseRadius_; 
 }
 
 std::shared_ptr<G4INCL::Cluster> INCLNucleus::getNNCluster(const int pdg1, const int pdg2){
@@ -599,8 +585,8 @@ std::shared_ptr<G4INCL::Cluster> INCLNucleus::getNNCluster(const int pdg1, const
       double momentum = ((*i)->getMomentum() - cluster_N1->getMomentum()).mag2();
       double temp_size     = space;
       if(temp_size < size){ // TODO: maybe need to find a reasonable way to get the cluster
-	size =  temp_size;
-	cluster_N2 = (*i);
+        size =  temp_size;
+        cluster_N2 = (*i);
       }
     }
   }
@@ -613,8 +599,8 @@ std::shared_ptr<G4INCL::Cluster> INCLNucleus::getNNCluster(const int pdg1, const
       double momentum = ((*i)->getMomentum() - cluster_N1->getMomentum()).mag2();
       double temp_size     = space;
       if(temp_size < size){
-	size =  temp_size;
-	cluster_N2 = (*i);
+        size =  temp_size;
+        cluster_N2 = (*i);
       }
     }
   }
@@ -641,12 +627,12 @@ G4INCL::Particle * INCLNucleus::getNucleon(const int pdg){
     LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon!";
     exit(1);
   }
-    // set the index of nucleon hitted by lepton before initialize a nucleus
-//    nucleus_->setLeptonScatteringDensity(theDensityForLepton);
-//    nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
-    nucleus_->initializeParticles();
-    // reset the hit nucleon
-    return nucleus_->getStore()->getParticles().at(nucleon_index_);
+  // set the index of nucleon hitted by lepton before initialize a nucleus
+  //    nucleus_->setLeptonScatteringDensity(theDensityForLepton);
+  //    nucleus_->setLeptonHitNucleonIndex(nucleon_index_);
+  nucleus_->initializeParticles();
+  // reset the hit nucleon
+  return nucleus_->getStore()->getParticles().at(nucleon_index_);
 }
 
 bool INCLNucleus::isRPValid(double r, double p){
@@ -686,7 +672,6 @@ void INCLNucleus::ResamplingHitNucleon(){
   }
 }
 void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
-  nucleus_->initializeParticles();
   LOG("INCLNucleus", pINFO) << "set hit nucleon according to position";
   nucleon_index_ = -1;
   G4INCL::ThreeVector hitposi(posi.X(), posi.Y(), posi.Z());
@@ -701,8 +686,9 @@ void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
       // double momentum = ...... ; 
       double temp_size     = space;
       if(temp_size < size){ // TODO: maybe need to find a reasonable way to get the cluster
-	      size =  temp_size;
-	      hitNucleon_ = (*i);
+        size =  temp_size;
+        std::cout << "DEBUG:"<< __FILE__ << ":" << __LINE__ <<" find closet particle: " << size << std::endl; 
+        hitNucleon_ = (*i);
       }
     }
   }
@@ -715,8 +701,9 @@ void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
       // double momentum = ...... ; 
       double temp_size     = space;
       if(temp_size < size){
-      	size =  temp_size;
-      	hitNucleon_ = (*i);
+        size =  temp_size;
+        std::cout << "DEBUG:"<< __FILE__ << ":" << __LINE__ <<" find closet particle: " << size << std::endl; 
+        hitNucleon_ = (*i);
       }
     }
   }
@@ -728,7 +715,6 @@ void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
 
 }
 void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi){
-  nucleus_->initializeParticles();
   LOG("INCLNucleus", pINFO) << "get cluster";
   G4INCL::ThreeVector hitposi(posi.X(), posi.Y(), posi.Z());
 

@@ -66,7 +66,7 @@ University of Liverpool
   -->
   <param type="bool" name="HadronTransp-Enable"> true </param>
   <param type="alg"  name="HadronTransp-Model">  genie::INCLCascadeIntranuke/Default  </param>
-  <param type="bool" name="DeltaTransp-Enable"> true </param>
+  <param type="bool" name="DeltaTransp-Enable"> false </param>
 
 
  <!--

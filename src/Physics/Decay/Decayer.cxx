@@ -184,8 +184,10 @@ void Decayer::LoadConfig(void)
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
   RgAlg xsec_alg = gpl->GetAlg("HadronTransp-Model");
+  bool fDeltaTransp = true;
+  //bool fDeltaTransp = gpl->GetBool("DeltaTransp-Enable");
   LOG("Decay", pDEBUG) << xsec_alg;
-  if(xsec_alg.name == "genie::INCLCascadeIntranuke"){
+  if(xsec_alg.name == "genie::INCLCascadeIntranuke" && fDeltaTransp){
       fINCLHadronTranspMode = true;
   }
 #endif

@@ -152,17 +152,18 @@ namespace G4INCL {
       // put hadrons into potential and make them off-shell
       // FIXME: need to add the Q-value for hadron from primary vertex.
 
-      for(ParticleIter i=modified.begin(), e=modified.end(); i!=e; ++i ){
+      for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ){
         double Qval = (*i)->getEmissionQValueCorrection(theNucleus->getA(),theNucleus->getZ(),theNucleus->getS());
-
+        std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
         bool success = this->putIntoPotential(Qval, (*i));
+        std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
+        (*i)->rpCorrelate();
         if(!success){
           fs->reset();
           fs->makeNoEnergyConservation();
           fs->setTotalEnergyBeforeInteraction(0.0);
           return; // Interaction is blocked. Return an empty final state.
         }
-
       }
 
 
@@ -184,6 +185,7 @@ namespace G4INCL {
       // to be emitted later).
       for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
         if(((*i)->isPion() || (*i)->isKaon() || (*i)->isAntiKaon()) && (*i)->getPosition().mag() > theNucleus->getSurfaceRadius(*i)) {
+          std::cout << "DEBUG: " << " out well makeParticipant : " << (*i)->print() << std::endl;
           (*i)->makeParticipant();
           (*i)->setOutOfWell();
           fs->addOutgoingParticle(*i);
@@ -605,40 +607,18 @@ namespace G4INCL {
           theEnergy(theParticle->getEnergy()),
           theMass(theParticle->getMass()),
           theQValueCorrection(correction),
-          refraction(n->getStore()->getConfig()->getRefraction()),
           theMomentumDirection(theParticle->getMomentum())
       {
-        if(refraction) {
-          const ThreeVector &position = theParticle->getPosition();
-          const double r2 = position.mag2();
-          if(r2>0.)
-            normal = - position / std::sqrt(r2);
-          double cosIncidenceAngle = theParticle->getCosRPAngle();
-          if(cosIncidenceAngle < -1.)
-            sinIncidenceAnglePOut = 0.;
-          else
-            sinIncidenceAnglePOut = theMomentumDirection.mag()*std::sqrt(1.-cosIncidenceAngle*cosIncidenceAngle);
-        } else {
-          sinIncidenceAnglePOut = 0.;
-        }
+
       }
         ~IncomingEFunctor() {}
         double operator()(const double v) const {
           double energyInside = std::max(theMass, theEnergy + v - theQValueCorrection);
           theParticle->setEnergy(energyInside);
           theParticle->setPotentialEnergy(v);
-          if(refraction) {
-            // Compute the new direction of the particle momentum
-            const double pIn = std::sqrt(energyInside*energyInside-theMass*theMass);
-            const double sinRefractionAngle = sinIncidenceAnglePOut/pIn;
-            const double cosRefractionAngle = (sinRefractionAngle>1.) ? 0. : std::sqrt(1.-sinRefractionAngle*sinRefractionAngle);
-            const ThreeVector momentumInside = theMomentumDirection - normal * normal.dot(theMomentumDirection) + normal * (pIn * cosRefractionAngle);
-            theParticle->setMomentum(momentumInside);
-          } else {
-            theParticle->setMomentum(theMomentumDirection); // keep the same direction
-          }
-          // Scale the particle momentum
+          theParticle->setMomentum(theMomentumDirection); // keep the same direction
           theParticle->adjustMomentumFromEnergy();
+          std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  potential energy: " << v << std::endl;
           return v - thePotential->computePotentialEnergy(theParticle);
         }
         void cleanUp(const bool /*success*/) const {}
@@ -648,10 +628,7 @@ namespace G4INCL {
         const double theEnergy;
         const double theMass;
         const double theQValueCorrection;
-        const bool refraction;
         const ThreeVector theMomentumDirection;
-        ThreeVector normal;
-        double sinIncidenceAnglePOut;
     } theIncomingEFunctor(theParticle,theNucleus,theQValueCorrection);
 
     double v = theNucleus->getPotential()->computePotentialEnergy(theParticle);

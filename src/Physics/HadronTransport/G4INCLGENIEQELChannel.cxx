@@ -20,17 +20,17 @@ namespace G4INCL {
   void GENIEQELChannel::fillFinalState(FinalState *fs)
   {
     std::vector<GENIEParticleRecord>::iterator ip;
-
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->Status() == 14){
         ip->setID(int(hitParticle->getID()));
         hitParticle->setType(ip->Type());
         hitParticle->setMomentum(ip->P3());
+        std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << hitParticle->getPosition().print() << std::endl;
         hitParticle->setPosition(ip->X3());
+        std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << hitParticle->getPosition().print() << std::endl;
         hitParticle->adjustEnergyFromMomentum();
       }
     }
     fs->addModifiedParticle(hitParticle);
   }
-
 }
