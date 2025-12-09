@@ -233,6 +233,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   incl_target->getStore()->getBook().incrementAcceptedCollisions();
   int step = 0;
 
+
   while(step < 10000000 && continueCascade()){
     IAvatar *avatar = propagationModel->propagate(finalState.get());
     finalState->reset();
@@ -1134,13 +1135,13 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
 
   for(ParticleIter iter=outgoing.begin(); iter!=outgoing.end(); ++iter){
     int outp_mother_idx = -1;
-    int idx = -1;
+    int tmp_idx_ = -1;
     int pdg = 0;
     GHepParticle * p1 = nullptr;
     for(auto er = eventRecord.begin(); er != eventRecord.end(); er++){
-      idx++;
+      tmp_idx_++;
       if((*iter)->getID() == er->ID()){
-        outp_mother_idx = idx;
+        outp_mother_idx = tmp_idx_;
         pdg = er->Pdg();
       }
     }
@@ -1156,6 +1157,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
           0)
         );
     evrec->AddParticle(p);
+    tempFinalState.emplace_back((*iter)->getID(), pdg, outp_mother_idx, idx++);
   }
   evrec->Print(std::cout);
   LOG("INCLCascadeIntranuke", pWARN) << finalState->print();

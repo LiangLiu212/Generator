@@ -99,12 +99,37 @@ void NucleusGenHybridStruck::setInitialStateVertex(GHepRecord * evrec) const{
       incl_nucleus->initialize(tgt);
       incl_nucleus->reset(tgt);
       incl_nucleus->initialize(tgt);
+      //this->setINCLVertex(evrec);
       // Get the position of hit nucelon
-      GHepParticle * nucleon = evrec->HitNucleon();
-      TVector3 posi = nucleon->X4()->Vect();
-      incl_nucleus->setHitParticle(nucleon->Pdg(), posi);
+      // GHepParticle * nucleon = evrec->HitNucleon();
+      // TVector3 posi = nucleon->X4()->Vect();
+      //incl_nucleus->setHitParticle(nucleon->Pdg(), posi);
+
+      std::cout << "DEBUG:" << __FILE__ << " Liang Liu"  << __LINE__ << " nucleus position " << incl_nucleus->getNuclues()->getPosition().print() <<  std::endl;
     }
   }
+}
+
+
+void NucleusGenHybridStruck::setINCLVertex(GHepRecord * evrec) const {
+  GHepParticle * nucleon = evrec->HitNucleon();
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  TVector3 vtx = incl_nucleus->ResamplingVertex(nucleon->Pdg());
+
+  // Copy the vertex info to the particles already in the event  record
+  //
+  TObjArrayIter piter(evrec);
+  GHepParticle * p = 0;
+  while( (p = (GHepParticle *) piter.Next()) )
+  {
+    if(pdg::IsPseudoParticle(p->Pdg())) continue;
+    if(pdg::IsIon           (p->Pdg())) continue;
+
+    LOG("NucleusGenINCL", pDEBUG) << "Setting vertex position for: " << p->Name();
+    p->SetPosition(vtx.x(), vtx.y(), vtx.z(), 0.);
+  }
+  std::cout << "DEBUG:" << __FILE__ << " Liang Liu"  << __LINE__ << std::endl;
+
 }
 
 void NucleusGenHybridStruck::setInitialStateMomentum(GHepRecord * evrec) const{

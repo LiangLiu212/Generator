@@ -49,6 +49,7 @@
 #include "G4INCLLogger.hh"
 #include "G4INCLConfig.hh"
 #include "G4INCLRootFinder.hh"
+#include "G4INCLParticleTable.hh"
 
 
 namespace genie {
@@ -113,6 +114,7 @@ namespace genie {
       bool isRPValid(double r, double p);
 
       void ResamplingHitNucleon();
+      TVector3 ResamplingVertex(const int pdg);
 
       void setHybridModel(NuclearModel_t model){
         model_type_ = model;

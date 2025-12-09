@@ -243,8 +243,6 @@ void INCLNucleus::configure(){
   // Initialize the value of strange cross section bias
   G4INCL::BinaryCollisionAvatar::setBias(theConfig_->getBias());
 
-
-
   //theConfig_->setLocalEnergyBBType(G4INCL::NeverLocalEnergy);
   //theConfig_->setLocalEnergyPiType(G4INCL::NeverLocalEnergy);
 
@@ -648,6 +646,30 @@ bool INCLNucleus::isRPValid(double r, double p){
 
 }
 
+TVector3 INCLNucleus::ResamplingVertex(const int pdg){
+  G4INCL::ParticleType t = G4INCL::Proton;
+  if(pdg::IsProton(pdg)){
+    t = G4INCL::Proton;
+  }else if(pdg::IsNeutron(pdg)){
+    t = G4INCL::Neutron;
+  }
+  double rpCorrelationCoefficient[G4INCL::UnknownParticle];
+  std::fill(rpCorrelationCoefficient, rpCorrelationCoefficient + G4INCL::UnknownParticle, 1.);
+  rpCorrelationCoefficient[G4INCL::Proton] = G4INCL::ParticleTable::getRPCorrelationCoefficient(G4INCL::Proton);
+  rpCorrelationCoefficient[G4INCL::Neutron] = G4INCL::ParticleTable::getRPCorrelationCoefficient(G4INCL::Neutron);
+  rpCorrelationCoefficient[G4INCL::Lambda] = G4INCL::ParticleTable::getRPCorrelationCoefficient(G4INCL::Lambda);
+  assert(theDensity && thePotential);
+  std::pair<double,double> ranNumbers = G4INCL::Random::correlatedUniform(rpCorrelationCoefficient[t]);
+  const double x = G4INCL::Math::pow13(ranNumbers.first);
+  const double y = G4INCL::Math::pow13(ranNumbers.second);
+  const double theFermiMomentum = thePotential->getFermiMomentum(t);
+  const G4INCL::ThreeVector momentumVector = G4INCL::Random::normVector(y*theFermiMomentum);
+  const double reflectionRadius = theDensity->getMaxRFromP(t, x);
+  const G4INCL::ThreeVector positionVector = G4INCL::Random::sphereVector(reflectionRadius);
+  const G4INCL::ThreeVector nucleus_position = nucleus_->getPosition();
+  const G4INCL::ThreeVector new_position = positionVector + nucleus_position;
+  return TVector3(new_position.getX(), new_position.getY(), new_position.getZ());
+}
 
 void INCLNucleus::ResamplingHitNucleon(){
   // local energy
@@ -658,11 +680,12 @@ void INCLNucleus::ResamplingHitNucleon(){
   while(true){
     const G4INCL::ThreeVector momentumVector = G4INCL::Random::sphereVector(theFermiMomentum);
     const double momentumAbs = momentumVector.mag();
+    hitNucleon_->setMomentum(momentumVector);
+    hitNucleon_->setUncorrelatedMomentum(momentumAbs);
+    hitNucleon_->adjustEnergyFromMomentum();
+    double KE = hitNucleon_->getEnergy() - hitNucleon_->getMass();
     iteration_count++;
-    if(momentumAbs > locE){
-      hitNucleon_->setMomentum(momentumVector);
-      hitNucleon_->setUncorrelatedMomentum(momentumAbs);
-      hitNucleon_->adjustEnergyFromMomentum();
+    if(KE > locE){
       break;
     }
     if(iteration_count > 10000){
@@ -771,7 +794,6 @@ void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi
   G4INCL::ParticleList selectedParticles;
   selectedParticles.push_back(cluster_N[0]);
   selectedParticles.push_back(cluster_N[1]);
-  //clusterNN_ = std::make_shared<G4INCL::Cluster>(selectedParticles.begin(), selectedParticles.end()).get();
   clusterNN_ = std::make_shared<G4INCL::Cluster>(selectedParticles.begin(), selectedParticles.end());
 }
 
