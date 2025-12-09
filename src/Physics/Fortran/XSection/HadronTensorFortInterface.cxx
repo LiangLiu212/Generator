@@ -9,6 +9,7 @@
 */    
 //____________________________________________________________________________
 #include "Physics/Fortran/XSection/HadronTensorFortInterface.h"
+#include "Physics/Fortran/XSection/onebody_currents_sf.h"
 
 // For each additional Fortran file added to compute response tensor
 // Must declare the corresponding function which returns the tensor
@@ -70,8 +71,10 @@ void genie::HadronTensorFortInterface::initialize_tensor(std::complex<double> (&
 
 	// Call appropriate fortran subroutine based on name of model provided
 	if (fModel == "Noemi fortran") {
-		compute_hadron_tensor_SF(&mNi, &w, &wt, &pNix, &pNiy, &pNiz, &qtx, &qty,
-		 &qtz, &f1v, &xif2v, &fa, &fp, hadron_tensor);
+		//compute_hadron_tensor_SF(&mNi, &w, &wt, &pNix, &pNiy, &pNiz, &qtx, &qty,
+		// &qtz, &f1v, &xif2v, &fa, &fp, hadron_tensor);
+		genie::onebody_currents_sf::compute_hadron_tensor_eigen(mNi, w, wt, pNix, pNiy, pNiz, qtx, qty,
+		 qtz, f1v, xif2v, fa, fp, hadron_tensor);
 	}
 
 	else if (fModel == "Noemi CC fortran") {
