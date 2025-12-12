@@ -109,6 +109,9 @@ namespace genie {
       void setABLA07DataFilePath(std::string str){ abla07DataFilePath_ = str; }
       void setGEMINIXXDataFilePath(std::string str){ geminixxDataFilePath_ = str; }
       void setDeExcitationType(G4INCL::DeExcitationType deExType){ deExcitationType_ = deExType; }
+      void setPotentialType(G4INCL::PotentialType type) { potentialType_ = type; }
+      void setPauliType(G4INCL::PauliType type) { pauliType_ = type; }
+      void setPauliString(std::string str) {pauliString_ = str;}
 
 
       bool isRPValid(double r, double p);
@@ -165,6 +168,9 @@ namespace genie {
       std::string geminixxDataFilePath_;
 
       G4INCL::DeExcitationType deExcitationType_;
+      G4INCL::PotentialType potentialType_;
+      G4INCL::PauliType pauliType_;
+      std::string pauliString_;
 
       NuclearModel_t model_type_;
   };

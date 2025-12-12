@@ -489,11 +489,11 @@ void NucleusGenINCL::LoadConfig(void)
   G4INCL::DeExcitationType deExcitationType;
   GetParamDef( "inclxx-de-excitation", deExType, std::string(""));
   LOG("NucleusGenINCL", pINFO) << "inclxx-de-excitation : " << deExType;
-  if(deExType.compare("ABLA07")){
+  if(!deExType.compare("ABLA07")){
     deExcitationType = G4INCL::DeExcitationABLA07;
-  } else if(deExType.compare("ABLAXX")) {
+  } else if(!deExType.compare("ABLAXX")) {
     deExcitationType = G4INCL::DeExcitationABLAXX;
-  } else if(deExType.compare("GEMINIXX")) {
+  } else if(!deExType.compare("GEMINIXX")) {
     deExcitationType = G4INCL::DeExcitationGEMINIXX;
   } else {
     std::stringstream ss;
@@ -507,12 +507,60 @@ void NucleusGenINCL::LoadConfig(void)
       << "########################################################\n";
     LOG("NucleusGenINCL", pWARN) << '\n' << ss.str();
   }
+  G4INCL::PotentialType potentialType = G4INCL::IsospinEnergyPotential;
+  std::string potentialType_str;
+  GetParamDef( "inclxx-potential", potentialType_str, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType_str;
+  if(!potentialType_str.compare("IsospinEnergyPotential")){
+    potentialType = G4INCL::IsospinEnergyPotential;
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType;
+  }
+  else if(!potentialType_str.compare("IsospinEnergySmoothPotential")){
+    potentialType = G4INCL::IsospinEnergySmoothPotential;
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType;
+  }
+  else if(!potentialType_str.compare("IsospinPotential")){
+    potentialType = G4INCL::IsospinPotential;
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType;
+  }
+  else if(!potentialType_str.compare("ConstantPotential")){
+    potentialType = G4INCL::ConstantPotential;
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType;
+  }
+  LOG("NucleusGenINCL", pINFO) << "inclxx-potential : " << potentialType;
+
+  G4INCL::PauliType pauliType = G4INCL::StrictStatisticalPauli;
+  std::string pauliString;
+  GetParamDef( "inclxx-pauli-block", pauliString, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << "inclxx-pauli-block : " << pauliString;
+  if(!pauliString.compare("StrictStatisticalPauli")){
+    pauliType = G4INCL::StrictStatisticalPauli;
+  }
+  else if(!pauliString.compare("StatisticalPauli")){
+    pauliType = G4INCL::StatisticalPauli;
+  }
+  else if(!pauliString.compare("StrictPauli")){
+    pauliType = G4INCL::StrictPauli;
+  }
+  else if(!pauliString.compare("GlobalPauli")){
+    pauliType = G4INCL::GlobalPauli;
+  }
+  else if(!pauliString.compare("NoPauli")){
+    pauliType = G4INCL::NoPauli;
+  }
+  LOG("NucleusGenINCL", pINFO) << "inclxx-pauli-block : " << pauliType;
+
+
+
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
   incl_nucleus->setINCLXXDataFilePath(this->expandEnvironmentPath(inclxxpath));
   incl_nucleus->setABLAXXDataFilePath(this->expandEnvironmentPath(ablaxxpath));
   incl_nucleus->setABLA07DataFilePath(this->expandEnvironmentPath(abla07path));
   incl_nucleus->setGEMINIXXDataFilePath(this->expandEnvironmentPath(geminixxpath));
   incl_nucleus->setDeExcitationType(deExcitationType);
+  incl_nucleus->setPotentialType(potentialType);
+  incl_nucleus->setPauliType(pauliType);
+  incl_nucleus->setPauliString(pauliString);
   incl_nucleus->configure();
 }
 //____________________________________________________________________________

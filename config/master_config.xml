@@ -285,6 +285,9 @@
    <config alg="genie::INCLQELXSec">               INCLQELXSec.xml               </config>
    <config alg="genie::MECGeneratorINCL">               MECGeneratorINCL.xml               </config>
    <config alg="genie::QELEventGeneratorSuSAINCL">           QELEventGeneratorSuSAINCL.xml           </config>
+   <config alg="genie::UnifiedQELPXSec">                    UnifiedQELPXSec.xml                    </config>
+   <config alg="genie::LwlynSmithFFEM">                          LwlynSmithFFEM.xml                          </config>
+   <config alg="genie::KellyELFormFactorsModel">                 KellyELFormFactorsModel.xml                 </config>
 
 
    <!-- ****** CONFIGURATION FOR HELEPTON W DECAY ALGORITHMS ****** -->

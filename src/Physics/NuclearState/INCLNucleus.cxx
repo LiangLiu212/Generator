@@ -221,6 +221,9 @@ void INCLNucleus::configure(){
   theConfig_->setcABLA07DataFilePath(abla07DataFilePath_);
   theConfig_->setGEMINIXXDataFilePath(geminixxDataFilePath_);
   theConfig_->setDeExcitationType(deExcitationType_);
+  theConfig_->setPotentialType(potentialType_);
+  theConfig_->setPauliType(pauliType_);
+  theConfig_->setPauliString(pauliString_);
 
   //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
 
