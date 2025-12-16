@@ -40,7 +40,7 @@ RmaxMode                             string   Yes        Method to use to comput
     <param type="alg"  name="XSec-Integrator"> genie::NewQELXSec/Default </param>
     <param type="alg"  name="IntegralNuclearModel"> genie::NuclearModelMap/Default </param>
     <param type="string" name="IntegralNucleonBindingMode"> UseNuclearModel </param>
-    <param type="double" name = "IntegralNuclearInfluenceCutoffEnergy"> 10.0 </param>
+    <param type="double" name = "IntegralNuclearInfluenceCutoffEnergy"> 100.0 </param>
 
     <param type="bool" name="RPA">             true                          </param>
     <param type="bool" name="Coulomb">         true                         </param>
@@ -66,6 +66,7 @@ RmaxMode                             string   Yes        Method to use to comput
   <param_set name = "DipoleNoRPA">
     <param type="alg"  name="FormFactorsAlg"> genie::LwlynSmithFFCC/Dipole </param>
     <param type="bool" name="RPA">            false                        </param>
+    <param type="bool" name="Coulomb">        false                         </param>
   </param_set>
 
   <param_set name = "DipoleNoCoulomb">

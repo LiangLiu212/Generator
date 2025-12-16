@@ -399,6 +399,7 @@ namespace genie{
 
       // 4-vectors: (t,x,y,z) = (E,px,py,pz) and (wt,qx,qy,qz)
       Vec4d qt_4, p_4, pp_4;
+      wt = epf - ek;
       qt_4 << wt, q_x, q_y, q_z;
 
       p_4 << ek, xk_x, xk_y, xk_z;
