@@ -62,7 +62,7 @@ QEL-Q4limit bool    Yes        1/Q^4 limit conditions     GPL value: QEL-Q4limit
     <param type="double" name="QEL-Z_A5">   0.36611559    </param>
     <param type="double" name="QEL-Z_A6">  -1.18722194    </param>  
     <param type="double" name="QEL-Z_A7">   0.49976799    </param>           
-    <!-- more factors can be added, if necessary according to Kmax --> 
+    <!-- more factors can be added, if necessary according to Kmax, https://arxiv.org/pdf/2512.14097 --> 
 
   </param_set>
 
@@ -83,7 +83,7 @@ QEL-Q4limit bool    Yes        1/Q^4 limit conditions     GPL value: QEL-Q4limit
     <param type="double" name="QEL-Z_A5">  -0.27506993     </param>
     <param type="double" name="QEL-Z_A6">  -1.25297945     </param>      
     <param type="double" name="QEL-Z_A7">  0.60044079     </param>    
-    <!-- more factors can be added, if necessary according to Kmax --> 
+    <!-- more factors can be added, if necessary according to Kmax, https://arxiv.org/pdf/2512.14097 --> 
 
   </param_set> 
 
