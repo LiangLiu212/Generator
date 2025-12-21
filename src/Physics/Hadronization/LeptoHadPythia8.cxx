@@ -1,6 +1,6 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2024, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
  Alfonso Garcia <aagarciasoto \at km3net.de>
@@ -377,13 +377,13 @@ bool LeptoHadPythia8::Hadronize(GHepRecord *
   theta = TMath::ATan(2.*pT/W);
   fPythia->event.rot(theta,phi);
 
-  fPythia->event.list();
-  fPythia->stat();
+  // fPythia->event.list();
+  // fPythia->stat();
 
   // Run PYTHIA with the input particles
   fPythia->next();
-  fPythia->event.list();
-  fPythia->stat();
+  // fPythia->event.list();
+  // fPythia->stat();
   Pythia8::Event &fEvent = fPythia->event;
   int np = fEvent.size();
   assert(np>0);

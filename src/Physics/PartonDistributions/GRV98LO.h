@@ -21,7 +21,7 @@
 
 \created  Ocrober 29, 2014
 
-\cpright  Copyright (c) 2003-2024, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2025, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org          
 */
 //____________________________________________________________________________
@@ -31,6 +31,8 @@
 
 #include "Physics/PartonDistributions/PDFModelI.h"
 #include "Framework/Numerical/Interpolator2D.h"
+
+#include <memory>
 
 namespace genie {
 
@@ -84,12 +86,12 @@ private:
   //
   // arrays for the interpolation routine
   //
-  Interpolator2D * fXUVF; // = f(logx,logQ2)
-  Interpolator2D * fXDVF;
-  Interpolator2D * fXDEF;
-  Interpolator2D * fXUDF;
-  Interpolator2D * fXSF;
-  Interpolator2D * fXGF;
+  std::unique_ptr<Interpolator2D> fXUVF; // = f(logx,logQ2)
+  std::unique_ptr<Interpolator2D> fXDVF;
+  std::unique_ptr<Interpolator2D> fXDEF;
+  std::unique_ptr<Interpolator2D> fXUDF;
+  std::unique_ptr<Interpolator2D> fXSF;
+  std::unique_ptr<Interpolator2D> fXGF;
 };
 
 }         // genie namespace

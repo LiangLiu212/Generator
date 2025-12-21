@@ -157,13 +157,13 @@ endif
 #                             APFEL
 #-------------------------------------------------------------------
 
-APFEL_LIBRARIES = 
+APFEL_LIBRARIES =
 APFEL_INCLUDES  =
 
-ifeq ($(strip $(GOPT_ENABLE_APFEL)),YES) 
+ifeq ($(strip $(GOPT_ENABLE_APFEL)),YES)
 
 APFEL_INCLUDES  = -I$(GOPT_WITH_APFEL_INC)
-APFEL_LIBRARIES = -L$(GOPT_WITH_APFEL_LIB) -lAPFEL 
+APFEL_LIBRARIES = -L$(GOPT_WITH_APFEL_LIB) -lAPFEL
 
 endif
 
@@ -250,7 +250,7 @@ endif
 
 PY6ROOT_LIBRARY = -lEGPythia6
 else
-  $(info GOPT_ENABLE_PYTHIA6 is NO)
+  #$(info GOPT_ENABLE_PYTHIA6 is NO)
 endif
 
 #-------------------------------------------------------------------
@@ -410,9 +410,9 @@ SOMINF        =
 EXTRALIBS     =
 endif
 
-# MAC OS X with gcc or clang, 64-bit mode
+# MAC OS X with gcc or clang, 64-bit mode, including arm
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ifeq ($(strip $(ARCH)),macosx64)
+ifneq (,$(filter $(strip $(ARCH)),macosx64 macosxarm64))
 OSX_VERSION = $(shell sw_vers | grep 'ProductVersion:' | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
 OSXVRS_MAJ  = $(shell awk 'BEGIN {\
 		str="$(OSX_VERSION)"; split(str, tk, "."); print tk[1]}')
