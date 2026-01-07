@@ -550,7 +550,38 @@ void NucleusGenINCL::LoadConfig(void)
   }
   LOG("NucleusGenINCL", pINFO) << "inclxx-pauli-block : " << pauliType;
 
+  // Local Energy type BB
+  G4INCL::LocalEnergyType localEnergyTypeBB = G4INCL::FirstCollisionLocalEnergy;
+  std::string localEnergyStringBB;
+  GetParamDef( "local-energy-BB", localEnergyStringBB, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << "local-energy-BB: " << localEnergyStringBB;
+  if(!localEnergyStringBB.compare("always")){
+    localEnergyTypeBB = G4INCL::AlwaysLocalEnergy;
+  }
+  else if(!localEnergyStringBB.compare("first-collision")){
+    localEnergyTypeBB = G4INCL::FirstCollisionLocalEnergy;
+  }
+  else if(!localEnergyStringBB.compare("never")){
+    localEnergyTypeBB = G4INCL::FirstCollisionLocalEnergy;
+  }
 
+  // Local Energy type pi
+  G4INCL::LocalEnergyType localEnergyTypepi = G4INCL::FirstCollisionLocalEnergy;
+  std::string localEnergyStringpi;
+  GetParamDef( "local-energy-pi", localEnergyStringpi, std::string(""));
+  LOG("NucleusGenINCL", pINFO) << "local-energy-pi: " << localEnergyStringpi;
+  if(!localEnergyStringpi.compare("always")){
+    localEnergyTypepi = G4INCL::AlwaysLocalEnergy;
+  }
+  else if(!localEnergyStringpi.compare("first-collision")){
+    localEnergyTypepi = G4INCL::FirstCollisionLocalEnergy;
+  }
+  else if(!localEnergyStringpi.compare("never")){
+    localEnergyTypepi = G4INCL::FirstCollisionLocalEnergy;
+  }
+
+  double hadronizationTime = 0.0;
+  GetParamDef( "hadronizationTime", hadronizationTime, 0.0);
 
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
   incl_nucleus->setINCLXXDataFilePath(this->expandEnvironmentPath(inclxxpath));
@@ -561,6 +592,11 @@ void NucleusGenINCL::LoadConfig(void)
   incl_nucleus->setPotentialType(potentialType);
   incl_nucleus->setPauliType(pauliType);
   incl_nucleus->setPauliString(pauliString);
+
+  incl_nucleus->setLocalEnergyBBType(localEnergyTypeBB);
+  incl_nucleus->setLocalEnergyPiType(localEnergyTypepi);
+  incl_nucleus->setHadronizationTime(hadronizationTime);
+
   incl_nucleus->configure();
 }
 //____________________________________________________________________________

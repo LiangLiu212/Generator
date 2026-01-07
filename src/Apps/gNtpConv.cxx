@@ -393,6 +393,7 @@ void ConvertToGST(void)
   double brPy_evtre[kNPmax];     // Py     of paritcle in event record
   double brPz_evtre[kNPmax];     // Pz     of paritcle in event record
   double brE_evtre[kNPmax];      // E      of paritcle in event record
+  double brE_exci;               // E      of remnant excited energy
   int    brNf          = 0;      // Nu. of final state particles in hadronic system
   int    brPdgf  [kNPmax];       // Pdg code of k^th final state particle in hadronic system
   double brEf    [kNPmax];       // Energy     of k^th final state particle in hadronic system @ LAB
@@ -519,6 +520,7 @@ void ConvertToGST(void)
   s_tree->Branch("py_evtre",	   brPy_evtre,	    "py_evtre[npar]/D");
   s_tree->Branch("pz_evtre",	   brPz_evtre,	    "pz_evtre[npar]/D");
   s_tree->Branch("E_evtre",	   brE_evtre,	    "E_evtre[npar]/D");
+  s_tree->Branch("E_exci",	   &brE_exci,	    "E_exci/D");
   s_tree->Branch("ni",	         &brNi,	            "ni/I"	    );
   s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I"   );
   s_tree->Branch("resc",          brResc,	    "resc[ni]/I"   );
@@ -813,6 +815,9 @@ void ConvertToGST(void)
       if(pp->Status() == kIStNucleonTarget){
  //       pp->X4()->Print();
 	      vtx = pp->X4();
+      }
+      if(pp->Status() == kIStPreDeExNuclearRemnant){
+        brE_exci = pp->P4()->M() - pp->Mass();
       }
     }
 

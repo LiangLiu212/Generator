@@ -19,6 +19,9 @@ Name                          Type    Optional   Comment                        
     <param type="string" name="inclxx-de-excitation" > ABLAXX </param>
     <param type="string" name="inclxx-potential" > IsospinEnergyPotential </param>
     <param type="string" name="inclxx-pauli-block" > StrictStatisticalPauli </param>
+    <param type="string" name="local-energy-BB" > never </param>
+    <param type="string" name="local-energy-pi" > never </param>
+    <param type="double" name="hadronizationTime" > 0.0 </param>
   </param_set>
  
 </alg_conf>

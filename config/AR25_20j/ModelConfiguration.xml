@@ -33,8 +33,8 @@ University of Liverpool
  -->
 
   <!--  <param type="alg"  name="NuclearModel">               genie::EffectiveSF/Default </param> -->
-  <!-- <param type="alg"  name="NuclearModel">                genie::FGMBodekRitchie/Default </param> -->
-  <param type="alg"  name="NuclearModel">                     genie::LocalFGM/SpectralFunctionLikeWithCorrelation </param>
+  <param type="alg"  name="NuclearModel">                genie::FGMBodekRitchie/Default </param>
+  <!-- param type="alg"  name="NuclearModel">                     genie::LocalFGM/SpectralFunctionLikeWithCorrelation </param -->
 <!--  <param type="alg"  name="NuclearModel">                 genie::LocalFGM/Correlated </param>-->
 
  <!--<param type="alg"  name="NuclearModel"> genie::FGMBodekRitchie/Default </param>-->
@@ -75,11 +75,11 @@ University of Liverpool
 <!-- New Nieves QE model   -->
 
 
-  <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC"> genie::UnifiedQELPXSec/ZExp </param>
+  <!-- param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::NievesQELCCPXSec/ZExpNoRPA         </param -->
+  <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC"> genie::UnifiedQELPXSec/Dipole </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-NC"> genie::UnifiedQELPXSec/Dipole </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-EM"> genie::UnifiedQELPXSec/Dipole </param>
 
-  <!-- param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::NievesQELCCPXSec/ZExpNoRPA         </param -->
   <!-- <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::LwlynSmithQELCCPXSec/Dipole   </param> -->
   <!-- param type="alg" name="XSecModel@genie::EventGenerator/QEL-NC">         genie::AhrensNCELPXSec/Default          </param -->
   <!-- param type="alg" name="XSecModel@genie::EventGenerator/QEL-EM">         genie::RosenbluthPXSec/Default          </param -->

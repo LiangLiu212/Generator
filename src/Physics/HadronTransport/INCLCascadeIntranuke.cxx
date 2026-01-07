@@ -224,9 +224,9 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   // INCL don't have the stopping time for neutrino.
   // we can calculate the longest stopping time for all the daughters from primary interaction.
 
-  LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
+  //LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   incl_target->applyFinalState(finalState.get());
-  LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
+  //LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
 
   // LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
@@ -1127,7 +1127,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
   }
   evrec->Print(std::cout);
   
-  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   // put the out-going particle into event record
   
@@ -1159,8 +1159,8 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     evrec->AddParticle(p);
     tempFinalState.emplace_back((*iter)->getID(), pdg, outp_mother_idx, idx++);
   }
-  evrec->Print(std::cout);
-  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+  //evrec->Print(std::cout);
+  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   if(!outgoing.empty()){
 
@@ -1203,7 +1203,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
       finalState->addOutgoingParticle((*i));
     }
   }
-  LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
+  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   return;
 

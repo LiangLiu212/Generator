@@ -224,6 +224,9 @@ void INCLNucleus::configure(){
   theConfig_->setPotentialType(potentialType_);
   theConfig_->setPauliType(pauliType_);
   theConfig_->setPauliString(pauliString_);
+  theConfig_->setLocalEnergyBBType(localEnergyTypeBB_);
+  theConfig_->setLocalEnergyPiType(localEnergyTypePi_);
+  theConfig_->setHadronizationTime(hadronizationTime_);
 
   //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
 

@@ -43,7 +43,7 @@ RmaxMode                             string   Yes        Method to use to comput
     <param type="double" name = "IntegralNuclearInfluenceCutoffEnergy"> 10.0 </param>
 
     <param type="bool" name="RPA">             true                          </param>
-    <param type="bool" name="Coulomb">         false                         </param>
+    <param type="bool" name="Coulomb">         true                         </param>
     <param type="bool" name="PrintDebugData">  false                          </param>
 
     <param type="alg" name = "PauliBlockerAlg"> genie::PauliBlocker/Default </param>
@@ -85,6 +85,7 @@ RmaxMode                             string   Yes        Method to use to comput
   <param_set name="ZExpNoRPA">
     <param type="alg"  name="FormFactorsAlg"> genie::LwlynSmithFFCC/ZExp </param>
     <param type="bool" name="RPA">            false                      </param>
+    <param type="bool" name="Coulomb">        false                         </param>
   </param_set>
 
 </alg_conf>

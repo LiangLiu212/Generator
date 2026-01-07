@@ -55,6 +55,8 @@ namespace G4INCL {
 
       bool fHybridModel;
 
+      void postInteractionHybridModel(FinalState *fs);
+
 
     private:
 

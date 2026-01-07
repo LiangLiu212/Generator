@@ -113,6 +113,10 @@ namespace genie {
       void setPauliType(G4INCL::PauliType type) { pauliType_ = type; }
       void setPauliString(std::string str) {pauliString_ = str;}
 
+      void setLocalEnergyBBType(G4INCL::LocalEnergyType type) {localEnergyTypeBB_ = type;}
+      void setLocalEnergyPiType(G4INCL::LocalEnergyType type) {localEnergyTypePi_ = type;}
+      void setHadronizationTime(const double t) { hadronizationTime_=t; }
+
 
       bool isRPValid(double r, double p);
 
@@ -161,6 +165,7 @@ namespace genie {
       double maxUniverseRadius_;
       // double maxInteractionDistance_;
       double minRemnantSize_;
+      double hadronizationTime_;
 
       std::string INCLXXDataFilePath_;
       std::string abla07DataFilePath_;
@@ -171,6 +176,9 @@ namespace genie {
       G4INCL::PotentialType potentialType_;
       G4INCL::PauliType pauliType_;
       std::string pauliString_;
+
+      G4INCL::LocalEnergyType localEnergyTypeBB_;
+      G4INCL::LocalEnergyType localEnergyTypePi_;
 
       NuclearModel_t model_type_;
   };

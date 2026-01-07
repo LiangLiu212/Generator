@@ -126,6 +126,178 @@ namespace G4INCL {
 
   }
 
+  void GENIEAvatar::postInteractionHybridModel(FinalState *fs){
+    // Make sure we have at least two particles in the final state
+    // Removed because of neutral kaon decay
+
+    // InteractionAvatar::postInteraction(fs);
+    // TODO: modify the InteractionAvatar::postInteraction(FinalState *fs)
+    // in here to handle the final state from primary neutrino interaction
+    // QEL RES MEC DIS
+    modified = fs->getModifiedParticles();
+    created = fs->getCreatedParticles();
+    Destroyed = fs->getDestroyedParticles();
+    modifiedAndCreated = modified;     
+    modifiedAndCreated.insert(modifiedAndCreated.end(), created.begin(), created.end());
+
+    // If there is no Nucleus, just return
+    if(!theNucleus) return;
+    // put hadrons into potential and make them off-shell
+    // FIXME: need to add the Q-value for hadron from primary vertex.
+
+    for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ){
+      double Qval = (*i)->getEmissionQValueCorrection(theNucleus->getA(),theNucleus->getZ(),theNucleus->getS());
+      std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
+      bool success = this->putIntoPotential(Qval, (*i));
+      std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
+      (*i)->rpCorrelate();
+      if(!success){
+        fs->reset();
+        fs->makeNoEnergyConservation();
+        fs->setTotalEnergyBeforeInteraction(0.0);
+        return; // Interaction is blocked. Return an empty final state.
+      }
+    }
+
+
+    /// update the event record after call enforceEnergyConservation;
+    int index = 0;
+    std::vector<GENIEParticleRecord>::iterator ip;
+    ParticleIter imc = modifiedAndCreated.begin();
+    for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
+      if(ip->Status() == 14 || ip->Status() == 13){
+        //ThreeVector p_mom = (*imc)->getMomentum();
+        //ip->setMomentum(p_mom);
+        //ip->setMass((*imc)->getMass());
+        imc++;
+      }
+      index++;
+    }
+
+    // Mark pions and kaons that have been created outside their well (we will force them
+    // to be emitted later).
+    for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
+      if(((*i)->isPion() || (*i)->isKaon() || (*i)->isAntiKaon()) && (*i)->getPosition().mag() > theNucleus->getSurfaceRadius(*i)) {
+        std::cout << "DEBUG: " << " out well makeParticipant : " << (*i)->print() << std::endl;
+        (*i)->makeParticipant();
+        (*i)->setOutOfWell();
+        fs->addOutgoingParticle(*i);
+        INCL_DEBUG("Pion was created outside its potential well." << '\n'
+            << (*i)->print());
+      }
+    }
+
+
+    // Test Pauli blocking
+    bool isBlocked = Pauli::isBlocked(modifiedAndCreated, theNucleus);
+
+    if(isBlocked) {
+      // Restore the state of the initial particles
+      //restoreParticles();
+
+      // Delete newly created particles
+      for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i )
+        delete *i;
+
+      fs->reset();
+      fs->makePauliBlocked();
+      fs->setTotalEnergyBeforeInteraction(0.0);
+
+      return; // Interaction is blocked. Return an empty final state.
+    }
+
+    std::cout << "DEBUG: " <<__FILE__ << ": Pauli: Allowed!" << std::endl;
+
+
+    // Test CDPP blocking
+    bool isCDPPBlocked = Pauli::isCDPPBlocked(created, theNucleus);
+    std::cout << "DEBUG: " <<__FILE__ << ": CDPP " << isCDPPBlocked << std::endl;
+    if(isCDPPBlocked) {
+
+      // Restore the state of the initial particles
+      //restoreParticles();
+
+      // Delete newly created particles
+      for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
+        std::cout << "DEBUG: " <<__FILE__ << ": CDPP " << (*i)->print() << std::endl;
+        delete *i;
+      }
+
+      fs->reset();
+      fs->makePauliBlocked();
+      fs->setTotalEnergyBeforeInteraction(0.0);
+
+      return; // Interaction is blocked. Return an empty final state.
+    }
+
+    std::cout << "DEBUG: " <<__FILE__ << ": CDPP: Allowed!" << std::endl;
+
+    // If all went well, try to bring particles inside the nucleus...
+    for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ){
+      // ...except for pions beyond their surface radius.
+      if((*i)->isOutOfWell()) continue;
+
+      const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
+      if( !successBringParticlesInside ) {
+        std::cout << "DEBUG: " <<__FILE__ << ": Failed to bring particle inside the nucleus!" << std::endl;
+      }
+    }
+
+    // Collision accepted!
+    // Biasing of the final state
+    std::vector<int> newBiasCollisionVector;
+    newBiasCollisionVector = ModifiedAndDestroyed.getParticleListBiasVector();
+    if(std::fabs(weight-1.) > 1E-6){
+      newBiasCollisionVector.push_back(Particle::nextBiasedCollisionID);
+      Particle::FillINCLBiasVector(1./weight);
+      weight = 1.; // useless?
+    }
+
+    for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ) {
+      (*i)->setBiasCollisionVector(newBiasCollisionVector);
+      if(!(*i)->isOutOfWell()) {
+        // Decide if the particle should be made into a spectator
+        // (Back to spectator)
+        bool goesBackToSpectator = false;
+        if((*i)->isNucleon() && theNucleus->getStore()->getConfig()->getBackToSpectator()) {
+          double threshold = (*i)->getPotentialEnergy();
+          if((*i)->getType()==Proton)
+            threshold += Math::twoThirds*theNucleus->getTransmissionBarrier(*i);
+          if((*i)->getKineticEnergy() < threshold)
+            goesBackToSpectator = true;
+        }
+        // Thaw the particle propagation
+        (*i)->thawPropagation();
+
+        // Increment or decrement the participant counters
+        if(goesBackToSpectator) {
+          INCL_DEBUG("The following particle goes back to spectator:" << '\n'
+              << (*i)->print() << '\n');
+          if(!(*i)->isTargetSpectator()) {
+            theNucleus->getStore()->getBook().decrementCascading();
+          }
+          (*i)->makeTargetSpectator();
+        } else {
+          if((*i)->isTargetSpectator()) {
+            theNucleus->getStore()->getBook().incrementCascading();
+          }
+          std::cout << "DEBUG: " << "makeParticipant : " << (*i)->print() << std::endl;
+          (*i)->makeParticipant();
+        }
+      }
+    }
+    ParticleList destroyed = fs->getDestroyedParticles();
+    for(ParticleIter i=destroyed.begin(), e=destroyed.end(); i!=e; ++i )
+      if(!(*i)->isTargetSpectator())
+        theNucleus->getStore()->getBook().decrementCascading();
+
+    theNucleus->setZ(theNucleus->getZ() + delta_Z);
+    theNucleus->getStore()->getBook().incrementAcceptedCollisions();
+
+    return;
+
+  }
+
   void GENIEAvatar::postInteraction(FinalState *fs) {
     // Make sure we have at least two particles in the final state
     // Removed because of neutral kaon decay
@@ -149,158 +321,7 @@ namespace G4INCL {
     std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << " fHybridModel  " << fHybridModel << std::endl;
 
     if(fHybridModel){
-      // put hadrons into potential and make them off-shell
-      // FIXME: need to add the Q-value for hadron from primary vertex.
-
-      for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ){
-        double Qval = (*i)->getEmissionQValueCorrection(theNucleus->getA(),theNucleus->getZ(),theNucleus->getS());
-        std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
-        bool success = this->putIntoPotential(Qval, (*i));
-        std::cout << "DEBUG: " << "put into potential : " << (*i)->print() << std::endl;
-        (*i)->rpCorrelate();
-        if(!success){
-          fs->reset();
-          fs->makeNoEnergyConservation();
-          fs->setTotalEnergyBeforeInteraction(0.0);
-          return; // Interaction is blocked. Return an empty final state.
-        }
-      }
-
-
-      /// update the event record after call enforceEnergyConservation;
-      int index = 0;
-      std::vector<GENIEParticleRecord>::iterator ip;
-      ParticleIter imc = modifiedAndCreated.begin();
-      for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-        if(ip->Status() == 14 || ip->Status() == 13){
-          ThreeVector p_mom = (*imc)->getMomentum();
-          ip->setMomentum(p_mom);
-          ip->setMass((*imc)->getMass());
-          imc++;
-        }
-        index++;
-      }
-
-      // Mark pions and kaons that have been created outside their well (we will force them
-      // to be emitted later).
-      for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
-        if(((*i)->isPion() || (*i)->isKaon() || (*i)->isAntiKaon()) && (*i)->getPosition().mag() > theNucleus->getSurfaceRadius(*i)) {
-          std::cout << "DEBUG: " << " out well makeParticipant : " << (*i)->print() << std::endl;
-          (*i)->makeParticipant();
-          (*i)->setOutOfWell();
-          fs->addOutgoingParticle(*i);
-          INCL_DEBUG("Pion was created outside its potential well." << '\n'
-              << (*i)->print());
-        }
-      }
-
-
-      // Test Pauli blocking
-      bool isBlocked = Pauli::isBlocked(modifiedAndCreated, theNucleus);
-
-      if(isBlocked) {
-        // Restore the state of the initial particles
-        //restoreParticles();
-
-        // Delete newly created particles
-        for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i )
-          delete *i;
-
-        fs->reset();
-        fs->makePauliBlocked();
-        fs->setTotalEnergyBeforeInteraction(0.0);
-
-        return; // Interaction is blocked. Return an empty final state.
-      }
-
-      std::cout << "DEBUG: " <<__FILE__ << ": Pauli: Allowed!" << std::endl;
-
-
-      // Test CDPP blocking
-      bool isCDPPBlocked = Pauli::isCDPPBlocked(created, theNucleus);
-      std::cout << "DEBUG: " <<__FILE__ << ": CDPP " << isCDPPBlocked << std::endl;
-      if(isCDPPBlocked) {
-
-        // Restore the state of the initial particles
-        //restoreParticles();
-
-        // Delete newly created particles
-        for(ParticleIter i=created.begin(), e=created.end(); i!=e; ++i ){
-          std::cout << "DEBUG: " <<__FILE__ << ": CDPP " << (*i)->print() << std::endl;
-          delete *i;
-        }
-
-        fs->reset();
-        fs->makePauliBlocked();
-        fs->setTotalEnergyBeforeInteraction(0.0);
-
-        return; // Interaction is blocked. Return an empty final state.
-      }
-
-      std::cout << "DEBUG: " <<__FILE__ << ": CDPP: Allowed!" << std::endl;
-
-      // If all went well, try to bring particles inside the nucleus...
-      for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ){
-        // ...except for pions beyond their surface radius.
-        if((*i)->isOutOfWell()) continue;
-
-        const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
-        if( !successBringParticlesInside ) {
-          std::cout << "DEBUG: " <<__FILE__ << ": Failed to bring particle inside the nucleus!" << std::endl;
-        }
-      }
-
-      // Collision accepted!
-      // Biasing of the final state
-      std::vector<int> newBiasCollisionVector;
-      newBiasCollisionVector = ModifiedAndDestroyed.getParticleListBiasVector();
-      if(std::fabs(weight-1.) > 1E-6){
-        newBiasCollisionVector.push_back(Particle::nextBiasedCollisionID);
-        Particle::FillINCLBiasVector(1./weight);
-        weight = 1.; // useless?
-      }
-
-      for(ParticleIter i=modifiedAndCreated.begin(), e=modifiedAndCreated.end(); i!=e; ++i ) {
-        (*i)->setBiasCollisionVector(newBiasCollisionVector);
-        if(!(*i)->isOutOfWell()) {
-          // Decide if the particle should be made into a spectator
-          // (Back to spectator)
-          bool goesBackToSpectator = false;
-          if((*i)->isNucleon() && theNucleus->getStore()->getConfig()->getBackToSpectator()) {
-            double threshold = (*i)->getPotentialEnergy();
-            if((*i)->getType()==Proton)
-              threshold += Math::twoThirds*theNucleus->getTransmissionBarrier(*i);
-            if((*i)->getKineticEnergy() < threshold)
-              goesBackToSpectator = true;
-          }
-          // Thaw the particle propagation
-          (*i)->thawPropagation();
-
-          // Increment or decrement the participant counters
-          if(goesBackToSpectator) {
-            INCL_DEBUG("The following particle goes back to spectator:" << '\n'
-                << (*i)->print() << '\n');
-            if(!(*i)->isTargetSpectator()) {
-              theNucleus->getStore()->getBook().decrementCascading();
-            }
-            (*i)->makeTargetSpectator();
-          } else {
-            if((*i)->isTargetSpectator()) {
-              theNucleus->getStore()->getBook().incrementCascading();
-            }
-            std::cout << "DEBUG: " << "makeParticipant : " << (*i)->print() << std::endl;
-            (*i)->makeParticipant();
-          }
-        }
-      }
-      ParticleList destroyed = fs->getDestroyedParticles();
-      for(ParticleIter i=destroyed.begin(), e=destroyed.end(); i!=e; ++i )
-        if(!(*i)->isTargetSpectator())
-          theNucleus->getStore()->getBook().decrementCascading();
-
-      theNucleus->setZ(theNucleus->getZ() + delta_Z);
-
-      return;
+      return this->postInteractionHybridModel(fs);
     }
 
 
@@ -450,6 +471,7 @@ namespace G4INCL {
         theNucleus->getStore()->getBook().decrementCascading();
 
     theNucleus->setZ(theNucleus->getZ() + delta_Z);
+    theNucleus->getStore()->getBook().incrementAcceptedCollisions();
     return;
   }
 
@@ -597,6 +619,14 @@ namespace G4INCL {
 
     // Add the nuclear potential to the kinetic energy when entering the
     // nucleus
+
+    //double vv = 0.0;
+    //double energyInside = std::max(theParticle->getMass(), theParticle->getEnergy() + vv - theQValueCorrection);
+    //theParticle->setEnergy(energyInside);
+    //theParticle->setPotentialEnergy(vv);
+    //theParticle->adjustMomentumFromEnergy();
+    //return true;
+
 
     class IncomingEFunctor : public RootFunctor {
       public:

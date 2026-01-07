@@ -120,10 +120,10 @@
   <priority msgstream="IntLst">                NOTICE </priority>
   <priority msgstream="Interaction">           ERROR </priority>
   <priority msgstream="Intranuke">             WARN   </priority>
-  <priority msgstream="Intranuke2018">         WARN   </priority>
+  <priority msgstream="Intranuke2018">         DEBUG   </priority>
   <priority msgstream="Intranuke2019">         WARN   </priority>
-  <priority msgstream="HAIntranuke">           WARN   </priority>
-  <priority msgstream="HAIntranuke2018">       WARN   </priority>
+  <priority msgstream="HAIntranuke">           DEBUG   </priority>
+  <priority msgstream="HAIntranuke2018">       DEBUG   </priority>
   <priority msgstream="HAIntranuke2019">       WARN   </priority>
   <priority msgstream="HNIntranuke">           NOTICE </priority>
   <priority msgstream="HNIntranuke2018">       NOTICE </priority>
