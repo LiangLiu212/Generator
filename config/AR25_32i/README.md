@@ -13,3 +13,4 @@ Notable components of the physics model are the following:
  - The parameters related to pion production are taken from the G18_10a_02_11b
    tune in order to ensure a better starting point.
  - De-exctitation photons are enabled for 40Ar
+ - LQCD form factors from https://arxiv.org/pdf/2512.14097 
