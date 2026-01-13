@@ -208,31 +208,7 @@ Or changing the name of this parameter set
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Value of axial form factor at Q2=0
     -->
-    <param type="double" name="QEL-FA0"> -1.2670 </param>
-
-  <!--
-	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Value of proton electric form factor at Q2=0
-   -->
-   <param type="double" name="QEL-Gep0"> 1 </param>
-
-   <!--
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Value of proton magnetic form factor at Q2=0
-   -->
-   <param type="double" name="QEL-Gmp0"> 2.793 </param>
-
-   <!--
-	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Value of neutron electric form factor at Q2=0
-   -->
-   <param type="double" name="QEL-Gen0"> 0 </param>
-
-   <!--
-	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Value of neutron magnetic form factor at Q2=0
-   -->
-   <param type="double" name="QEL-Gmn0"> -1.913042 </param>
+    <param type="double" name="QEL-FA0"> -1.2754 </param>
 
     <!--
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -268,7 +244,7 @@ Or changing the name of this parameter set
 	- genie::BBA05ELFormFactorsModel, R.Bradford, A.Bodek, H.Budd and J.Arrington, hep-ex/0602017
 	- genie::BBA07ELFormFactorsModel, R.Bradford, A.Bodek, H.Budd and S.Avvakumov, Euro.Phys.J.C53 (2008);[arXiv:0708.1946 [hep-ex]]
     -->
-    <param type="alg" name="ElasticFormFactorsModel"> genie::ZExpELFormFactorModel/Default </param>
+    <param type="alg" name="ElasticFormFactorsModel"> genie::BBA07ELFormFactorsModel/Default </param>
 
     <!-- Option for turning on Transverse Enhancement by Elastic Form Factor adjustment.
 	 See http://arxiv.org/abs/1405.0583 and http://arxiv.org/abs/1106.0340
