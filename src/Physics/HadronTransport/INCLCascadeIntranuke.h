@@ -47,6 +47,7 @@ namespace genie {
       bool IsInNucleus(const GHepParticle * p) const;
       void TransportHadrons(GHepRecord * evrec) const;
       int  doCascade(GHepRecord * event_rec) const;
+      void AddINCLParticle(int i, G4INCL::EventInfo &result, GHepRecord * event_rec, int first_mother = -1, int second_mother = -1) const;
       bool NeedsRescattering(const GHepParticle * p) const;
 
       bool AddDataPathFlags(size_t& nflags, char** flags);

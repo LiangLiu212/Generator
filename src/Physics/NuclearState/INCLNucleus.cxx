@@ -208,7 +208,7 @@ INCLNucleus * INCLNucleus::Instance()
     fInstance = new INCLNucleus;
     fInstance->theConfig_ = new G4INCL::Config();
     fInstance->nucleus_ = nullptr;
-    fInstance->theDensityForLepton = nullptr;
+    // fInstance->theDensityForLepton = nullptr;
   }
   return fInstance;
 }

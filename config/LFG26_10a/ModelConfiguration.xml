@@ -40,10 +40,10 @@ University of Liverpool
  <!--<param type="alg"  name="NuclearModel"> genie::FGMBodekRitchie/Default </param>-->
 
   <!-- For 12C, 16O, 40Ar, and 56Fe, use the spectral function -->
-  <param type="alg" name="NuclearModel@Pdg=1000060120"> genie::SpectralFunc/Default </param>
+  <!-- param type="alg" name="NuclearModel@Pdg=1000060120"> genie::SpectralFunc/Default </param -->
   <param type="alg" name="NuclearModel@Pdg=1000260560"> genie::SpectralFunc/Default </param>
   <param type="alg" name="NuclearModel@Pdg=1000080160"> genie::SpectralFunc/Default </param>
-  <param type="alg" name="NuclearModel@Pdg=1000180400"> genie::SpectralFunc/Default </param>
+  <!-- param type="alg" name="NuclearModel@Pdg=1000180400"> genie::SpectralFunc/Default </param -->
 
 <!--
   Example of specific model for specific nuclei
@@ -62,11 +62,9 @@ University of Liverpool
    - genie::HAIntranuke2018/Default
    - genie::HNIntranuke2018/Default
    - genie::HNIntranuke2018/OsetOff
-   - genie::INCLCascadeIntranuke/Default
   -->
   <param type="bool" name="HadronTransp-Enable"> true </param>
-  <param type="alg"  name="HadronTransp-Model">  genie::INCLCascadeIntranuke/Default  </param>
-  <param type="bool" name="DeltaTransp-Enable"> true </param>
+  <param type="alg"  name="HadronTransp-Model">  genie::HAIntranuke2018/Default  </param>
 
 
  <!--
@@ -76,8 +74,7 @@ University of Liverpool
   -->
 <!-- New Nieves QE model   -->
 
-
-  <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::NievesQELCCPXSec/ZExpNoRPA_lqcd         </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::NievesQELCCPXSec/ZExpNoRPA         </param>
 
   <!-- <param type="alg" name="XSecModel@genie::EventGenerator/QEL-CC">         genie::LwlynSmithQELCCPXSec/Dipole   </param> -->
   <param type="alg" name="XSecModel@genie::EventGenerator/QEL-NC">         genie::AhrensNCELPXSec/Default          </param>

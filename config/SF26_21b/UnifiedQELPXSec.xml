@@ -36,8 +36,10 @@ IntegralNucleonBindingMode           alg      No
     <param type="double" name="QEL-CC-XSecScale"> 1.000 </param>
     <param type="double" name="IntegralNuclearInfluenceCutoffEnergy"> 100.0 </param>
 
-    <param type="alg"  name="XSec-Integrator"> genie::NewQELXSec/Default </param>
-    <param type="alg"  name="IntegralNuclearModel"> genie::SpectralFunc/Default </param>
+    <param type="alg"  name="XSec-Integrator"> genie::INCLQELXSec/Default </param>
+    <param type="alg"  name="IntegralNucleusGen"> genie::NucleusGenHybridStruck/Default </param>
+    <param type="alg"  name="IntegralNuclearModel"> genie::NuclearModelMap/Default </param>
+    <!-- param type="alg"  name="IntegralNuclearModel"> genie::SpectralFunc/Default </param -->
     <param type="string" name="IntegralNucleonBindingMode"> UseNuclearModel </param>
 
     <param type="string" name="TensorModel"> Noemi fortran </param> 
@@ -59,7 +61,7 @@ IntegralNucleonBindingMode           alg      No
 
   <param_set name="ZExp">
      <param type="alg"  name="CCFormFactorsAlg"> genie::LwlynSmithFFCC/ZExp </param>
-  </param_set>
+ </param_set>
 
 
   <param_set name="ZExp_minerva">
