@@ -1,3 +1,6 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #ifndef G4INCLGENIEQELChannel_HH_
 #define G4INCLGENIEQELChannel_HH_ 1
 
@@ -28,3 +31,5 @@ namespace G4INCL {
 }
 
 #endif
+
+#endif // __GENIE_INCL_ENABLED__

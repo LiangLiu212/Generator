@@ -1,3 +1,5 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
 #include "G4INCLGENIEQELChannel.h"
 #include "G4INCLRandom.hh"
 #include "G4INCLKinematicsUtils.hh"
@@ -35,3 +37,5 @@ namespace G4INCL {
     fs->addModifiedParticle(hitParticle);
   }
 }
+
+#endif // __GENIE_INCL_ENABLED__

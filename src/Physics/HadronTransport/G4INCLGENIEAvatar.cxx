@@ -1,3 +1,6 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #include "G4INCLGENIEAvatar.h"
 #include "G4INCLGENIEQELChannel.h"
 #include "G4INCLGENIEMECChannel.h"
@@ -679,3 +682,5 @@ namespace G4INCL {
   }
 
 }
+
+#endif // __GENIE_INCL_ENABLED__

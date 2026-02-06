@@ -11,6 +11,9 @@
 */
 //____________________________________________________________________________
 
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #include <TMath.h>
 #include <memory>
 #include "Math/Minimizer.h"
@@ -1405,3 +1408,4 @@ double MECGeneratorINCL::GetXSecMaxTlctl( const Interaction & in,
 }
 
 //___________________________________________________________________________
+#endif // __GENIE_INCL_ENABLED__

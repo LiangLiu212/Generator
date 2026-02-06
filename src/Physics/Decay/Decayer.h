@@ -57,9 +57,7 @@ protected:
   bool        fRunBefHadroTransp;   ///< is invoked before or after FSI?
   PDGCodeList fParticlesToDecay;    ///< list of particles to be decayed
   PDGCodeList fParticlesNotToDecay; ///< list of particles for which decay is inhibited
-//#ifdef __GENIE_INCL_ENABLED__
   bool        fINCLHadronTranspMode;
-//#endif
 
 };
 

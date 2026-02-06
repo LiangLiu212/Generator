@@ -1,4 +1,5 @@
 #ifdef __CINT__
+#include "Framework/Conventions/GBuild.h"
 
 #pragma link off all globals;
 #pragma link off all classes;
@@ -22,7 +23,11 @@
 #pragma link C++ class genie::EffectiveSF;
 #pragma link C++ class genie::FermiMover;
 #pragma link C++ class genie::NucleusGenerator;
+
+#ifdef __GENIE_INCL_ENABLED__
 #pragma link C++ class genie::NucleusGenINCL;
+#endif
+
 #pragma link C++ class genie::NucleusGenHybridStruck;
 #pragma link C++ class genie::PauliBlocker;
 #pragma link C++ class genie::SRCNuclearRecoil;

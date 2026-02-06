@@ -1,3 +1,5 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
 #ifndef G4INCLGENIEPARTICLERECORD_H_
 #define G4INCLGENIEPARTICLERECORD_H_
 
@@ -109,3 +111,5 @@ namespace G4INCL {
 }
 
 #endif /*  G4INCLPARTICLERECORD_H_  */
+
+#endif // __GENIE_INCL_ENABLED__

@@ -8,6 +8,8 @@
 
 */
 //____________________________________________________________________________
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
 
 #include <TMath.h>
 
@@ -674,3 +676,4 @@ double QELEventGeneratorSuSAINCL::ComputeMaxXSec(
   return max_xsec;
 }
 //___________________________________________________________________________
+#endif // __GENIE_INCL_ENABLED__

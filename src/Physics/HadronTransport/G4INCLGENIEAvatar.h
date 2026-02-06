@@ -1,3 +1,6 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #ifndef G4INCLGENIEAVATAR_HH_
 #define G4INCLGENIEAVATAR_HH_
 
@@ -175,3 +178,4 @@ namespace G4INCL {
 }
 
 #endif /* G4INCLDECAYAVATAR_HH_ */
+#endif // __GENIE_INCL_ENABLED__

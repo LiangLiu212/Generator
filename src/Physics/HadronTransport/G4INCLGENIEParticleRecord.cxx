@@ -1,3 +1,6 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #include "Physics/HadronTransport/G4INCLGENIEParticleRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/GHEP/GHepStatus.h"
@@ -32,3 +35,4 @@ namespace G4INCL{
     fID = id;
   }
 }
+#endif // __GENIE_INCL_ENABLED__

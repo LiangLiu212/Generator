@@ -8,6 +8,8 @@
 */
 //____________________________________________________________________________
 
+#include "Framework/Conventions/GBuild.h"
+
 #include <algorithm>
 #include <sstream>
 

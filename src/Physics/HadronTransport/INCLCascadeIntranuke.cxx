@@ -91,10 +91,6 @@ namespace bt = boost::timer;
 
 // --------------------------------------Include for GENIE---------------------
 // GENIE
-#include "INCLConvertParticle.hh"
-#include "INCLConfigParser.h"
-// INCL++
-//#include "ConfigParser.hh"
 
 #include "Framework/GHEP/GHepRecord.h"
 #include "Framework/GHEP/GHepParticle.h"

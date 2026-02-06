@@ -25,7 +25,6 @@
 #pragma link C++ class genie::CascadeReweight;
 
 #ifdef __GENIE_INCL_ENABLED__
-//#pragma link C++ class genie::HINCLCascadeIntranuke;
 #pragma link C++ class genie::INCLCascadeIntranuke;
 #endif
 

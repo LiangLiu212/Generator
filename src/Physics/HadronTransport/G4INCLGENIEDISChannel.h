@@ -1,3 +1,8 @@
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
+#ifndef G4INCLGENIEDISChannel_HH_
+#define G4INCLGENIEDISChannel_HH_ 1
 
 #include "G4INCLParticle.hh"
 #include "G4INCLNucleus.hh"
@@ -6,8 +11,6 @@
 #include "G4INCLAllocationPool.hh"
 #include "Physics/HadronTransport/G4INCLGENIEParticleRecord.h"
 
-#ifndef G4INCLGENIEDISChannel_HH_
-#define G4INCLGENIEDISChannel_HH_ 1
 
 namespace G4INCL {
   class GENIEDISChannel : public IChannel {
@@ -29,3 +32,5 @@ namespace G4INCL {
 }
 
 #endif
+
+#endif // __GENIE_INCL_ENABLED__

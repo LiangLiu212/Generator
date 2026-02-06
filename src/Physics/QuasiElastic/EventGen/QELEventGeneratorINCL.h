@@ -15,6 +15,8 @@
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
 
 #ifndef _QEL_EVENT_GENERATOR_INCL_H_
 #define _QEL_EVENT_GENERATOR_INCL_H_
@@ -68,3 +70,5 @@ private:
 } // genie namespace
 
 #endif // _QEL_EVENT_GENERATOR_INCL_H_
+
+#endif // __GENIE_INCL_ENABLED__

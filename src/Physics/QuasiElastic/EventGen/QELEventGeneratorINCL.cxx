@@ -13,6 +13,9 @@
 */
 //____________________________________________________________________________
 
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #include <TMath.h>
 
 #include "Framework/Algorithm/AlgFactory.h"
@@ -550,3 +553,4 @@ double QELEventGeneratorINCL::ComputeMaxXSec(const Interaction * in) const
     return xsec_max;
 }
 //____________________________________________________________________________
+#endif // __GENIE_INCL_ENABLED__

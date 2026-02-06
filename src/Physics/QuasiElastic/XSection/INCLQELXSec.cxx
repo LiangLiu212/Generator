@@ -8,6 +8,9 @@
 */
 //____________________________________________________________________________
 
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Algorithm/AlgFactory.h"
 #include "Framework/Conventions/GBuild.h"
@@ -294,4 +297,5 @@ double genie::utils::gsl::INCLFullQELdXSec::DoEval(const double* xin) const
   return xsec;
 }
 
+#endif // __GENIE_INCL_ENABLED__
 

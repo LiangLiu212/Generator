@@ -17,6 +17,9 @@
 */
 //____________________________________________________________________________
 
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_INCL_ENABLED__
+
 #ifndef _QEL_KINEMATICS_GENERATOR_SUSA_INCL_H_
 #define _QEL_KINEMATICS_GENERATOR_SUSA_INCL_H_
 
@@ -71,3 +74,4 @@ private:
 
 }      // genie namespace
 #endif // _QEL_KINEMATICS_GENERATOR_SUSA_H_
+#endif // __GENIE_INCL_ENABLED__
