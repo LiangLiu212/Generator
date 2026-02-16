@@ -42,6 +42,7 @@ QEL-Q4limit bool    Yes        1/Q^4 limit conditions     GPL value: QEL-Q4limit
     <param type="vec-double" name="QEL-Z_AN" delim=";"> 0.084252682465; -0.278572218873; -0.153916309312; 0.353999966588     </param>
     <param type="vec-double" name="QEL-Z_BN" delim=";"> 2.706784556423; -0.424305225602; -2.662453066640; 0.067583076040       </param>
     <!-- more factors can be added, if necessary according to Kmax -->
+   <param type="mat-double" name="ZExpELFF@CovarianceMatrix" importfile="true"> data/covariances/FormFactor/Vector/ELZExpFF.dat  </param>
 
   </param_set>
 </alg_conf>
