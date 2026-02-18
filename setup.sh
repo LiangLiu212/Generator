@@ -1,7 +1,8 @@
 #!/bin/bash
 
-cp setup/setup.tar ../
+cp setup/setup.tar.gz ../
 cd ../
-tar -xvf setup.tar
+tar -xzf setup.tar.gz
 source setup_env.sh
-cd ../
+rm setup.tar.gz
+cd Generator
