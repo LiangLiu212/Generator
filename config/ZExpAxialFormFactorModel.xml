@@ -7,23 +7,18 @@ Configuration sets for the z-expansion axial form factor model.
 
 Algorithm Configurable Parameters:
 .........................................................................................
-Name        Type    Optional   Comment                    Default
+Name        Type        Optional   Comment                    Default
 .........................................................................................
-QEL-T0      double  Yes        z convergence parameter    GPL value: QEL-T0
-QEL-Z_A1    double  Yes        z expansion coefficient    GPL value: QEL-Z_A1
-QEL-Z_A2    double  Yes        z expansion coefficient    GPL value: QEL-Z_A2
-QEL-Z_A3    double  Yes        z expansion coefficient    GPL value: QEL-Z_A3
-QEL-Z_A4    double  Yes        z expansion coefficient    GPL value: QEL-Z_A4
-QEL-Z_A5    double  Yes        z expansion coefficient    GPL value: QEL-Z_A5
-QEL-Z_A6    double  Yes        z expansion coefficient    GPL value: QEL-Z_A6
-QEL-Z_A7    double  Yes        z expansion coefficient    GPL value: QEL-Z_A7
-QEL-Z_A8    double  Yes        z expansion coefficient    GPL value: QEL-Z_A8
-QEL-Z_A9    double  Yes        z expansion coefficient    GPL value: QEL-Z_A9
-QEL-Z_A10   double  Yes        z expansion coefficient    GPL value: QEL-Z_A10
-QEL-Kmax    int     Yes        max summation index        GPL value: QEL-Kmax
-QEL-Tcut    double  Yes        ??                         GPL value 
+QEL-T0      double      Yes        z convergence parameter    GPL value: QEL-T0
+QEL-Z_A     vec-double  Yes        z expansion coefficient    GPL value: QEL-Z_A
+QEL-Kmax    int         Yes        max summation index        GPL value: QEL-Kmax
+QEL-Tcut    double      Yes        ??                         GPL value 
 
-QEL-Q4limit bool    Yes        1/Q^4 limit conditions     GPL value: QEL-Q4limit
+QEL-Q4limit bool        Yes        1/Q^4 limit conditions     GPL value: QEL-Q4limit
+
+
+Only using for reweight
+ZExpZAFF@CovarianceMatrix     mat-double  Yes       covariance matrix        GPL value: ZExpZAFF@CovarianceMatrix
 
 -->
 
