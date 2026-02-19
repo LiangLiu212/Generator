@@ -20,6 +20,7 @@
     Generator  inclxx_genie  runarea  setup_env.sh
     $ cd runarea
     $ ./run_gevgen.sh INCL26_01a_00_000
+- After compiling, you only need to `source setup_env.sh` the next time you log in.
 ## GENIE-INCL Event Record
 
 ### Here is an example of GENIE-INCL event record
