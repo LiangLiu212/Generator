@@ -6,6 +6,36 @@ Configuration for the Nucleus Gen
 Configurable Parameters:
 .............................................................................................................
 Name                          Type    Optional   Comment                                           Default
+inclxx-data-dir               string  yes        data files of INCL model                          ${INCLXX_DATA_DIR}/data
+inclxx-ablaxx-dir             string  yes        data files of ablaxx model                        ${INCLXX_DATA_DIR}/data
+inclxx-abla07-dir             string  yes        data files of abla07 model                        ${INCLXX_DATA_DIR}/data
+inclxx-geminixx-dir           string  yes        data files of geminixx model                      ${INCLXX_DATA_DIR}/data
+inclxx-de-excitation          string  yes        options for deexcitation model                    ABLA07
+                                                 - ABLA07
+                                                 - ABLAXX
+                                                 - GEMINIXX
+inclxx-potential              string  yes        options for potential energy                      IsospinEnergyPotential
+                                                 - IsospinEnergyPotential 
+                                                 - IsospinEnergySmoothPotential 
+                                                 - IsospinPotential 
+                                                 - ConstantPotential 
+inclxx-pauli-block            string  yes        options for pauli blocking                        StrictStatisticalPauli
+                                                 - StrictStatisticalPauli 
+                                                 - StatisticalPauli 
+                                                 - StrictPauli 
+                                                 - GlobalPauli
+                                                 - NoPauli
+local-energy-BB               string  yes        options for local energy baryon-baryon            always
+                                                 - always
+                                                 - never
+                                                 - first-collision
+local-energy-BB               string  yes        options for local energy pi-N collision           always
+                                                 - always
+                                                 - never
+                                                 - first-collision
+hadronizationTime             double  yes        Hadronization time, in fm/c. Particles            0.0
+                                                 emerging from collisions are forbidden
+                                                 to recollide within this time.
 .............................................................................................................
 -->
 
