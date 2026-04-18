@@ -78,29 +78,6 @@ namespace genie {
 
       G4INCL::Config *getConfig(){return theConfig_;}
 
-//      bool     nextNucleonIndex(int pdg){
-//	if(pdg::IsProton(pdg)){
-//	  nucleon_index_++;
-//	  if(nucleon_index_ >= nucleus_->getZ())
-//	    return false;
-//	}
-//	else{
-//	  nucleon_index_++;
-//	  if(nucleon_index_ >= nucleus_->getA())
-//	    return false;
-//	}
-//	hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
-//	return true;
-//      }
-//      void     initNucleonIndex(int pdg){
-//	if(pdg::IsProton(pdg)){
-//	  nucleon_index_ = 0;
-//	}
-//	else{
-//	  nucleon_index_ = nucleus_->getZ();
-//	}
-//	hitNucleon_ = nucleus_->getStore()->getParticles().at(nucleon_index_);
-//      }
 
       double getMaxUniverseRadius() {return maxUniverseRadius_;}
 
@@ -116,6 +93,12 @@ namespace genie {
       void setLocalEnergyBBType(G4INCL::LocalEnergyType type) {localEnergyTypeBB_ = type;}
       void setLocalEnergyPiType(G4INCL::LocalEnergyType type) {localEnergyTypePi_ = type;}
       void setHadronizationTime(const double t) { hadronizationTime_=t; }
+      void setClusterAlgorithmType(const G4INCL::ClusterAlgorithmType c){
+        clusterAlgorithmType_ = c;
+      }
+      void setClusterAlgorithmString(const std::string str){
+        clusterAlgorithmString_ = str;
+      }
 
 
       bool isRPValid(double r, double p);
@@ -179,6 +162,9 @@ namespace genie {
 
       G4INCL::LocalEnergyType localEnergyTypeBB_;
       G4INCL::LocalEnergyType localEnergyTypePi_;
+      std::string clusterAlgorithmString_;
+      G4INCL::ClusterAlgorithmType clusterAlgorithmType_;
+
 
       NuclearModel_t model_type_;
   };

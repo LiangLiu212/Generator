@@ -227,7 +227,10 @@ void INCLNucleus::configure(){
   theConfig_->setLocalEnergyBBType(localEnergyTypeBB_);
   theConfig_->setLocalEnergyPiType(localEnergyTypePi_);
   theConfig_->setHadronizationTime(hadronizationTime_);
-  theConfig_->setsrcPairConfig(true);
+  //theConfig_->setsrcPairConfig(true);
+  theConfig_->setClusterAlgorithm(clusterAlgorithmType_);
+  theConfig_->setClusterAlgorithmString(clusterAlgorithmString_);
+  std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << " clasuter algorithm: " <<  clusterAlgorithmString_ << "  " << clusterAlgorithmType_ << std::endl;
 
   //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
 
@@ -332,6 +335,7 @@ void INCLNucleus::initialize(const Target * tgt){
     clusterNN_ = getNNCluster(kPdgProton, kPdgProton);
   }
   else if(pdg::IsProton(nucleon_pdg) || pdg::IsNeutron(nucleon_pdg)){
+    // randomly pick a nucleon as a hit nucleon; will drop it when using GENIE vertex and GENIE fermi motion
     hitNucleon_ = this->getNucleon(nucleon_pdg);
   }
   else{
@@ -745,7 +749,10 @@ void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){
 
 }
 void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi){
+  // FIXME: find the closest nucleon pair might basing the nuclear density. 
+  // We will randomly drop two nucleon according to pdg number.
   LOG("INCLNucleus", pINFO) << "get cluster";
+  RandomGen * rnd = RandomGen::Instance();
   G4INCL::ThreeVector hitposi(posi.X(), posi.Y(), posi.Z());
 
   int cluster_index[2];
@@ -756,9 +763,6 @@ void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi
   for(int idx = 0; idx < 2; idx++){
     cluster_index[idx] = -1;
     int pdg_ = cluster_pdg[idx];
-
-    //cluster_N1 = nucleus_->getStore()->getParticles().at(cluster_index1_);
-    //
     G4INCL::ParticleList const &particles = nucleus_->getStore()->getParticles();
     if(pdg::IsProton(pdg_)){
       double size = 1e16;
@@ -775,6 +779,18 @@ void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi
           cluster_N[idx] = (*i);
         }
       }
+      //  randomly pick a proton
+      //if(idx == 1){
+      //  int proton_index = rnd->RndGen().Integer(nucleus_->getZ());
+      //  while(proton_index == cluster_N[0]->getID()){
+      //    proton_index = rnd->RndGen().Integer(nucleus_->getZ());
+      //  }
+      //  cluster_N[idx] = nucleus_->getStore()->getParticles().at(proton_index);
+      //}
+      //else{
+      //  int proton_index = rnd->RndGen().Integer(nucleus_->getZ());
+      //  cluster_N[idx] = nucleus_->getStore()->getParticles().at(proton_index);
+      //}
     }
     else if(pdg::IsNeutron(pdg_)){
       double size = 1e16;
@@ -791,6 +807,21 @@ void INCLNucleus::setHitNNCluster(const int pdg1, const int pdg2, TVector3 &posi
           cluster_N[idx] = (*i);
         }
       }
+      
+
+
+
+      //if(idx == 1){
+      //  int neutron_index = rnd->RndGen().Integer(nucleus_->getA() - nucleus_->getZ()) + nucleus_->getZ();
+      //  while(neutron_index == cluster_N[0]->getID()){
+      //    neutron_index = rnd->RndGen().Integer(nucleus_->getA() - nucleus_->getZ()) + nucleus_->getZ();
+      //  }
+      //  cluster_N[idx] = nucleus_->getStore()->getParticles().at(neutron_index);
+      //}
+      //else{
+      //  int neutron_index = rnd->RndGen().Integer(nucleus_->getA() - nucleus_->getZ()) + nucleus_->getZ();
+      //  cluster_N[idx] = nucleus_->getStore()->getParticles().at(neutron_index);
+      //}
     }
     else{
       LOG("INCLNucleus", pFATAL) << "Can't get a valid nucleon! " << pdg2;

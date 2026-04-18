@@ -359,11 +359,8 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   // INCL don't have the stopping time for neutrino.
   // we can calculate the longest stopping time for all the daughters from primary interaction.
 
-  //LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   incl_target->applyFinalState(finalState.get());
-  //LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
 
-  // LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
   incl_target->getStore()->getBook().incrementAcceptedCollisions();
   int step = 0;
@@ -381,7 +378,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     avatar->fillFinalState(finalState.get());
     // Must fill event record before incl nucleus applyFinalState
     // applyFinalState will delete destroyed particles.
-    LOG("INCLCascadeIntranuke", pNOTICE) << finalState->print();
     this->fillEventRecord(finalState.get(), mother_list, evrec, propagationModel->getCurrentTime(), avatar->getType());
     incl_target->applyFinalState(finalState.get());
     LOG("INCLCascadeIntranuke", pNOTICE) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
@@ -391,7 +387,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
 
   primarylepton = evrec->FinalStatePrimaryLepton();
-  // std::cout << incl_target->print() << std::endl;
   // put the nuclear remnant in the event record
   //
   LOG("INCLCascadeIntranuke", pWARN) << "cascade step: " << step;
@@ -446,7 +441,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
 
   TLorentzVector p4posi(0,0,0,0);
-  // LOG("INCLCascadeIntranuke", pWARN) << incl_target->print();
   int A = incl_target->getA();
   int Z = incl_target->getZ();
   int S = incl_target->getS(); // INCL and ABLA support hypernuclei
@@ -535,7 +529,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     double M = p->Mass();
     double Rem_E = sqrt(Rem_p2/1000000. + M*M);
     TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
-    LOG("INCLCascadeIntranuke", pNOTICE) << pdg;
     evrec->AddParticle(pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4mom, p4posi);
   }
 
@@ -563,10 +556,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   if(!is_conservation){
     exit(1);
   }
-  //evrec->Print(std::cout);
-  //if(debug_Z == 6 && debug_A == 6){
-  //  exit(1);
-  //}
 
   LOG("INCLCascadeIntranuke", pINFO) << "Done with this event";
 }
@@ -844,7 +833,6 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
         tempFinalState.emplace_back(imom->global_index, imom->pdgid, 3, index_++, imom->p4mom, imom->p4posi);
         evrec->AddParticle(p);
       }
-      //evrec->Print(std::cout);
       mother_position = index_ - 1;
       LOG("INCLCascadeIntranuke", pWARN) << "the index of cluster : " << mother_position;
       for(auto ip = stepParticleList.begin(); ip != stepParticleList.end(); ++ip){
@@ -885,8 +873,6 @@ void INCLCascadeIntranuke::fillEventRecord(G4INCL::FinalState *fs, G4INCL::Parti
         GHepParticle p(pdg, ptype, mother_position, -1, -1, -1, ip->p4mom, ip->p4posi);
         evrec->AddParticle(p);
       }
-      //evrec->Print(std::cout);
-      //exit(1);
     }
   }
   else if(mother_list.size() == 2){
@@ -1262,9 +1248,7 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     LOG("INCLCascadeIntranuke", pWARN) << er->ID();
     er++;
   }
-  evrec->Print(std::cout);
 
-  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   // put the out-going particle into event record
 
@@ -1297,7 +1281,6 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
     tempFinalState.emplace_back((*iter)->getID(), pdg, outp_mother_idx, idx++);
   }
   //evrec->Print(std::cout);
-  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   if(!outgoing.empty()){
 
@@ -1340,7 +1323,6 @@ void INCLCascadeIntranuke::fillFinalState(GHepRecord * evrec, G4INCL::FinalState
       finalState->addOutgoingParticle((*i));
     }
   }
-  //LOG("INCLCascadeIntranuke", pWARN) << finalState->print();
 
   return;
 

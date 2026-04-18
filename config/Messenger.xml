@@ -99,7 +99,7 @@
   <priority msgstream="FMap">                  WARN   </priority>
   <priority msgstream="FragmRecUtils">         NOTICE </priority>
   <priority msgstream="GEVGDriver">            WARN </priority>
-  <priority msgstream="GMCJDriver">            NOTICE </priority>
+  <priority msgstream="GMCJDriver">            FATAL </priority>
   <priority msgstream="GEVGPool">              INFO   </priority>
   <priority msgstream="GMCJob">                INFO   </priority>
   <priority msgstream="GMCJMonitor">           WARN   </priority>
@@ -120,10 +120,10 @@
   <priority msgstream="IntLst">                NOTICE </priority>
   <priority msgstream="Interaction">           ERROR </priority>
   <priority msgstream="Intranuke">             WARN   </priority>
-  <priority msgstream="Intranuke2018">         DEBUG   </priority>
+  <priority msgstream="Intranuke2018">         WARN   </priority>
   <priority msgstream="Intranuke2019">         WARN   </priority>
-  <priority msgstream="HAIntranuke">           DEBUG   </priority>
-  <priority msgstream="HAIntranuke2018">       DEBUG   </priority>
+  <priority msgstream="HAIntranuke">           WARN   </priority>
+  <priority msgstream="HAIntranuke2018">       WARN   </priority>
   <priority msgstream="HAIntranuke2019">       WARN   </priority>
   <priority msgstream="HNIntranuke">           NOTICE </priority>
   <priority msgstream="HNIntranuke2018">       NOTICE </priority>
@@ -135,7 +135,7 @@
   <priority msgstream="INukeUtils2018">        NOTICE </priority>
   <priority msgstream="INukeUtils2019">        NOTICE </priority>
   <priority msgstream="HINCLCascadeIntranuke"> NOTICE </priority>
-  <priority msgstream="INCLCascadeIntranuke">  WARN </priority>
+  <priority msgstream="INCLCascadeIntranuke">  FATAL </priority>
   <priority msgstream="INCLNucleus">  WARN </priority>
   <priority msgstream="INCLQELXSec">  DEBUG </priority>
   <priority msgstream="NucleusGenHybridStruck">  NOTICE </priority>

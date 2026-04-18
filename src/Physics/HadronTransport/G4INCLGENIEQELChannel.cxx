@@ -27,10 +27,7 @@ namespace G4INCL {
         ip->setID(int(hitParticle->getID()));
         hitParticle->setType(ip->Type());
         hitParticle->setMomentum(ip->P3());
-        std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << hitParticle->getPosition().print() << std::endl;
         hitParticle->setPosition(ip->X3());
-        std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << "  " << hitParticle->getPosition().print() << std::endl;
-        std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << " position radius difference: " << hitParticle->getPosition().mag() - ip->X3().mag() << std::endl;
         hitParticle->adjustEnergyFromMomentum();
       }
     }

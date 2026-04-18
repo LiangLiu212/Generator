@@ -583,6 +583,18 @@ void NucleusGenINCL::LoadConfig(void)
   double hadronizationTime = 0.0;
   GetParamDef( "hadronizationTime", hadronizationTime, 0.0);
 
+
+  // set the Cluster Algorithm
+  std::string clusterAlgorithmString = "intercomparison";
+  G4INCL::ClusterAlgorithmType clusterAlgorithmType = G4INCL::IntercomparisonClusterAlgorithm;
+  GetParamDef( "cluster-algorithm", clusterAlgorithmString, std::string("intercomparison"));
+  if(!clusterAlgorithmString.compare("intercomparison")){
+    clusterAlgorithmType = G4INCL::IntercomparisonClusterAlgorithm;
+  }
+  else if(!clusterAlgorithmString.compare("none")){
+    clusterAlgorithmType = G4INCL::NoClusterAlgorithm;
+  }
+
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
   incl_nucleus->setINCLXXDataFilePath(this->expandEnvironmentPath(inclxxpath));
   incl_nucleus->setABLAXXDataFilePath(this->expandEnvironmentPath(ablaxxpath));
@@ -596,6 +608,9 @@ void NucleusGenINCL::LoadConfig(void)
   incl_nucleus->setLocalEnergyBBType(localEnergyTypeBB);
   incl_nucleus->setLocalEnergyPiType(localEnergyTypepi);
   incl_nucleus->setHadronizationTime(hadronizationTime);
+
+  incl_nucleus->setClusterAlgorithmType(clusterAlgorithmType);
+  incl_nucleus->setClusterAlgorithmString(clusterAlgorithmString);
 
   incl_nucleus->configure();
 }
