@@ -37,6 +37,10 @@ namespace G4INCL {
         return theParticleList;
       }
 
+      std::vector<GENIEParticleRecord> *getEventRecord() {
+        return genie_evtrec;
+      }
+
       std::string dump() const;
     private:
       Particle *particle1;

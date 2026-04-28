@@ -95,7 +95,8 @@ namespace genie {
       mutable G4INCL::EventInfo theEventInfo;
 
       mutable double temfin;
-      void fillFinalState(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      mutable int minRemnantSize;
+      std::shared_ptr<G4INCL::IAvatar> fillFinalState(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
       //void fillFinalStateNCEL(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
 
       // FIXME: put the G4INCL::Nucleus::<post cascade func> in here 

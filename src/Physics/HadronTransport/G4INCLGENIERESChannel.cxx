@@ -23,6 +23,7 @@ namespace G4INCL {
   void GENIERESChannel::fillFinalState(FinalState *fs)
   {
 
+
     std::vector<GENIEParticleRecord>::iterator ip;
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
       if(ip->Status() == 14 || ip->Status() == 13){

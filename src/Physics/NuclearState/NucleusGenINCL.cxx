@@ -107,9 +107,7 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
   tgt.SetHitNucPdg(nucleon_cluster->Pdg());
 
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(&tgt);
   incl_nucleus->reset(&tgt);
-  incl_nucleus->initialize(&tgt);
 
   std::shared_ptr<G4INCL::Cluster> incl_cluster =  incl_nucleus->getHitNNCluster();
   G4INCL::Nucleus *nucleus =  incl_nucleus->getNuclues();
@@ -173,9 +171,7 @@ void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
   // get the target and use it to initialize the incl nucleus
   Target* tgt = evrec->Summary()->InitState().TgtPtr();
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-  incl_nucleus->initialize(tgt);
   incl_nucleus->reset(tgt);
-  incl_nucleus->initialize(tgt);
 
 // generate a vtx and set it to all GHEP physical particles
   Interaction * interaction = evrec->Summary();
@@ -184,17 +180,14 @@ void NucleusGenINCL::setInitialStateVertex(GHepRecord * evrec) const{
   if(!nucltgt){
     vtx.SetXYZ(0.,0.,0.);
   }else{
-    double A = nucltgt->A();
- 	
-  const ProcessInfo & proc_info = interaction->ProcInfo();
-  bool is_coh = proc_info.IsCoherentProduction() || proc_info.IsCoherentElastic();
-  bool is_ve  = proc_info.IsInverseMuDecay() ||
+    const ProcessInfo & proc_info = interaction->ProcInfo();
+    bool is_coh = proc_info.IsCoherentProduction() || proc_info.IsCoherentElastic();
+    bool is_ve  = proc_info.IsInverseMuDecay() ||
     proc_info.IsIMDAnnihilation() ||
     proc_info.IsNuElectronElastic() ||
     proc_info.IsGlashowResonance() ||
     proc_info.IsPhotonResonance() ||
     proc_info.IsPhotonCoherent();
-
 
   if(is_coh||is_ve) {
     // ** For COH or ve- set a vertex positon on the nuclear boundary
@@ -253,15 +246,6 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
   // initialize INCL nucleus model
   // INCL nucleus model sample all nucleons with r-p correlation
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-//  G4INCL::Nucleus *incl_nuc = incl_nucleus->getNuclues();
-//  TLorentzVector p4tgt;
-//  p4tgt.SetPx(incl_nuc->getMomentum().getX() / 1000.);
-//  p4tgt.SetPy(incl_nuc->getMomentum().getY() / 1000. );
-//  p4tgt.SetPz(incl_nuc->getMomentum().getZ() / 1000. );
-//  p4tgt.SetE(incl_nuc->getEnergy() / 1000.);
-//  init_state->SetTgtP4(p4tgt);
-//  nucleus->SetMomentum(p4tgt);
-
 
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
@@ -320,11 +304,6 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
   int fd = nucleus->FirstDaughter();
   int ld = nucleus->LastDaughter();
 
-  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-
-  G4INCL::Nucleus *incl_nuc = incl_nucleus->getNuclues();
-
-
   for(int id = fd; id <= ld; id++) {
 
     // compute A,Z for final state nucleus & get its PDG code and its mass
@@ -355,10 +334,6 @@ void NucleusGenINCL::setTargetNucleusRemnant(GHepRecord * evrec)const{
   }
 
   double Mi = nucleus->Mass();
-//  Px = incl_nuc->getMomentum().getX()/1000. - Px;
-//  Py = incl_nuc->getMomentum().getY()/1000. - Py;
-//  Pz = incl_nuc->getMomentum().getZ()/1000. - Pz;
-//  E = incl_nuc->getEnergy()/1000. - E;
 
   Px *= -1;
   Py *= -1;
@@ -431,9 +406,7 @@ void NucleusGenINCL::GenerateNucleon(Interaction* interaction, ResamplingHitNucl
   }
   else if(resampling_mode == BothRPResamping){
     INCLNucleus *incl_nucleus = INCLNucleus::Instance();
-    incl_nucleus->initialize(tgt);
     incl_nucleus->reset(tgt);
-    incl_nucleus->initialize(tgt);
     TVector3 vertex_pos = incl_nucleus->getHitNucleonPosition();
     double radius = vertex_pos.Mag();
     tgt->SetHitNucPosition( radius );
@@ -450,6 +423,7 @@ bool NucleusGenINCL::isRPValid(double r, double p, const Target & tgt) const {
 }
 
 void NucleusGenINCL::SetHitNucleonOnShellMom(TVector3 p3) const {
+  (void) p3;
 
 }
 
@@ -486,7 +460,7 @@ void NucleusGenINCL::LoadConfig(void)
   LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(geminixxpath);
 
   std::string deExType;
-  G4INCL::DeExcitationType deExcitationType;
+  G4INCL::DeExcitationType deExcitationType = G4INCL::DeExcitationABLA07;
   GetParamDef( "inclxx-de-excitation", deExType, std::string(""));
   LOG("NucleusGenINCL", pINFO) << "inclxx-de-excitation : " << deExType;
   if(!deExType.compare("ABLA07")){
