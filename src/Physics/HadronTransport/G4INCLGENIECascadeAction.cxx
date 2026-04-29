@@ -38,7 +38,6 @@ namespace G4INCL {
   GENIECascadeAction::~GENIECascadeAction() {}
 
   void GENIECascadeAction::beforeRunUserAction(Config const *){
-    std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << std::endl;
   }
 
   void GENIECascadeAction::beforeCascadeUserAction(IPropagationModel * /*pm*/) {
@@ -49,7 +48,6 @@ namespace G4INCL {
     stepFinalState.clear();
 
     const ProcessInfo & proc_info = evrec->Summary()->ProcInfo();
-    INCLNucleus *incl_nucleus = INCLNucleus::Instance();
     // convert ghep event record to INCL Style.
     // G4INCL::GENIEParticleRecord is the bridge
     TObjArrayIter piter(evrec);
@@ -59,11 +57,11 @@ namespace G4INCL {
     while ( (p = (GHepParticle *) piter.Next() ) ) {
       // the code of the particles in primary neutrino interaction
       G4INCL::GENIERecordCode recordCode;
-      if(eventRecord.size() == evrec->ProbePosition())                         { recordCode = G4INCL::kProbe; }
-      else if(eventRecord.size() == evrec->TargetNucleusPosition())            { recordCode = G4INCL::kTarget;}
-      else if(eventRecord.size() == evrec->HitNucleonPosition())               { recordCode = G4INCL::kHitNucleon;}
-      else if(eventRecord.size() == evrec->RemnantNucleusPosition())           { recordCode = G4INCL::kRemnant;}
-      else if(eventRecord.size() == evrec->FinalStatePrimaryLeptonPosition())  { recordCode = G4INCL::kFinalStateLepton;}
+      if     (eventRecord.size() == static_cast<size_t>(evrec->ProbePosition()))                         { recordCode = G4INCL::kProbe; }
+      else if(eventRecord.size() == static_cast<size_t>(evrec->TargetNucleusPosition()))            { recordCode = G4INCL::kTarget;}
+      else if(eventRecord.size() == static_cast<size_t>(evrec->HitNucleonPosition()))               { recordCode = G4INCL::kHitNucleon;}
+      else if(eventRecord.size() == static_cast<size_t>(evrec->RemnantNucleusPosition()))           { recordCode = G4INCL::kRemnant;}
+      else if(eventRecord.size() == static_cast<size_t>(evrec->FinalStatePrimaryLeptonPosition()))  { recordCode = G4INCL::kFinalStateLepton;}
       else { recordCode = G4INCL::kUnknown;}
       eventRecord.emplace_back(p, int(proc_info.ScatteringTypeId()), recordCode);
     }
@@ -80,10 +78,13 @@ namespace G4INCL {
     }
   }
 
-  void GENIECascadeAction::afterAvatarUserAction(IAvatar *avatar, Nucleus *nucleus, FinalState *finalState) { 
+  void GENIECascadeAction::afterAvatarUserAction(IAvatar *avatar, Nucleus *nucleus, FinalState *finalState) {
+    (void) nucleus;
     this->fillEventRecord(finalState, mlist, avatar->getTime(), avatar->getType());
   }
-  void GENIECascadeAction::afterNPVAvatarUserAction(IAvatar *avatar, Nucleus *nucleus, FinalState *finalState) { 
+  void GENIECascadeAction::afterNPVAvatarUserAction(IAvatar *avatar, Nucleus *nucleus, FinalState *finalState) {
+    (void) avatar;
+    (void) nucleus;
 
 
     // update the event record after INCL postInteraction
@@ -93,16 +94,16 @@ namespace G4INCL {
     TObjArrayIter piter(evrec);
     piter.Reset();   // rewind
     GHepParticle * p = nullptr;
-    auto er = eventRecord.begin();
+    auto evr = eventRecord.begin();
     int idx =0;
     while ( (p = (GHepParticle *) piter.Next() ) ) {
       TLorentzVector *p4 = p->P4();
-      p4->SetPx(er->P3().getX() * MeV / GeV);
-      p4->SetPy(er->P3().getY() * MeV / GeV);
-      p4->SetPz(er->P3().getZ() * MeV / GeV);
-      p4->SetE(std::sqrt(er->P3().mag2() + er->Mass()*er->Mass()) * MeV / GeV);
-      tempFinalState.emplace_back(er->ID(), er->Pdg(), er->FirstMother(), idx++, kUnknownType);
-      er++;
+      p4->SetPx(evr->P3().getX() * MeV / GeV);
+      p4->SetPy(evr->P3().getY() * MeV / GeV);
+      p4->SetPz(evr->P3().getZ() * MeV / GeV);
+      p4->SetE(std::sqrt(evr->P3().mag2() + evr->Mass()*evr->Mass()) * MeV / GeV);
+      tempFinalState.emplace_back(evr->ID(), evr->Pdg(), evr->FirstMother(), idx++, kUnknownType);
+      evr++;
     }
 
     // std::vector<GENIEParticleRecord> *eventRecord = avatar->getEventRecord();
@@ -155,7 +156,6 @@ namespace G4INCL {
       int outp_mother_idx = -1;
       int tmp_idx_ = -1;
       int pdg = 0;
-      GHepParticle * p1 = nullptr;
       for(auto er = eventRecord.begin(); er != eventRecord.end(); er++){
         tmp_idx_++;
         if((*iter)->getID() == er->ID()){
@@ -163,7 +163,7 @@ namespace G4INCL {
           pdg = er->Pdg();
         }
       }
-      GHepParticle p(pdg, kIStStableFinalState, outp_mother_idx, -1, -1, -1, 
+      GHepParticle fsp(pdg, kIStStableFinalState, outp_mother_idx, -1, -1, -1, 
           TLorentzVector((*iter)->getMomentum().getX()  * MeV / GeV,
             (*iter)->getMomentum().getY()  * MeV / GeV,
             (*iter)->getMomentum().getZ()  * MeV / GeV,
@@ -173,7 +173,7 @@ namespace G4INCL {
             (*iter)->getPosition().getZ(),
             0)
           );
-      evrec->AddParticle(p);
+      evrec->AddParticle(fsp);
       tempFinalState.emplace_back((*iter)->getID(), pdg, outp_mother_idx, idx++, kUnknownType);
     }
 
@@ -248,7 +248,6 @@ namespace G4INCL {
     }
 
     int num_partiles = tempFinalState.size();
-    int num_temp = stepParticleList.size();
     if(created.size() == 0 && outgoing.size() == 0 && modified.size() == 0) return;
     int index_ = num_partiles;
     if(mother_list.size() == 1){
@@ -365,9 +364,6 @@ namespace G4INCL {
               evrec->AddParticle(p);
             }
           }
-        }
-        else if(avaType == G4INCL::UnknownParticle){
-
         }
       }
       else if(avaType == G4INCL::DecayAvatarType){
