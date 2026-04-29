@@ -38,7 +38,7 @@ namespace G4INCL {
 
   G4INCL::IChannel* GENIEAvatar::getChannel() {
 
-    // TODO: using genie event record to fill final states of INCL
+    // using genie event record to fill final states of INCL
     // the initial states is hit nucleons, (for MEC channel, initial states
     // is NN cluster)
     // the final states should be hadron in nucleus
@@ -56,7 +56,7 @@ namespace G4INCL {
   void GENIEAvatar::preInteraction() {
 
 
-    if((*genie_evtrec)[0].ScatteringType() != 10){
+    if((*genie_evtrec)[0].ScatteringType() != genie::kScMEC){
       int index = 0;
       double lepton_initial_energy = 0;
       ThreeVector leptonInitialMom;
@@ -123,8 +123,6 @@ namespace G4INCL {
       }
       boostVector = local_mom / local_energy;
     }
-
-
   }
 
   void GENIEAvatar::postInteractionHybridModel(FinalState *fs){
@@ -164,10 +162,10 @@ namespace G4INCL {
     std::vector<GENIEParticleRecord>::iterator ip;
     ParticleIter imc = modifiedAndCreated.begin();
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      if(ip->Status() == 14 || ip->Status() == 13){
-        //ThreeVector p_mom = (*imc)->getMomentum();
-        //ip->setMomentum(p_mom);
-        //ip->setMass((*imc)->getMass());
+      if(ip->Status() == genie::kIStHadronInTheNucleus || ip->Status() == genie::kIStPreDecayResonantState){
+        ThreeVector p_mom = (*imc)->getMomentum();
+        ip->setMomentum(p_mom);
+        ip->setMass((*imc)->getMass());
         imc++;
       }
       index++;
@@ -231,7 +229,7 @@ namespace G4INCL {
       // ...except for pions beyond their surface radius.
       if((*i)->isOutOfWell()) continue;
 
-      const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
+      //const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
     }
 
     // Collision accepted!
@@ -304,10 +302,6 @@ namespace G4INCL {
 
     // If there is no Nucleus, just return
     if(!theNucleus) return;
-
-    // using genie nuclear model for primary vertex
-    // only put the final 
-    //
 
     if(fHybridModel){
       return this->postInteractionHybridModel(fs);
@@ -382,7 +376,7 @@ namespace G4INCL {
       // ...except for pions beyond their surface radius.
       if((*i)->isOutOfWell()) continue;
 
-      const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
+      //const bool successBringParticlesInside = InteractionAvatar::bringParticleInside(*i);
     }
 
 
@@ -395,7 +389,7 @@ namespace G4INCL {
         ip->setMomentum(leptonMom);
         ip->setMass(std::sqrt(std::max(leptonE*leptonE - leptonMom.mag2(), 0.)));
       }
-      else if(ip->Status() == 14 || ip->Status() == 13){
+      else if(ip->Status() == genie::kIStHadronInTheNucleus || ip->Status() == genie::kIStPreDecayResonantState){
         ThreeVector p_mom = (*imc)->getMomentum();
         ip->setMomentum(p_mom);
         ip->setMass((*imc)->getMass());
@@ -456,6 +450,7 @@ namespace G4INCL {
   }
 
   bool GENIEAvatar::enforceEnergyConservation(FinalState * const fs){
+    (void) fs;
     // Set up the violationE calculation
     violationEFunctor = new ViolationLeptonEMomentumFunctor(theNucleus, modifiedAndCreated, leptonE, leptonMom, boostVector, oldTotalEnergy, true);
     const RootFinder::Solution theSolution = RootFinder::solve(violationEFunctor, 1.0);

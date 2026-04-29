@@ -60,7 +60,7 @@ bool INCLCascadeIntranuke::decayInsideStrangeParticles(GHepRecord * evrec, G4INC
     }
     FinalState *fs = decay->getFinalState();
     // record decayInsideStrangeParticles
-    this->fillEventRecord(fs, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), decay->getType());
+    cascadeAction->fillEventRecord(fs, mother_list, incl_target->getStore()->getBook().getCurrentTime(), decay->getType());
     incl_target->applyFinalState(fs);
     delete fs;
     delete decay;
@@ -126,7 +126,7 @@ void INCLCascadeIntranuke::emitInsideStrangeParticles(GHepRecord * evrec, G4INCL
     mother_list.push_back(*i);
     finalState->reset();
     finalState->addOutgoingParticle(*i);
-    this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
+    cascadeAction->fillEventRecord(finalState, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
   }
 
 }
@@ -181,7 +181,7 @@ bool INCLCascadeIntranuke::emitInsideKaon(GHepRecord * evrec, G4INCL::FinalState
     mother_list.push_back(*i);
     finalState->reset();
     finalState->addOutgoingParticle(*i);
-    this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
+    cascadeAction->fillEventRecord(finalState, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
   }
   //   theNKaon -= 1;
   incl_target->setNumberOfKaon(incl_target->getNumberOfKaon() - 1);
@@ -240,7 +240,7 @@ int INCLCascadeIntranuke::emitInsideLambda(GHepRecord *evrec, G4INCL::FinalState
     mother_list.push_back(*i);
     finalState->reset();
     finalState->addOutgoingParticle(*i);
-    this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
+    cascadeAction->fillEventRecord(finalState, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
   }
   return (int)toEject.size();
 }
@@ -294,7 +294,7 @@ bool INCLCascadeIntranuke::decayInsideDeltas(GHepRecord *evrec, G4INCL::FinalSta
     // energies.
     if(fs->getValidity()==ValidFS) {
       // record decayInsideStrangeParticles
-      this->fillEventRecord(fs, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), decay->getType());
+      cascadeAction->fillEventRecord(fs, mother_list, incl_target->getStore()->getBook().getCurrentTime(), decay->getType());
       // Apply the final state to the nucleus
       incl_target->applyFinalState(fs);
     }
@@ -360,7 +360,7 @@ void INCLCascadeIntranuke::emitInsidePions(GHepRecord *evrec, G4INCL::FinalState
     mother_list.push_back(*i);
     finalState->reset();
     finalState->addOutgoingParticle(*i);
-    this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
+    cascadeAction->fillEventRecord(finalState, mother_list,  incl_target->getStore()->getBook().getCurrentTime(), G4INCL::SurfaceAvatarType);
   }
 
 }
@@ -396,7 +396,7 @@ bool INCLCascadeIntranuke::decayOutgoingClusters(GHepRecord * evrec, G4INCL::Fin
       incl_target->getStore()->addToOutgoing(*j);
       finalState->addOutgoingParticle(*j);
     }
-    this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
+    cascadeAction->fillEventRecord(finalState, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
   }
   return true;
 
@@ -415,8 +415,8 @@ bool INCLCascadeIntranuke::decayMe(GHepRecord * evrec, G4INCL::FinalState * fina
 
   mother_list.clear();
   mother_list.push_back(incl_target);
-  backup_mother.clear();
-  this->fillStep(incl_target, backup_mother, -7, incl_target->getStore()->getBook().getCurrentTime());
+  //backup_mother.clear();
+  //cascadeAction->fillStep(incl_target, backup_mother, G4INCL::kComposite, incl_target->getStore()->getBook().getCurrentTime());
   finalState->reset();
 
   ParticleList decayProducts = ClusterDecay::decay(incl_target);
@@ -425,7 +425,7 @@ bool INCLCascadeIntranuke::decayMe(GHepRecord * evrec, G4INCL::FinalState * fina
     //incl_target->getStore()->addToOutgoing(*j);
     finalState->addOutgoingParticle(*j);
   }
-  this->fillEventRecord(finalState, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
+  cascadeAction->fillEventRecord(finalState, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << " " << incl_target->getZ();
 
   return true;
@@ -455,7 +455,7 @@ bool INCLCascadeIntranuke::decayOutgoingNeutralKaon(GHepRecord * evrec, G4INCL::
     // Use a DecayAvatar
     IAvatar *decay = new DecayAvatar((*i), 0.0, NULL);
     FinalState *fs = decay->getFinalState();
-    this->fillEventRecord(fs, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
+    cascadeAction->fillEventRecord(fs, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
     delete fs;
     delete decay;
   }
@@ -518,7 +518,7 @@ bool INCLCascadeIntranuke::decayOutgoingSigmaZero(double timeThreshold, GHepReco
     else {
       INCL_ERROR("Wrong number (!= 1) of created particles during the decay of a sigma zero");
     }
-    this->fillEventRecord(fs, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
+    cascadeAction->fillEventRecord(fs, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
     delete fs;
     delete decay;
   }
@@ -594,7 +594,7 @@ bool INCLCascadeIntranuke::decayOutgoingPionResonances(double timeThreshold, GHe
             else {
                 INCL_ERROR("Wrong number (< 2) of created particles during the decay of a pion resonance");
             }
-            this->fillEventRecord(fs, mother_list, evrec, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
+            cascadeAction->fillEventRecord(fs, mother_list, incl_target->getStore()->getBook().getCurrentTime(), G4INCL::DecayAvatarType);
             delete fs;
             delete decay;
         }

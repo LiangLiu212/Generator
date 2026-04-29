@@ -23,7 +23,7 @@ namespace G4INCL {
   {
     std::vector<GENIEParticleRecord>::iterator ip;
     for(ip = genie_evtrec->begin(); ip != genie_evtrec->end(); ip++){
-      if(ip->Status() == 14){
+      if(ip->Status() == genie::kIStHadronInTheNucleus){
         ip->setID(int(hitParticle->getID()));
         hitParticle->setType(ip->Type());
         hitParticle->setMomentum(ip->P3());

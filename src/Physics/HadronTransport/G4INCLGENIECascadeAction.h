@@ -23,11 +23,14 @@
 #ifndef G4INCLGENIECASCADEACTION_HH
 #define G4INCLGENIECASCADEACTION_HH 1
 
+#include "Physics/NuclearState/INCLNucleus.h"
 #include "G4INCLCascadeAction.hh"
 #include <fstream>
 
 #include "Framework/GHEP/GHepRecord.h"
 #include "G4INCLGENIEParticleRecord.h"
+#include "Framework/Conventions/Units.h"
+#include "Framework/ParticleData/PDGCodes.h"
 
 namespace G4INCL {
 
@@ -46,7 +49,6 @@ namespace G4INCL {
       virtual void beforeCascadeUserAction(IPropagationModel *);
       virtual void beforePropagationUserAction(IPropagationModel *);
       virtual void beforeAvatarUserAction(IAvatar *, Nucleus *);
-      virtual void beforeNPVAvatarUserAction();
       virtual void afterAvatarUserAction(IAvatar *, Nucleus *, FinalState *);
       virtual void afterNPVAvatarUserAction(IAvatar *, Nucleus *, FinalState *);
       virtual void afterPropagationUserAction(IPropagationModel *, IAvatar *);
@@ -57,52 +59,27 @@ namespace G4INCL {
         evrec = evr;
       }
 
-      // TODO: void file steps
-      //
-      // TODO: void fill final states
+      std::vector<G4INCL::GENIEParticleRecord> *getEventRecord(){
+        return &eventRecord;
+      }
+      void fillStep(Particle *par, std::vector<INCLRecord> &stepList, G4INCLFinalStateType type, double time);
+      void fillEventRecord(FinalState *fs, ParticleList mother_list, double time, G4INCL::AvatarType avaType);
 
     private:
       //std::ofstream *oFile;
       long eventCounter;
       long stepCounter;
+      ParticleList mlist;
 
       genie::GHepRecord * evrec;
+      static constexpr double MeV = genie::units::MeV;
+      static constexpr double GeV = genie::units::GeV;
 
-      ParticleList backup_mother;
       std::vector<G4INCL::GENIEParticleRecord> eventRecord;
-
-
-      struct INCLRecord{
-        int global_index;        // Each particles in INCLXX will have a unique ID, it is a global index for every simulation run.
-        int pdgid;	       // PDG ID of particles in INCLXX
-        int mother_index;        // mother index of particles in each event
-        int local_index;         // local index of particles in each event
-        TLorentzVector p4mom;
-        TLorentzVector p4posi;
-        G4INCL::ParticleType theType;   // INCL Particle type
-
-        INCLRecord(int g_id, int p_id, int m_id, int l_id):
-          global_index(g_id),
-          pdgid(p_id),
-          mother_index(m_id),
-          local_index(l_id){}
-        INCLRecord(int g_id, int p_id, int m_id, int l_id, TLorentzVector mom, TLorentzVector posi):
-          global_index(g_id),
-          pdgid(p_id),
-          mother_index(m_id),
-          local_index(l_id),
-          p4mom(mom),
-          p4posi(posi){}
-        INCLRecord(int g_id, int p_id, int m_id, int l_id, TLorentzVector mom, TLorentzVector posi, G4INCL::ParticleType pType):
-          global_index(g_id),
-          pdgid(p_id),
-          mother_index(m_id),
-          local_index(l_id),
-          p4mom(mom),
-          p4posi(posi), 
-          theType(pType){}
-      };
       std::vector<INCLRecord> tempFinalState;
+      std::map<int, std::vector<INCLRecord>> stepFinalState;
+      std::vector<INCLRecord> backup_mother; // this cantainer is used to store the initial momentum and position of mother particles in binary collision
+
 
 
   };
