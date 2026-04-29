@@ -52,7 +52,6 @@ namespace genie {
       mutable GEvGenMode_t   fGMode;
       mutable G4INCL::Config        *theINCLConfig;
       mutable G4INCL::INCL          *theINCLModel;
-      mutable G4INCL::IDeExcitation *theDeExcitation;
     private:
 
       // GENIE method
@@ -72,7 +71,7 @@ namespace genie {
       bool BaryonNumberConservation(GHepRecord * event_rec) const;
 
       // INCL method
-      void postCascade(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      void postCascade(G4INCL::FinalState * finalState) const;
       //void postCascadeEventRecord(GHepRecord * event_rec, G4INCL::FinalState * finalState, int pre, int post) const;
       bool preCascade() const;
 
@@ -92,45 +91,45 @@ namespace genie {
 
       // FIXME: put the G4INCL::Nucleus::<post cascade func> in here 
       // to get the event record
-      bool decayInsideStrangeParticles(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      bool decayInsideStrangeParticles(G4INCL::FinalState * finalState) const;
       // Emit strange particles still inside the nucleus
       //  \brief Force emission of all strange particles inside the nucleus.
-      void emitInsideStrangeParticles(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      void emitInsideStrangeParticles(G4INCL::FinalState * finalState) const;
       /// \brief Force emission of all Lambda (desexitation code with strangeness not implanted yet)
-      int  emitInsideLambda(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      int  emitInsideLambda(G4INCL::FinalState * finalState) const;
       /// \brief Force emission of all Kaon inside the nucleus
-      bool emitInsideKaon(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      bool emitInsideKaon(G4INCL::FinalState * finalState) const;
 
       /** \brief Force the decay of deltas inside the nucleus.
        * 
        * \return true if any delta was forced to decay.
        */
 
-      bool decayInsideDeltas(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      bool decayInsideDeltas(G4INCL::FinalState * finalState) const;
       /// \brief Force emission of all pions inside the nucleus.
-      void emitInsidePions(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      void emitInsidePions(G4INCL::FinalState * finalState) const;
 
       /** \brief Force the decay of unstable outgoing clusters.
        *
        * \return true if any cluster was forced to decay.
        */
-      bool decayOutgoingClusters(GHepRecord * event_rec, G4INCL::FinalState * finalState) const;
+      bool decayOutgoingClusters(G4INCL::FinalState * finalState) const;
 
       /** \brief Force the transformation of outgoing Neutral Kaon into propation eigenstate.
        * \return true if any kaon was forced to decay.
        */
-      bool decayOutgoingNeutralKaon(GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+      bool decayOutgoingNeutralKaon(G4INCL::FinalState * finalState) const;
 
       /** \brief Force the decay of outgoing Neutral Sigma.
        * \return true if any Sigma was forced to decay.
        */
-      bool decayOutgoingSigmaZero(double timeThreshold, GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+      bool decayOutgoingSigmaZero(double timeThreshold, G4INCL::FinalState * finalState) const;
 
       /** \brief Force the decay of outgoing PionResonances (eta/omega).
        * \return true if any eta was forced to decay.
        */
 
-      bool decayOutgoingPionResonances(double timeThreshold, GHepRecord * evrec, G4INCL::FinalState * finalState) const;
+      bool decayOutgoingPionResonances(double timeThreshold, G4INCL::FinalState * finalState) const;
 
       /** \brief Force the phase-space decay of the Nucleus.
        *
@@ -138,7 +137,7 @@ namespace genie {
        *
        * \return true if the nucleus was forced to decay.
        */
-      bool decayMe(GHepRecord * event_rec, G4INCL::FinalState * finalState) const ;
+      bool decayMe(G4INCL::FinalState * finalState) const ;
 
 
       int INCLPDG_to_GHEPPDG(int pdg, int A, int Z, int S) const;

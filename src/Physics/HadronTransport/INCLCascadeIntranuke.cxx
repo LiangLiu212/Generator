@@ -87,7 +87,7 @@ using namespace std;
 
 INCLCascadeIntranuke::INCLCascadeIntranuke() :
   EventRecordVisitorI("genie::INCLCascadeIntranuke"),
-  theINCLConfig(0), theINCLModel(0), theDeExcitation(0), minRemnantSize(4),
+  theINCLConfig(0), theINCLModel(0), minRemnantSize(4),
   cascadeAction(std::make_unique<G4INCL::GENIECascadeAction>())
 {
   LOG("INCLCascadeIntranuke", pDEBUG)
@@ -97,7 +97,7 @@ INCLCascadeIntranuke::INCLCascadeIntranuke() :
 //______________________________________________________________________________
 INCLCascadeIntranuke::INCLCascadeIntranuke(string config) :
   EventRecordVisitorI("genie::INCLCascadeIntranuke", config),
-  theINCLConfig(0), theINCLModel(0), theDeExcitation(0), minRemnantSize(4),
+  theINCLConfig(0), theINCLModel(0), minRemnantSize(4),
   cascadeAction(std::make_unique<G4INCL::GENIECascadeAction>())
 {
   LOG("INCLCascadeIntranuke", pDEBUG)
@@ -111,7 +111,6 @@ INCLCascadeIntranuke::~INCLCascadeIntranuke()
   // Config is owned by model once handed over
   if ( theINCLConfig   ) { theINCLConfig=0;   }
   if ( theINCLModel    ) { delete theINCLModel;    theINCLModel=0;    }
-  if ( theDeExcitation ) { delete theDeExcitation; theDeExcitation=0; }
 
 }
 
@@ -251,8 +250,8 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
         }
       default:
         {
+          // FIXME: error message
           exit(1);
-          break;
         }
     }
 
@@ -301,8 +300,6 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
     exit(0);
   }
 
-  double currentTime = 0.0;
-
 
   // TODO: stopping time: 
   // INCL don't have the stopping time for neutrino.
@@ -322,7 +319,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
   //    incl_target->getStore()->getBook().incrementCascading();   // FIXME
   incl_target->getStore()->getBook().incrementAcceptedCollisions();
-  int loopCounter = 0;
+  unsigned long loopCounter = 0;
   const unsigned long maxLoopCounter = 10000000;
   while(loopCounter < maxLoopCounter && continueCascade()){
     // Run book keeping actions that should take place before propagation:
@@ -362,15 +359,15 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
   // put the nuclear remnant in the event record
   LOG("INCLCascadeIntranuke", pDEBUG) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
 
-  this->postCascade(evrec, finalState.get());
+  this->postCascade(finalState.get());
 
 
 
   TObjArrayIter piter(evrec);
-  GHepParticle * p = nullptr;
+  GHepParticle * fsp = nullptr;
   int stable_finalstate = 0;
-  while ( (p = (GHepParticle *) piter.Next() ) ) {
-    if(p->Status() == kIStStableFinalState){
+  while ( (fsp = (GHepParticle *) piter.Next() ) ) {
+    if(fsp->Status() == kIStStableFinalState){
       stable_finalstate++;
     }
   }
@@ -391,14 +388,12 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
 
   // 4 momentum of excited remnant 
-  TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
+  TLorentzVector p4ex(Rem_px, Rem_py, Rem_pz, Rem_E);
 
 
-  int A = incl_target->getA();
-  int Z = incl_target->getZ();
-  int S = incl_target->getS(); // INCL and ABLA support hypernuclei
-  int pdg = genie::pdg::IonPdgCode( A , Z, S, 0 );
-  LOG("INCLCascadeIntranuke", pDEBUG) << "remnant A Z S: " <<  A << " " << Z << " " << S;
+  int pdg = genie::pdg::IonPdgCode( incl_target->getA() ,
+      incl_target->getZ(),
+      incl_target->getS(), 0);
   LOG("INCLCascadeIntranuke", pDEBUG) << "remnant pdg: " <<  pdg;
 
   int PreDeExPDG = pdg;
@@ -408,7 +403,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
   // position of nucleus at origin
   TLorentzVector p4posi(0,0,0,0);
-  evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, rem_mom_id, -1, -1, -1, p4mom, p4posi);
+  evrec->AddParticle(PreDeExPDG, kIStPreDeExNuclearRemnant, rem_mom_id, -1, -1, -1, p4ex, p4posi);
 
 
   // processing the deexcitation
@@ -458,11 +453,10 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
         LOG("INCLCascadeIntranuke", pERROR) << " particle from de-excitation is unphysical for (" << depdg << "), mass = " << mass/1000. << "(" << M <<")"; 
       }
       double E = (EKin + mass) * units::MeV / units::GeV;
-      TLorentzVector p4mom(theEventInfo.px[i] * units::MeV / units::GeV,
+      TLorentzVector p4de(theEventInfo.px[i] * units::MeV / units::GeV,
           theEventInfo.py[i] * units::MeV / units::GeV,
           theEventInfo.pz[i] * units::MeV / units::GeV, 
           E);
-      TLorentzVector p4posi(0,0,0,0);
 
       EGHepStatus ptype;
       if(theEventInfo.A[i] > minRemnantSize){
@@ -470,20 +464,19 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
       } else {
         ptype = kIStStableFinalState;
       }
-      evrec->AddParticle(depdg, ptype, remnant_id, -1, -1, -1, p4mom, p4posi);
+      evrec->AddParticle(depdg, ptype, remnant_id, -1, -1, -1, p4de, TLorentzVector(0,0,0,0));
     }
   }
   else{
-    TLorentzVector p4posi(0,0,0,0);
-    int A = incl_target->getA();
-    int Z = incl_target->getZ();
-    int S = incl_target->getS();
-    int pdg = genie::pdg::IonPdgCode( A , Z, std::abs(S), 0 );
-    TParticlePDG * p = PDGLibrary::Instance()->Find(pdg);
+    int rem_pdg = genie::pdg::IonPdgCode( incl_target->getA(),
+        incl_target->getZ(),
+        std::abs(incl_target->getS()),
+        0 );
+    TParticlePDG * p = PDGLibrary::Instance()->Find(rem_pdg);
     double M = p->Mass();
-    double Rem_E = sqrt(Rem_p2/1000000. + M*M);
-    TLorentzVector p4mom(Rem_px, Rem_py, Rem_pz, Rem_E);
-    evrec->AddParticle(pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4mom, p4posi);
+    Rem_E = sqrt(Rem_p2/1000000. + M*M);
+    TLorentzVector p4rem(Rem_px, Rem_py, Rem_pz, Rem_E);
+    evrec->AddParticle(rem_pdg, kIStFinalStateNuclearRemnant, remnant_id, -1, -1, -1, p4rem, TLorentzVector(0,0,0,0));
   }
 
   // check the baryon number conservation
@@ -547,7 +540,7 @@ bool INCLCascadeIntranuke::continueCascade() const{
 
 }
 
-void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * finalState) const {
+void INCLCascadeIntranuke::postCascade(G4INCL::FinalState * finalState) const {
   // Fill in the event information
   theEventInfo.stoppingTime = propagationModel->getCurrentTime();
 
@@ -567,15 +560,15 @@ void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * 
   // list
   // - However, de-excitation
   // Capture antiKaons and Sigmas and produce Lambda instead
-  theEventInfo.absorbedStrangeParticle = this->decayInsideStrangeParticles(evrec, finalState);
+  theEventInfo.absorbedStrangeParticle = this->decayInsideStrangeParticles(finalState);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
 
   // Emit strange particles still inside the nucleus
-  this->emitInsideStrangeParticles(evrec, finalState);
+  this->emitInsideStrangeParticles(finalState);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-  theEventInfo.emitKaon = this->emitInsideKaon(evrec, finalState);
+  theEventInfo.emitKaon = this->emitInsideKaon(finalState);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-  theEventInfo.emitLambda = this->emitInsideLambda(evrec, finalState);
+  theEventInfo.emitLambda = this->emitInsideLambda(finalState);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
 
   // Check if the nucleus contains deltas
@@ -583,20 +576,20 @@ void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * 
 
   // Take care of any remaining deltas
 
-  if(theEventInfo.deltasInside){
-    G4INCL::ParticleList const &inside = incl_target->getStore()->getOutgoingParticles();
-  }
+  //if(theEventInfo.deltasInside){
+  //  G4INCL::ParticleList const &inside = incl_target->getStore()->getOutgoingParticles();
+  //}
   //theEventInfo.forcedDeltasOutside = incl_target->decayOutgoingDeltas();   //FIXME: leave resonances to pythia
-  theEventInfo.forcedDeltasInside = this->decayInsideDeltas(evrec, finalState);
+  theEventInfo.forcedDeltasInside = this->decayInsideDeltas(finalState);
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
 
   // Take care of any remaining etas, omegas, neutral Sigmas and/or neutral kaons
   double timeThreshold=theConfig->getDecayTimeThreshold();
-  theEventInfo.forcedPionResonancesOutside = this->decayOutgoingPionResonances(timeThreshold, evrec, finalState);  //FIXME: leave resonances to pythia
+  theEventInfo.forcedPionResonancesOutside = this->decayOutgoingPionResonances(timeThreshold, finalState);  //FIXME: leave resonances to pythia
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-  this->decayOutgoingSigmaZero(timeThreshold, evrec, finalState); //FIXME: leave resonances to pythia
+  this->decayOutgoingSigmaZero(timeThreshold, finalState); //FIXME: leave resonances to pythia
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-  this->decayOutgoingNeutralKaon(evrec, finalState); //FIXME: leave resonances to pythia
+  this->decayOutgoingNeutralKaon(finalState); //FIXME: leave resonances to pythia
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
 
   //this->emitInsidePions(evrec, finalState); // FIXME: is it valid?
@@ -649,7 +642,7 @@ void INCLCascadeIntranuke::postCascade(GHepRecord * evrec, G4INCL::FinalState * 
   }
 
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-  theEventInfo.clusterDecay = this->decayOutgoingClusters(evrec, finalState) || this->decayMe(evrec, finalState); 
+  theEventInfo.clusterDecay = this->decayOutgoingClusters(finalState) || this->decayMe(finalState); 
   LOG("INCLCascadeIntranuke", pWARN) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
   incl_target->fillEventInfo(&theEventInfo);
 
