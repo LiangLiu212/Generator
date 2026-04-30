@@ -30,7 +30,7 @@ HitNucleonBindingMode    string  Yes   Method used to handle the binding energy 
     <!-- <param type="string" name="HitNucleonBindingMode"> UseGroundStateRemnant </param> -->
   </param_set>
  
-  <param_set name="CC-T-Default"> 
+  <param_set name="Hybrid"> 
     <param type="double" name="Cache-MinEnergy"> 5.0 </param>
     <param type="alg"    name="NuclearModel"> genie::NucleusGenHybridStruck/Default </param>
     <param type="string" name="HitNucleonBindingMode"> UseNuclearModel </param>

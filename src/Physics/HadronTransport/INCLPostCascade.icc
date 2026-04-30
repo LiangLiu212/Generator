@@ -99,15 +99,14 @@ void INCLCascadeIntranuke::emitInsideStrangeParticles(G4INCL::FinalState * final
       const double theQValueCorrection = theParticle->getEmissionQValueCorrection(incl_target->getA(),incl_target->getZ(),incl_target->getS()); // Does it work for strange particles? should be check
       const double kineticEnergyOutside = theParticle->getKineticEnergy() - theParticle->getPotentialEnergy() + theQValueCorrection;
       theParticle->setTableMass();
-      if(kineticEnergyOutside > 0.0)
+      if(kineticEnergyOutside > 0.0){
         theParticle->setEnergy(theParticle->getMass()+kineticEnergyOutside);
-      else
+      }
+      else{
         theParticle->setEnergy(theParticle->getMass()+tinyEnergy);
+      }
       theParticle->adjustMomentumFromEnergy();
       theParticle->setPotentialEnergy(0.);
-      //      theA -= theParticle->getA();
-      //      theZ -= theParticle->getZ();
-      //      theS -= theParticle->getS();
       incl_target->setA(incl_target->getA() - theParticle->getA());
       incl_target->setZ(incl_target->getZ() - theParticle->getZ());
       incl_target->setS(incl_target->getS() - theParticle->getS());
@@ -222,8 +221,7 @@ int INCLCascadeIntranuke::emitInsideLambda(G4INCL::FinalState *finalState) const
         theLambda->setEnergy(theLambda->getMass()+tinyEnergy);
       theLambda->adjustMomentumFromEnergy();
       theLambda->setPotentialEnergy(0.);
-      //      theA -= theLambda->getA();
-      //      theS -= theLambda->getS();
+
       incl_target->setA(incl_target->getA() - theLambda->getA());
       incl_target->setS(incl_target->getS() - theLambda->getS());
       toEject.push_back(theLambda);

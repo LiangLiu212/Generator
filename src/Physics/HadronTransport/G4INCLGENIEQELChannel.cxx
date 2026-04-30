@@ -29,6 +29,7 @@ namespace G4INCL {
         hitParticle->setMomentum(ip->P3());
         hitParticle->setPosition(ip->X3());
         hitParticle->adjustEnergyFromMomentum();
+        theNucleus->setS(theNucleus->getS() + hitParticle->getS());
       }
     }
     fs->addModifiedParticle(hitParticle);

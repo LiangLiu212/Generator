@@ -358,10 +358,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
   // put the nuclear remnant in the event record
   LOG("INCLCascadeIntranuke", pDEBUG) << "A and Z: " << incl_target->getA() << "  " << incl_target->getZ();
-
   this->postCascade(finalState.get());
-
-
 
   TObjArrayIter piter(evrec);
   GHepParticle * fsp = nullptr;
