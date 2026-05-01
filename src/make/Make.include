@@ -157,13 +157,13 @@ endif
 #                             APFEL
 #-------------------------------------------------------------------
 
-APFEL_LIBRARIES = 
+APFEL_LIBRARIES =
 APFEL_INCLUDES  =
 
-ifeq ($(strip $(GOPT_ENABLE_APFEL)),YES) 
+ifeq ($(strip $(GOPT_ENABLE_APFEL)),YES)
 
 APFEL_INCLUDES  = -I$(GOPT_WITH_APFEL_INC)
-APFEL_LIBRARIES = -L$(GOPT_WITH_APFEL_LIB) -lAPFEL 
+APFEL_LIBRARIES = -L$(GOPT_WITH_APFEL_LIB) -lAPFEL
 
 endif
 
@@ -180,7 +180,7 @@ INCL_INCLUDES  = -I$(GOPT_WITH_INCL_INC) -I$(GOPT_WITH_BOOST_INC)
 INCL_DFLAGS    = $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --dflags )
 INCL_LIBRARIES = -L$(GOPT_WITH_INCL_LIB)  $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --libs )
 
-BOOST_LIBRARIES = -L$(GOPT_WITH_BOOST_LIB) -lboost_program_options -lboost_timer -lboost_system -lboost_date_time
+BOOST_LIBRARIES = -L$(GOPT_WITH_BOOST_LIB) -lboost_program_options -lboost_system -lboost_date_time
 INCL_LIBRARIES := $(BOOST_LIBRARIES) $(FORT_LIBRARIES) $(INCL_LIBRARIES)
 
 endif
@@ -250,7 +250,7 @@ endif
 
 PY6ROOT_LIBRARY = -lEGPythia6
 else
-  $(info GOPT_ENABLE_PYTHIA6 is NO)
+  #$(info GOPT_ENABLE_PYTHIA6 is NO)
 endif
 
 #-------------------------------------------------------------------
