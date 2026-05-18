@@ -9,8 +9,6 @@
    <config alg="genie::HAIntranuke">                     HAIntranuke.xml                     </config>
    <config alg="genie::HAIntranuke2018">                 HAIntranuke2018.xml                 </config>
    <config alg="genie::HNIntranuke2018">                 HNIntranuke2018.xml                 </config>
-   <config alg="genie::HAIntranuke2025">                 HAIntranuke2025.xml                 </config>
-   <config alg="genie::HNIntranuke2025">                 HNIntranuke2025.xml                 </config>
    <config alg="genie::HINCLCascadeIntranuke">           HINCLCascadeIntranuke.xml           </config>
    <config alg="genie::HG4BertCascIntranuke">            HG4BertCascIntranuke.xml            </config>
    <config alg="genie::CascadeReweight">                 CascadeReweight.xml                 </config>
@@ -302,6 +300,19 @@
    <config alg="genie::NormXSec">                            NormXSec.xml                       </config>
    <config alg="genie::NormInteractionListGenerator">        NormInteractionListGenerator.xml   </config>
 
+   <config alg="genie::NucleusGenerator">                    NucleusGenerator.xml                      </config>
+   <config alg="genie::NucleusGenINCL">                      NucleusGenINCL.xml                        </config>
+   <config alg="genie::NucleusGenHybridStruck">              NucleusGenHybridStruck.xml                </config>
+   <config alg="genie::INCLCascadeIntranuke">                INCLCascadeIntranuke.xml                  </config>
+   <config alg="genie::INCLNuclearModel">                    INCLNuclearModel.xml                  </config>
+   <config alg="genie::QELEventGeneratorINCL">               QELEventGeneratorINCL.xml               </config>
+   <config alg="genie::INCLQELXSec">               INCLQELXSec.xml               </config>
+   <config alg="genie::MECGeneratorINCL">               MECGeneratorINCL.xml               </config>
+   <config alg="genie::QELEventGeneratorSuSAINCL">           QELEventGeneratorSuSAINCL.xml           </config>
+   <config alg="genie::UnifiedQELPXSec">                    UnifiedQELPXSec.xml                    </config>
+   <config alg="genie::LwlynSmithFFEM">                          LwlynSmithFFEM.xml                          </config>
+
+
    <!-- ****** CONFIGURATION FOR HELEPTON W DECAY ALGORITHMS ****** -->
    <config alg="genie::GLRESWdecPythia6">         GLRESGenerator.xml          </config>
    <config alg="genie::GLRESWdecPythia8">         GLRESGenerator.xml          </config>
@@ -309,5 +320,6 @@
    <config alg="genie::PhotonCOHWdecPythia8">     PhotonCOHGenerator.xml      </config>
    <config alg="genie::PhotonRESWdecPythia6">     PhotonRESGenerator.xml      </config>
    <config alg="genie::PhotonRESWdecPythia8">     PhotonRESGenerator.xml      </config>
+
 
 </genie_config>
