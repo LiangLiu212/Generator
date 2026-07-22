@@ -33,6 +33,13 @@ ZExpELFF@CovarianceMatrix     mat-double  Yes        covariance matrix        GP
     <param type="double" name="QEL-T0">     -0.21   </param>
     <param type="double" name="QEL-Tcut">    0.0779198 </param> <!-- 4*m_pi^2 -->
 
+    <!-- form factor normalizations at Q^2 = 0 (required by LoadConfig; values
+         per the model comments: Gep(0)=1, Gmp(0)=mu_p, Gen(0)=0, Gmn(0)=mu_n) -->
+    <param type="double" name="QEL-Gep0">    1.0     </param>
+    <param type="double" name="QEL-Gmp0">    2.7928  </param>
+    <param type="double" name="QEL-Gen0">    0.0     </param>
+    <param type="double" name="QEL-Gmn0">   -1.9130  </param>
+
     <param type="vec-double" name="QEL-Z_AP" delim=";"> -1.485958065859; -0.096104515639; 1.823367310007; 1.287051328146      </param>
     <param type="vec-double" name="QEL-Z_BP" delim=";"> -4.087902402976; 0.175515803136; 4.861856163076; -0.982798179847       </param>
     <param type="vec-double" name="QEL-Z_AN" delim=";"> 0.084252682465; -0.278572218873; -0.153916309312; 0.353999966588     </param>

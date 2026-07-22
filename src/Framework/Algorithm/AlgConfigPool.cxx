@@ -530,7 +530,13 @@ int  AlgConfigPool::AddParameterMatrix  (Registry * r, string pt, string pn, str
     int i_col = 0;
     while (iss >> value) {
       std::string name = Algorithm::BuildParamMatKey( pn, i_row, i_col ) ;
-      this -> AddConfigParameter( r, pt, name, utils::str::TrimSpaces( std::to_string(value) ) );
+      // full-precision formatting: std::to_string uses fixed 6 decimal places,
+      // which quantizes small covariance elements (e.g. 9.3732378e-05 -> 0.000094)
+      // and can flip a near-singular positive-definite matrix indefinite
+      // (ELZExpFF.dat: lambda_min +6.5e-08 -> -2.6e-07 after quantization).
+      std::ostringstream val_ss;
+      val_ss << std::setprecision(17) << value;
+      this -> AddConfigParameter( r, pt, name, utils::str::TrimSpaces( val_ss.str() ) );
       i_col++;
     }
     if(i_row == 0)
