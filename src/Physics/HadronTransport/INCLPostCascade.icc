@@ -402,9 +402,7 @@ bool INCLCascadeIntranuke::decayOutgoingClusters(G4INCL::FinalState * finalState
 
 bool INCLCascadeIntranuke::decayMe(G4INCL::FinalState * finalState) const {
   // Phase-space decay of the target remnant when it has Z=0 or N=0 (same criterion as
-  // G4INCL::Nucleus::decayMe). ClusterDecay::decay() mutates the remnant IN PLACE: it becomes
-  // its last nucleon (A=1, type Proton/Neutron/Lambda, real mass, on-shell lab momentum, E*=0)
-  // and only the other N-1 nucleons come back as new particles.
+  // G4INCL::Nucleus::decayMe).  
   if(incl_target->getA()<=1 || (incl_target->getZ()!=0 && (incl_target->getA()+incl_target->getS())!=incl_target->getZ()))
     return false;
 
