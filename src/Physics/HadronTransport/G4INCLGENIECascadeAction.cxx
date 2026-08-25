@@ -49,7 +49,7 @@ namespace G4INCL {
     eventRecord.clear();
     tempFinalState.clear();
     stepFinalState.clear();
-    backup_mother.clear();   // no target-remnant snapshot may cross an event boundary
+    backup_mother.clear();
 
     const ProcessInfo & proc_info = evrec->Summary()->ProcInfo();
     // convert ghep event record to INCL Style.
@@ -382,20 +382,13 @@ namespace G4INCL {
         }
       }
       else if(avaType == G4INCL::DecayAvatarType){
-        // The mother is NOT in the event-record history. The legitimate case is decayMe(): the
-        // target remnant itself (never a cascade particle, hence never in tempFinalState) was
-        // phase-space decayed, and decayMe() snapshotted it via snapshotTargetRemnant() BEFORE
-        // ClusterDecay::decay() turned it into its last nucleon. The snapshot is applied only to
-        // that remnant (matched by INCL ID). Any other decay whose mother was never registered
-        // (e.g. an outgoing cluster whose emission was not recorded) must not kill the job: its
-        // products are attached to the intermediate remnant nucleus (GHEP index 3, the convention
-        // used for the pre-de-excitation remnant) and enough is logged to find the root cause.
+        // decay of the target remnant from decayMe(): one mother and one snapshot per event.
         const int motherID = mother_list.empty() ? -1 : (*mother_list.begin())->getID();
         const INCLRecord * snap = nullptr;
-        for(auto imom = backup_mother.begin(); imom != backup_mother.end(); ++imom){
-          if(imom->fsType == kComposite && imom->theType == G4INCL::Composite && imom->global_index == motherID){
-            snap = &(*imom);
-            break;
+        if(mother_list.size() == 1 && backup_mother.size() == 1){
+          const INCLRecord & cand = backup_mother.front();
+          if(cand.fsType == kComposite && cand.theType == G4INCL::Composite && cand.global_index == motherID){
+            snap = &cand;
           }
         }
         if(snap){
