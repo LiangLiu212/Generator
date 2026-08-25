@@ -18,9 +18,10 @@ tune id `INCL26_07a_00_000`.
    (`DeltaTransp-Enable` = true). Requires the INCL data environment from the
    `genie_inclxx` installation's `setup_env.sh`.
  - Pion-production parameters inherited from AR23_20i (originally G18_10a_02_11b).
- - **GENIE nuclear de-excitation photons OFF** (`NucDeExcitationSim`: `DoCarbon` = `DoArgon` = false,
-   changed 2026-08-24; AR23_20i has both true — previous file kept as `NucDeExcitationSim.xml.bak-deex-on`).
-   Nuclear de-excitation after the cascade is left entirely to INCL's ABLAXX.
+ - **GENIE nuclear de-excitation photons OFF** — `genie::NucDeExcitationSim` is removed from every
+   event-generation thread and its config file dropped from the tune (2026-08-25; on 2026-08-24 it was
+   first disabled via `DoCarbon` = `DoArgon` = false, but stock GENIE always de-excites O16, so removal
+   is the complete fix). Nuclear de-excitation after the cascade is left entirely to INCL's ABLAXX.
 
 ## Files changed relative to AR23_20i
 
@@ -44,7 +45,9 @@ tune id `INCL26_07a_00_000`.
    dangling hit-nucleon pointer) — ~7.5e-4 per rockbox spill.
  - `TuneGeneratorList.xml` — dropped the two charm threads (`DIS-CC-CHARM`,
    `QEL-CC-CHARM`); `NGenerators` 18 -> 16, generators renumbered contiguously.
- - `NucDeExcitationSim.xml` — `DoCarbon`/`DoArgon` set to false (2026-08-24).
+ - `NucDeExcitationSim.xml` — removed from the tune (2026-08-25), together with all
+   `genie::NucDeExcitationSim/Default` modules in `EventGenerator.xml` (NModules decremented,
+   modules renumbered).
  - `CommonParam.xml`, `MECInteractionListGenerator.xml` — inherited from AR23_20i, unchanged.
 
 ## Naming note
