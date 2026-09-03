@@ -7,6 +7,7 @@
 #include "G4INCLGENIEDISChannel.h"
 #include "G4INCLGENIERESChannel.h"
 #include "G4INCLPauliBlocking.hh"
+#include "Physics/NuclearState/INCLNucleus.h"
 #include <sstream>
 #include <string>
 #include <cassert>
@@ -20,6 +21,7 @@ namespace G4INCL {
     genie_evtrec(eventRecord), fHybridModel(ishybrid)
   {
     delta_Z = 0;
+    fVertexLocalEnergy = genie::INCLNucleus::Instance()->useVertexLocalEnergy();
   }
 
 
@@ -30,6 +32,7 @@ namespace G4INCL {
   {
     delta_Z = 0;
     fHybridModel = false;
+    fVertexLocalEnergy = genie::INCLNucleus::Instance()->useVertexLocalEnergy();
   }
 
   GENIEAvatar::~GENIEAvatar() {
@@ -81,10 +84,14 @@ namespace G4INCL {
         }
         index++;
       }
-      oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy();
+      // energy balance with the SAME struck nucleon the interaction used:
+      // E - V, minus the local energy when the vertex applies it (then the
+      // energy-conservation functor finds alpha = 1 -- no rescaling)
+      const double locE1 = fVertexLocalEnergy ? KinematicsUtils::getLocalEnergy(theNucleus, particle1) : 0.;
+      oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy() - locE1;
 
       // transfrom the target nucleon to local energy frame
-      KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);
+      if(fVertexLocalEnergy) KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);
 
       // make boost vector
       boostVector = (leptonInitialMom + particle1->getMomentum())/(lepton_initial_energy + particle1->getEnergy());
@@ -117,7 +124,7 @@ namespace G4INCL {
       double local_energy = lepton_initial_energy;
       for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
         oldTotalEnergy += (*i)->getEnergy() - (*i)->getPotentialEnergy();
-        KinematicsUtils::transformToLocalEnergyFrame(theNucleus, (*i));
+        if(fVertexLocalEnergy) KinematicsUtils::transformToLocalEnergyFrame(theNucleus, (*i));
         local_mom += (*i)->getMomentum();
         local_energy += (*i)->getEnergy();
       }
@@ -452,7 +459,7 @@ namespace G4INCL {
   bool GENIEAvatar::enforceEnergyConservation(FinalState * const fs){
     (void) fs;
     // Set up the violationE calculation
-    violationEFunctor = new ViolationLeptonEMomentumFunctor(theNucleus, modifiedAndCreated, leptonE, leptonMom, boostVector, oldTotalEnergy, true);
+    violationEFunctor = new ViolationLeptonEMomentumFunctor(theNucleus, modifiedAndCreated, leptonE, leptonMom, boostVector, oldTotalEnergy, fVertexLocalEnergy);
     const RootFinder::Solution theSolution = RootFinder::solve(violationEFunctor, 1.0);
     if(theSolution.success) { // Apply the solution
       (*violationEFunctor)(theSolution.x);

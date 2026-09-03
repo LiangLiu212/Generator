@@ -52,13 +52,13 @@ using namespace genie::utils;
 QELEventGeneratorINCL::QELEventGeneratorINCL() :
     KineGeneratorWithCache("genie::QELEventGeneratorINCL")
 {
-
+  fEb = 0.;
 }
 //___________________________________________________________________________
 QELEventGeneratorINCL::QELEventGeneratorINCL(string config) :
     KineGeneratorWithCache("genie::QELEventGeneratorINCL", config)
 {
-
+  fEb = 0.;
 }
 //___________________________________________________________________________
 QELEventGeneratorINCL::~QELEventGeneratorINCL()
@@ -283,7 +283,8 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
             LOG("QELEvent",pNOTICE) << "pn: " << p4ptr.X() << ", "
               << p4ptr.Y() << ", " << p4ptr.Z() << ", " << p4ptr.E();
             nucleon->SetMomentum(p4ptr);
-            nucleon->SetRemovalEnergy(fEb);
+            // E_m analogue of the accepted struck nucleon: m - E_i (INCL: V - T_loc-frame)
+            nucleon->SetRemovalEnergy(nucleon->Mass() - p4ptr.E());
 
             // add a recoiled nucleus remnant
             this->AddTargetNucleusRemnant(evrec);

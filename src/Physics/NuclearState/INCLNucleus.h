@@ -27,6 +27,7 @@
 
 // ROOT
 #include "TVector3.h"
+#include "TLorentzVector.h"
 
 
 // INCL++
@@ -65,6 +66,13 @@ namespace genie {
       TVector3 getHitNucleonPosition();
       TVector3 getHitNucleonMomentum();
       double   getHitNucleonEnergy();
+      // struck-nucleon 4-vector handed to the interaction [MeV]: momentum in the
+      // local-energy frame (when local energy is on), energy = E_loc - V (INCL
+      // potential depth) -- off-shell like GENIE's other bound nucleons
+      TLorentzVector getHitNucleonP4();
+      // local energy of the struck nucleon, or 0 when local-energy-BB = never
+      double vertexLocE();
+      bool useVertexLocalEnergy() const { return useVertexLocE_; }
       double   getHitNucleonMass();
       double   getMass();
       double   getRemovalEnergy();
@@ -160,6 +168,7 @@ namespace genie {
 
       G4INCL::LocalEnergyType localEnergyTypeBB_;
       G4INCL::LocalEnergyType localEnergyTypePi_;
+      bool useVertexLocE_ = true;   // vertex honours local-energy-BB (never -> off)
       std::string clusterAlgorithmString_;
       G4INCL::ClusterAlgorithmType clusterAlgorithmType_;
 

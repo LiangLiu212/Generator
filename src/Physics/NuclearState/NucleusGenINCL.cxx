@@ -137,7 +137,8 @@ void NucleusGenINCL::GenerateCluster(GHepRecord * evrec) const{
   double cluster_energy = 0;
   G4INCL::ParticleList particles = incl_cluster->getParticleList();
   for(G4INCL::ParticleIter i=particles.begin(), e=particles.end(); i!=e; ++i) {
-    double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus, (*i));
+    double localEnergy = incl_nucleus->useVertexLocalEnergy()
+                         ? G4INCL::KinematicsUtils::getLocalEnergy(nucleus, (*i)) : 0.;
     double oldEnergy = (*i)->getEnergy();
     (*i)->setEnergy(oldEnergy - localEnergy);
     (*i)->adjustMomentumFromEnergy();
@@ -249,18 +250,15 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
 
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
-  TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
-  double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
-  // double   w  = incl_nucleus->getRemovalEnergy();
-  //-- update the struck nucleon 4p at the interaction summary and at
-  // the GHEP record
-  p4->SetPx(p3.Px()/1000.);
-  p4->SetPy(p3.Py()/1000.);
-  p4->SetPz(p3.Pz()/1000.);
-  p4->SetE ((hit_nucleon_energy)/1000.);
+  //-- the struck nucleon handed to the interaction and the GHEP record [MeV -> GeV]
+  const TLorentzVector p4hit = incl_nucleus->getHitNucleonP4();
+  p4->SetPx(p4hit.Px()/1000.);
+  p4->SetPy(p4hit.Py()/1000.);
+  p4->SetPz(p4hit.Pz()/1000.);
+  p4->SetE (p4hit.E() /1000.);
 
   nucleon->SetMomentum(*p4);  // update GHEP value
-  nucleon->SetRemovalEnergy(0);  // FIXME this may be not necessary
+  nucleon->SetRemovalEnergy(incl_nucleus->getRemovalEnergy()/1000.);
 
 
   // Sometimes, for interactions near threshold, Fermi momentum might bring
@@ -371,12 +369,11 @@ void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvG
   INCLNucleus *incl_nucleus = INCLNucleus::Instance();
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
-  TVector3 p3 = incl_nucleus->getHitNucleonMomentum();
-  double   hit_nucleon_energy = incl_nucleus->getHitNucleonEnergy();
   // Update the initial nucleon lab-frame 4-momentum in the interaction with
-  // its current components
-  p4Ni->SetVect(TVector3(p3.X()/1000., p3.Y()/1000., p3.Z()/1000.));
-  p4Ni->SetE(hit_nucleon_energy/1000.);
+  // the (local-frame, potential-bound) struck nucleon [MeV -> GeV]
+  const TLorentzVector p4hit = incl_nucleus->getHitNucleonP4();
+  p4Ni->SetVect(TVector3(p4hit.Px()/1000., p4hit.Py()/1000., p4hit.Pz()/1000.));
+  p4Ni->SetE(p4hit.E()/1000.);
 
 }
 //___________________________________________________________________________
@@ -536,7 +533,7 @@ void NucleusGenINCL::LoadConfig(void)
     localEnergyTypeBB = G4INCL::FirstCollisionLocalEnergy;
   }
   else if(!localEnergyStringBB.compare("never")){
-    localEnergyTypeBB = G4INCL::FirstCollisionLocalEnergy;
+    localEnergyTypeBB = G4INCL::NeverLocalEnergy;
   }
 
   // Local Energy type pi
@@ -551,7 +548,7 @@ void NucleusGenINCL::LoadConfig(void)
     localEnergyTypepi = G4INCL::FirstCollisionLocalEnergy;
   }
   else if(!localEnergyStringpi.compare("never")){
-    localEnergyTypepi = G4INCL::FirstCollisionLocalEnergy;
+    localEnergyTypepi = G4INCL::NeverLocalEnergy;
   }
 
   double hadronizationTime = 0.0;

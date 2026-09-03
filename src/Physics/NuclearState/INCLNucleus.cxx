@@ -171,6 +171,8 @@ void INCLNucleus::configure(){
   theConfig_->setPauliString(pauliString_);
   theConfig_->setLocalEnergyBBType(localEnergyTypeBB_);
   theConfig_->setLocalEnergyPiType(localEnergyTypePi_);
+  // the QE vertex is the first collision: local energy is on unless "never"
+  useVertexLocE_ = (localEnergyTypeBB_ != G4INCL::NeverLocalEnergy);
   theConfig_->setHadronizationTime(hadronizationTime_);
   theConfig_->setClusterAlgorithm(clusterAlgorithmType_);
   theConfig_->setClusterAlgorithmString(clusterAlgorithmString_);
@@ -179,8 +181,6 @@ void INCLNucleus::configure(){
 
   // TODO:  finish the configuration options
   //theConfig_->setRPCorrelationCoefficient(1.0); // Using r-p correlation without fuzzy
-  //theConfig_->setLocalEnergyBBType(G4INCL::NeverLocalEnergy);
-  //theConfig_->setLocalEnergyPiType(G4INCL::NeverLocalEnergy);
 
   // initialize INCL model
   G4INCL::Random::initialize(theConfig_);
@@ -312,27 +312,33 @@ TVector3 INCLNucleus::getHitNucleonPosition(){
   return v3;
 }
 
+double INCLNucleus::vertexLocE(){
+  if(!useVertexLocE_) return 0.;
+  return G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+}
+
+TLorentzVector INCLNucleus::getHitNucleonP4(){
+  // One initial nucleon for the cross section, the lepton kinematics and the
+  // record (no mutation of the INCL particle):
+  //   E_loc = E - v_loc           (local-energy frame; v_loc = 0 when "never")
+  //   p_i   = sqrt(E_loc^2 - m^2) * p_hat
+  //   E_i   = E_loc - V           (INCL potential depth, T_F + S = 45 MeV for C12)
+  const double m    = hitNucleon_->getMass();
+  const double E    = hitNucleon_->getEnergy();
+  const double Eloc = std::max(E - this->vertexLocE(), m);
+  const double pred = std::sqrt(std::max(Eloc*Eloc - m*m, 0.));
+  const G4INCL::ThreeVector p = hitNucleon_->getMomentum();
+  const double pmag = p.mag();
+  const G4INCL::ThreeVector pi = (pmag > 0.) ? p * (pred/pmag) : p;
+  const double Ei = Eloc - hitNucleon_->getPotentialEnergy();
+  return TLorentzVector(pi.getX(), pi.getY(), pi.getZ(), Ei);
+}
+
 TVector3 INCLNucleus::getHitNucleonMomentum(){
-  // INCL initial state;
-  // we need to subtract the local energy from INCL nucleon before interaction
-  double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
-  double oldEnergy = hitNucleon_->getEnergy();
-  // subtract the local energy
-  hitNucleon_->setEnergy(oldEnergy - localEnergy);
-  hitNucleon_->adjustMomentumFromEnergy();
-  TVector3 p3(999999.,999999.,999999.);
-  p3.SetXYZ(hitNucleon_->getMomentum().getX(),
-      hitNucleon_->getMomentum().getY(),
-      hitNucleon_->getMomentum().getZ());
-  // put it back to old energy
-  hitNucleon_->setEnergy(oldEnergy);
-  hitNucleon_->adjustMomentumFromEnergy();
-  return p3;
+  return this->getHitNucleonP4().Vect();
 }
 double INCLNucleus::getHitNucleonEnergy(){
-  double localEnergy = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
-  double oldEnergy = hitNucleon_->getEnergy();
-  return (oldEnergy - localEnergy);
+  return this->getHitNucleonP4().E();
 }
 
 double INCLNucleus::getHitNucleonMass(){
@@ -360,18 +366,9 @@ G4INCL::StandardPropagationModel * INCLNucleus::getPropagationModel(){
 }
 
 double INCLNucleus::getRemovalEnergy(){
-  // FIXME: need to find the correct way for removal energy
-  //   double removal_energy = 0;
-  //   double nucleon_mass = hitNucleon_->getRealMass();
-  //   double mag = hitNucleon_->getMomentum().mag();
-  //   removal_energy = TMath::Sqrt(mag*mag + nucleon_mass*nucleon_mass) - hitNucleon_->getEnergy();
-  // return removal_energy;
-  //return hitNucleon_->getPotentialEnergy();
-  //return nucleus_->getPotential()->getSeparationEnergy(hitNucleon_->getType());
-  // FIXME: removal = potential - qvalue
-  double removal = hitNucleon_->getPotentialEnergy() - hitNucleon_->getEmissionQValueCorrection(nucleus_->getA(),nucleus_->getZ(),nucleus_->getS());
-  return removal;
-
+  // the E_m analogue of the struck nucleon handed to the interaction:
+  // m - E_i = V - T_loc-frame kinetic energy  (in [S, V] = [6.8, 45] MeV for C12)
+  return hitNucleon_->getMass() - this->getHitNucleonP4().E();
 }
 
 void INCLNucleus::initUniverseRadius(const int A, const int Z){
@@ -476,8 +473,8 @@ G4INCL::Particle * INCLNucleus::getNucleon(const int pdg){
 bool INCLNucleus::isRPValid(double r, double p){
   (void)r;
   double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
-  // local energy
-  double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
+  // local energy (0 when local-energy-BB = never)
+  double locE = this->vertexLocE();
 
   double theFermiEnergy = std::sqrt(theFermiMomentum*theFermiMomentum + hitNucleon_->getMass()*hitNucleon_->getMass());
   double MaxMomAtR = std::sqrt((theFermiEnergy - locE) *  (theFermiEnergy - locE) - hitNucleon_->getMass()*hitNucleon_->getMass());
@@ -512,9 +509,11 @@ TVector3 INCLNucleus::ResamplingVertex(const int pdg){
 }
 
 void INCLNucleus::ResamplingHitNucleon(){
-  // local energy
-  double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
-
+  // Redraw the struck nucleon's momentum uniformly in the global p_F ball at
+  // its sampled radius. With local energy on, accept only KE > T_loc(r)
+  // evaluated on the RESAMPLED state (strict p_min(r) floor, and it guarantees
+  // E - T_loc >= m for getHitNucleonP4). With local-energy-BB = never the ball
+  // is accepted as is.
   int iteration_count = 0;
   const double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
   while(true){
@@ -523,8 +522,10 @@ void INCLNucleus::ResamplingHitNucleon(){
     hitNucleon_->setMomentum(momentumVector);
     hitNucleon_->setUncorrelatedMomentum(momentumAbs);
     hitNucleon_->adjustEnergyFromMomentum();
-    double KE = hitNucleon_->getEnergy() - hitNucleon_->getMass();
     iteration_count++;
+    if(!useVertexLocE_) break;
+    const double KE   = hitNucleon_->getEnergy() - hitNucleon_->getMass();
+    const double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
     if(KE > locE){
       break;
     }
@@ -533,6 +534,7 @@ void INCLNucleus::ResamplingHitNucleon(){
       exit(1);
     }
   }
+  nucleus_->updatePotentialEnergy(hitNucleon_);
 }
 /*
 void INCLNucleus::setHitParticle(const int pdg, TVector3 &posi){

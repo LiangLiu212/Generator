@@ -47,6 +47,7 @@ namespace G4INCL {
       Nucleus  *theNucleus;
       Cluster  *cluster;
       std::vector<GENIEParticleRecord> *genie_evtrec;
+      bool fVertexLocalEnergy;   // INCLNucleus::useVertexLocalEnergy() (local-energy-BB != never)
       ThreeVector boostVector;
       ThreeVector leptonMom;
       double leptonE;

@@ -101,11 +101,17 @@ namespace G4INCL {
     auto evr = eventRecord.begin();
     int idx =0;
     while ( (p = (GHepParticle *) piter.Next() ) ) {
-      TLorentzVector *p4 = p->P4();
-      p4->SetPx(evr->P3().getX() * MeV / GeV);
-      p4->SetPy(evr->P3().getY() * MeV / GeV);
-      p4->SetPz(evr->P3().getZ() * MeV / GeV);
-      p4->SetE(std::sqrt(evr->P3().mag2() + evr->Mass()*evr->Mass()) * MeV / GeV);
+      // keep the initial-state nucleon as the QEL generator wrote it (the
+      // off-shell struck nucleon the kinematics conserved); INCL never
+      // modifies it, and the on-shell rewrite would replace it by the raw
+      // INCL ball nucleon
+      if(p->Status() != genie::kIStNucleonTarget){
+        TLorentzVector *p4 = p->P4();
+        p4->SetPx(evr->P3().getX() * MeV / GeV);
+        p4->SetPy(evr->P3().getY() * MeV / GeV);
+        p4->SetPz(evr->P3().getZ() * MeV / GeV);
+        p4->SetE(std::sqrt(evr->P3().mag2() + evr->Mass()*evr->Mass()) * MeV / GeV);
+      }
       tempFinalState.emplace_back(evr->ID(), evr->Pdg(), evr->FirstMother(), idx++, kUnknownType);
       evr++;
     }
