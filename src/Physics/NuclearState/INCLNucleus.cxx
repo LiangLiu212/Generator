@@ -510,10 +510,12 @@ TVector3 INCLNucleus::ResamplingVertex(const int pdg){
 
 void INCLNucleus::ResamplingHitNucleon(){
   // Redraw the struck nucleon's momentum uniformly in the global p_F ball at
-  // its sampled radius. With local energy on, accept only KE > T_loc(r)
-  // evaluated on the RESAMPLED state (strict p_min(r) floor, and it guarantees
-  // E - T_loc >= m for getHitNucleonP4). With local-energy-BB = never the ball
-  // is accepted as is.
+  // its sampled radius and accept only KE > T_loc(r), evaluated on the
+  // RESAMPLED state (strict p_min(r) floor; it also guarantees E - T_loc >= m
+  // for getHitNucleonP4). The acceptance cut is applied in EVERY local-energy
+  // mode, as the pre-2026-09-03 vertex did: with local-energy-BB = never only
+  // the local-energy transform of the accepted momentum is switched off
+  // (vertexLocE() returns 0), not the Pauli-like p_min(r) floor (2026-09-04).
   int iteration_count = 0;
   const double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
   while(true){
@@ -523,7 +525,6 @@ void INCLNucleus::ResamplingHitNucleon(){
     hitNucleon_->setUncorrelatedMomentum(momentumAbs);
     hitNucleon_->adjustEnergyFromMomentum();
     iteration_count++;
-    if(!useVertexLocE_) break;
     const double KE   = hitNucleon_->getEnergy() - hitNucleon_->getMass();
     const double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
     if(KE > locE){
