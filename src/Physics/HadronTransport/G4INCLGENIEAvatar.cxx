@@ -84,11 +84,11 @@ namespace G4INCL {
         }
         index++;
       }
-      // energy balance with the SAME struck nucleon the interaction used:
-      // E - V, minus the local energy when the vertex applies it (then the
-      // energy-conservation functor finds alpha = 1 -- no rescaling)
-      const double locE1 = fVertexLocalEnergy ? KinematicsUtils::getLocalEnergy(theNucleus, particle1) : 0.;
-      oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy() - locE1;
+      // energy balance as in INCL's InteractionAvatar: E - V of the global
+      // struck nucleon, with no local-energy term. The local frame (below)
+      // only computes the scattering; the energy-conservation functor then
+      // rescales the products to this total.
+      oldTotalEnergy = lepton_initial_energy + particle1->getEnergy() - particle1->getPotentialEnergy();
 
       // transfrom the target nucleon to local energy frame
       if(fVertexLocalEnergy) KinematicsUtils::transformToLocalEnergyFrame(theNucleus, particle1);

@@ -250,15 +250,15 @@ void NucleusGenINCL::setInitialStateMomentum(GHepRecord * evrec) const{
 
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
-  //-- the struck nucleon handed to the interaction and the GHEP record [MeV -> GeV]
+  //-- the scattering nucleon (INCL local-energy frame) -> interaction [MeV -> GeV]
   const TLorentzVector p4hit = incl_nucleus->getHitNucleonP4();
   p4->SetPx(p4hit.Px()/1000.);
   p4->SetPy(p4hit.Py()/1000.);
   p4->SetPz(p4hit.Pz()/1000.);
   p4->SetE (p4hit.E() /1000.);
 
-  nucleon->SetMomentum(*p4);  // update GHEP value
-  nucleon->SetRemovalEnergy(incl_nucleus->getRemovalEnergy()/1000.);
+  //-- the record nucleon (global, E - V) -> GHEP
+  this->SetRecordHitNucleon(evrec, *interaction);
 
 
   // Sometimes, for interactions near threshold, Fermi momentum might bring
@@ -370,11 +370,25 @@ void NucleusGenINCL::BindHitNucleon(Interaction& interaction, double& Eb, QELEvG
   // get a random nucleon with respect to the isospin of evrec->HitNucleon();
   // the removal energy maybe not necessary
   // Update the initial nucleon lab-frame 4-momentum in the interaction with
-  // the (local-frame, potential-bound) struck nucleon [MeV -> GeV]
+  // the struck nucleon in INCL's local-energy frame [MeV -> GeV]; the record
+  // nucleon (global, E - V) is written separately by SetRecordHitNucleon
   const TLorentzVector p4hit = incl_nucleus->getHitNucleonP4();
   p4Ni->SetVect(TVector3(p4hit.Px()/1000., p4hit.Py()/1000., p4hit.Pz()/1000.));
   p4Ni->SetE(p4hit.E()/1000.);
 
+}
+//___________________________________________________________________________
+void NucleusGenINCL::SetRecordHitNucleon(GHepRecord * evrec, const Interaction & interaction) const {
+  // the record holds INCL's global struck nucleon with its energy outside the
+  // well (E - V), the quantity the cascade's energy balance conserves; the
+  // interaction's HitNucP4 (local-energy frame) only computed the scattering
+  (void)interaction;
+  GHepParticle * nucleon = evrec->HitNucleon();
+  if(!nucleon) return;
+  INCLNucleus *incl_nucleus = INCLNucleus::Instance();
+  const TLorentzVector p4rec = incl_nucleus->getHitNucleonRecordP4();  // MeV
+  nucleon->SetMomentum(TLorentzVector(p4rec.Px()/1000., p4rec.Py()/1000., p4rec.Pz()/1000., p4rec.E()/1000.));
+  nucleon->SetRemovalEnergy(incl_nucleus->getRemovalEnergy()/1000.);
 }
 //___________________________________________________________________________
 

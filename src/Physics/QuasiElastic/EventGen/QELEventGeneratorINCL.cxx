@@ -278,13 +278,17 @@ void QELEventGeneratorINCL::ProcessEventRecord(GHepRecord * evrec) const
             evrec->AddParticle(interaction->RecoilNucleonPdg(), ist, evrec->HitNucleonPosition(),
               -1, -1, -1, interaction->KinePtr()->HadSystP4(), x4l);
 
-            // Store struck nucleon momentum and binding energy
+            // Store the struck nucleon (momentum + removal energy) in the
+            // record. The nucleus generator decides what is recorded: for
+            // INCL the scattering above used the local-energy-frame nucleon
+            // in HitNucP4, while the record holds the global nucleon with E - V
             TLorentzVector p4ptr = interaction->InitStatePtr()->TgtPtr()->HitNucP4();
-            LOG("QELEvent",pNOTICE) << "pn: " << p4ptr.X() << ", "
+            LOG("QELEvent",pNOTICE) << "pn (scattering): " << p4ptr.X() << ", "
               << p4ptr.Y() << ", " << p4ptr.Z() << ", " << p4ptr.E();
-            nucleon->SetMomentum(p4ptr);
-            // E_m analogue of the accepted struck nucleon: m - E_i (INCL: V - T_loc-frame)
-            nucleon->SetRemovalEnergy(nucleon->Mass() - p4ptr.E());
+            fNucleusGen->SetRecordHitNucleon(evrec, *interaction);
+            LOG("QELEvent",pNOTICE) << "pn (record): " << nucleon->Px() << ", "
+              << nucleon->Py() << ", " << nucleon->Pz() << ", " << nucleon->E()
+              << "  removal energy " << nucleon->RemovalEnergy();
 
             // add a recoiled nucleus remnant
             this->AddTargetNucleusRemnant(evrec);

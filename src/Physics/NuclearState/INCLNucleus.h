@@ -66,10 +66,14 @@ namespace genie {
       TVector3 getHitNucleonPosition();
       TVector3 getHitNucleonMomentum();
       double   getHitNucleonEnergy();
-      // struck-nucleon 4-vector handed to the interaction [MeV]: momentum in the
-      // local-energy frame (when local energy is on), energy = E_loc - V (INCL
-      // potential depth) -- off-shell like GENIE's other bound nucleons
+      // struck nucleon the scattering is computed with [MeV]: INCL's
+      // local-energy frame (E - v_loc, momentum rescaled on-shell) when local
+      // energy is on, the nucleon as it is in the nucleus otherwise
       TLorentzVector getHitNucleonP4();
+      // struck nucleon written to the event record [MeV]: INCL's global
+      // nucleon (ball momentum) with its energy outside the well, E - V --
+      // the quantity the cascade's energy balance conserves
+      TLorentzVector getHitNucleonRecordP4();
       // local energy of the struck nucleon, or 0 when local-energy-BB = never
       double vertexLocE();
       bool useVertexLocalEnergy() const { return useVertexLocE_; }

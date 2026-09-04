@@ -322,11 +322,16 @@ double INCLNucleus::vertexLocE(){
 }
 
 TLorentzVector INCLNucleus::getHitNucleonP4(){
-  // One initial nucleon for the cross section, the lepton kinematics and the
-  // record (no mutation of the INCL particle):
-  //   E_loc = E - v_loc           (local-energy frame; v_loc = 0 when "never")
-  //   p_i   = sqrt(E_loc^2 - m^2) * p_hat
-  //   E_i   = E_loc - V           (INCL potential depth, T_F + S = 45 MeV for C12)
+  // The struck nucleon the scattering (cross section + lepton/nucleon
+  // kinematics) is computed with -- INCL's local-energy frame, as
+  // KinematicsUtils::transformToLocalEnergyFrame but without mutating the
+  // INCL particle:
+  //   E_loc = E - v_loc           (v_loc = 0 when local-energy-BB = never)
+  //   p_i   = sqrt(E_loc^2 - m^2) * p_hat    (on-shell)
+  // The potential is NOT subtracted here: as in INCL's InteractionAvatar the
+  // collision runs in the local frame while energy conservation, E - V of the
+  // global nucleon, is enforced afterwards (G4INCLGENIEAvatar rescales the
+  // products). The record carries getHitNucleonRecordP4().
   const double m    = hitNucleon_->getMass();
   const double E    = hitNucleon_->getEnergy();
   const double Eloc = std::max(E - this->vertexLocE(), m);
@@ -334,8 +339,16 @@ TLorentzVector INCLNucleus::getHitNucleonP4(){
   const G4INCL::ThreeVector p = hitNucleon_->getMomentum();
   const double pmag = p.mag();
   const G4INCL::ThreeVector pi = (pmag > 0.) ? p * (pred/pmag) : p;
-  const double Ei = Eloc - hitNucleon_->getPotentialEnergy();
-  return TLorentzVector(pi.getX(), pi.getY(), pi.getZ(), Ei);
+  return TLorentzVector(pi.getX(), pi.getY(), pi.getZ(), Eloc);
+}
+TLorentzVector INCLNucleus::getHitNucleonRecordP4(){
+  // The struck nucleon written to the event record: INCL's global nucleon
+  // (the resampled ball momentum) with its energy outside the well, E - V --
+  // the quantity the cascade conserves, so m - E_i = V - T_ball is the
+  // missing energy of the vertex (in [S, V] = [6.8, 45] MeV for C12)
+  const G4INCL::ThreeVector p = hitNucleon_->getMomentum();
+  const double Ei = hitNucleon_->getEnergy() - hitNucleon_->getPotentialEnergy();
+  return TLorentzVector(p.getX(), p.getY(), p.getZ(), Ei);
 }
 
 TVector3 INCLNucleus::getHitNucleonMomentum(){
@@ -370,9 +383,9 @@ G4INCL::StandardPropagationModel * INCLNucleus::getPropagationModel(){
 }
 
 double INCLNucleus::getRemovalEnergy(){
-  // the E_m analogue of the struck nucleon handed to the interaction:
-  // m - E_i = V - T_loc-frame kinetic energy  (in [S, V] = [6.8, 45] MeV for C12)
-  return hitNucleon_->getMass() - this->getHitNucleonP4().E();
+  // the missing energy of the recorded struck nucleon: m - (E - V) = V - T_ball
+  // (in [S, V] = [6.8, 45] MeV for C12)
+  return hitNucleon_->getMass() - this->getHitNucleonRecordP4().E();
 }
 
 void INCLNucleus::initUniverseRadius(const int A, const int Z){

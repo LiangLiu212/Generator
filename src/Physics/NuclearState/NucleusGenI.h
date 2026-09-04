@@ -63,6 +63,12 @@ namespace genie {
         return cluster_bind;
       }
       virtual void GenerateCluster(GHepRecord *event_rec) const  = 0;
+      // write the accepted struck nucleon into the GHEP record (momentum and
+      // removal energy). Default: the interaction's HitNucP4. Generators whose
+      // scattering nucleon differs from the recorded one (NucleusGenINCL: the
+      // scattering runs in INCL's local-energy frame, the record holds the
+      // global nucleon with E - V) override it.
+      virtual void SetRecordHitNucleon(GHepRecord * event_rec, const Interaction & interaction) const;
 
 
     protected:

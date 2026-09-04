@@ -27,10 +27,16 @@ inclxx-pauli-block            string  yes        options for pauli blocking     
                                                  - NoPauli
 local-energy-BB               string  yes        options for local energy baryon-baryon            first-collision
                                                  - always          (vertex + every cascade NN collision)
-                                                 - never           (vertex off: INCL ball nucleon, no local-energy
-                                                                    floor; cascade off)
-                                                 - first-collision (vertex on, the QE vertex is the first
-                                                                    collision; cascade NN collisions off)
+                                                 - never           (vertex off: the scattering uses INCL's ball
+                                                                    nucleon as it is; cascade off)
+                                                 - first-collision (vertex on: the scattering is computed with
+                                                                    the struck nucleon in INCL's local-energy
+                                                                    frame, E - T_loc(r); the QE vertex is the
+                                                                    first collision, cascade NN collisions off)
+                                                 In every mode the energy balance is INCL's E - V of the global
+                                                 struck nucleon (the products are rescaled to it, as in INCL's
+                                                 InteractionAvatar), the record holds that global nucleon with
+                                                 E - V, and the resampling keeps the ground-state floor T > T_loc(r).
 local-energy-pi               string  yes        options for local energy pi-N collision           first-collision
                                                  - always
                                                  - never

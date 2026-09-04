@@ -19,6 +19,8 @@
 //____________________________________________________________________________
 
 #include "Physics/NuclearState/NucleusGenI.h"
+#include "Framework/GHEP/GHepRecord.h"
+#include "Framework/Interaction/Interaction.h"
 
 namespace genie {
 
@@ -42,6 +44,15 @@ namespace genie {
   void NucleusGenI::LoadConfig(void)
   {
 
+  }
+  //____________________________________________________________________________
+  void NucleusGenI::SetRecordHitNucleon(GHepRecord * event_rec, const Interaction & interaction) const
+  {
+    GHepParticle * nucleon = event_rec->HitNucleon();
+    if(!nucleon) return;
+    const TLorentzVector p4 = interaction.InitState().Tgt().HitNucP4();
+    nucleon->SetMomentum(p4);
+    nucleon->SetRemovalEnergy(nucleon->Mass() - p4.E());
   }
   //____________________________________________________________________________
 }

@@ -54,6 +54,7 @@ public :
   bool isRPValid(double r, double p, const Target & tgt) const;
   void SetHitNucleonOnShellMom(TVector3 p3) const;
   void GenerateCluster(GHepRecord *event_rec) const;
+  void SetRecordHitNucleon(GHepRecord * evrec, const Interaction & interaction) const;
 
   //-- overload the Algorithm::Configure() methods to load private data
   //   members from configuration options
