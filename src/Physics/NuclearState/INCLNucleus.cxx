@@ -22,6 +22,8 @@
 #ifdef __GENIE_INCL_ENABLED__
 
 #include <cassert>
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include <TSystem.h>
@@ -30,6 +32,8 @@
 // GENIE headers
 #include "Framework/Messenger/Messenger.h"
 #include "Physics/NuclearState/INCLNucleus.h"
+#include <algorithm>
+#include <cmath>
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/GHEP/GHepParticle.h"
@@ -509,32 +513,29 @@ TVector3 INCLNucleus::ResamplingVertex(const int pdg){
 }
 
 void INCLNucleus::ResamplingHitNucleon(){
-  // Redraw the struck nucleon's momentum uniformly in the global p_F ball at
-  // its sampled radius and accept only KE > T_loc(r), evaluated on the
-  // RESAMPLED state (strict p_min(r) floor; it also guarantees E - T_loc >= m
-  // for getHitNucleonP4). The acceptance cut is applied in EVERY local-energy
-  // mode, as the pre-2026-09-03 vertex did: with local-energy-BB = never only
-  // the local-energy transform of the accepted momentum is switched off
-  // (vertexLocE() returns 0), not the Pauli-like p_min(r) floor (2026-09-04).
-  int iteration_count = 0;
-  const double theFermiMomentum = thePotential->getFermiMomentum(hitNucleon_->getType());
-  while(true){
-    const G4INCL::ThreeVector momentumVector = G4INCL::Random::sphereVector(theFermiMomentum);
-    const double momentumAbs = momentumVector.mag();
-    hitNucleon_->setMomentum(momentumVector);
-    hitNucleon_->setUncorrelatedMomentum(momentumAbs);
-    hitNucleon_->adjustEnergyFromMomentum();
-    iteration_count++;
-    const double KE   = hitNucleon_->getEnergy() - hitNucleon_->getMass();
-    const double locE = G4INCL::KinematicsUtils::getLocalEnergy(nucleus_, hitNucleon_);
-    if(KE > locE){
-      break;
-    }
-    if(iteration_count > 10000){
-      LOG("INCLNucleus", pFATAL) << "Resamping the momentum of struck nucleon more than 10000 times!";
-      exit(1);
-    }
-  }
+  // Redraw the struck nucleon's momentum at its sampled radius r: uniform in
+  // the global p_F ball, restricted to |p| > p_min(r) = p_F * pFromR(r) -- the
+  // strict floor of INCL's r-p correlated ground state (a nucleon at radius r
+  // needs at least the momentum whose reflection radius reaches r). This is
+  // the distribution the former accept/reject loop (KE > T_loc(r) on the
+  // resampled state) converged to, drawn directly: |p|^3 uniform on
+  // [p_min^3, p_F^3] (i.e. p^2 dp on [p_min, p_F]) with an isotropic direction.
+  // The loop could exhaust its 10000 throws for r within ~0.05 fm of R_max
+  // (acceptance ~ 1 - (p_min/p_F)^3 -> 0) and exit(1) -- at ~1e-5 per event,
+  // seen 2026-09-04. The floor is applied in every local-energy mode; with
+  // local-energy-BB = never only the local-energy transform of the accepted
+  // momentum is off (vertexLocE() returns 0). The floor also guarantees
+  // E - T_loc >= m for getHitNucleonP4.
+  const G4INCL::ParticleType t = hitNucleon_->getType();
+  const double pF = thePotential->getFermiMomentum(t);
+  const double r  = hitNucleon_->getPosition().mag();
+  const double u  = std::min(1.0, std::max(0.0, theDensity->getMinPFromR(t, r)));
+  const double pmin3 = u*u*u * pF*pF*pF;
+  const double pmag  = std::cbrt(pmin3 + G4INCL::Random::shoot() * (pF*pF*pF - pmin3));
+  const G4INCL::ThreeVector momentumVector = G4INCL::Random::normVector(pmag);
+  hitNucleon_->setMomentum(momentumVector);
+  hitNucleon_->setUncorrelatedMomentum(pmag);
+  hitNucleon_->adjustEnergyFromMomentum();
   nucleus_->updatePotentialEnergy(hitNucleon_);
 }
 /*
