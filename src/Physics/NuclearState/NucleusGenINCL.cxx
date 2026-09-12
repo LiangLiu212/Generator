@@ -568,6 +568,24 @@ void NucleusGenINCL::LoadConfig(void)
   double hadronizationTime = 0.0;
   GetParamDef( "hadronizationTime", hadronizationTime, 0.0);
 
+  // ground-state scan knobs (2026-09-12): constant Fermi momentum [MeV/c] (a value <= 0 keeps
+  // INCL's 1.37 hbar c = 270.34) and the separation-energy scheme, INCL's own vocabulary
+  // (INCL | real | real-light)
+  double fermiMomentum = -1.;
+  GetParamDef( "inclxx-fermi-momentum", fermiMomentum, -1. );
+  std::string separationEnergyString;
+  G4INCL::SeparationEnergyType separationEnergyType = G4INCL::INCLSeparationEnergy;
+  GetParamDef( "inclxx-separation-energies", separationEnergyString, std::string("INCL") );
+  if(!separationEnergyString.compare("real"))            separationEnergyType = G4INCL::RealSeparationEnergy;
+  else if(!separationEnergyString.compare("real-light")) separationEnergyType = G4INCL::RealForLightSeparationEnergy;
+  else if(separationEnergyString.compare("INCL")) {
+    LOG("NucleusGenINCL", pWARN) << "unknown inclxx-separation-energies '" << separationEnergyString
+                                 << "', using INCL";
+    separationEnergyString = "INCL";
+  }
+  LOG("NucleusGenINCL", pINFO) << "inclxx-fermi-momentum : " << fermiMomentum
+                               << "  inclxx-separation-energies : " << separationEnergyString;
+
 
   // set the Cluster Algorithm
   std::string clusterAlgorithmString = "intercomparison";
@@ -596,6 +614,9 @@ void NucleusGenINCL::LoadConfig(void)
 
   incl_nucleus->setClusterAlgorithmType(clusterAlgorithmType);
   incl_nucleus->setClusterAlgorithmString(clusterAlgorithmString);
+  incl_nucleus->setFermiMomentum(fermiMomentum);
+  incl_nucleus->setSeparationEnergyType(separationEnergyType);
+  incl_nucleus->setSeparationEnergyString(separationEnergyString);
 
   incl_nucleus->configure();
 }

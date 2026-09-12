@@ -180,6 +180,10 @@ void INCLNucleus::configure(){
   theConfig_->setHadronizationTime(hadronizationTime_);
   theConfig_->setClusterAlgorithm(clusterAlgorithmType_);
   theConfig_->setClusterAlgorithmString(clusterAlgorithmString_);
+  // ground-state knobs: init() above reset both to INCL's defaults; the Fermi-momentum type
+  // stays ConstantFermiMomentum, so a value > 0 replaces PhysicalConstants::Pf in ParticleTable
+  theConfig_->setFermiMomentum(fermiMomentum_);
+  theConfig_->setSeparationEnergyType(separationEnergyType_);
   //theConfig_->setsrcPairConfig(true);
   std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << " clasuter algorithm: " <<  clusterAlgorithmString_ << "  " << clusterAlgorithmType_ << std::endl;
 
@@ -196,6 +200,13 @@ void INCLNucleus::configure(){
   G4INCL::PhaseSpaceGenerator::initialize(theConfig_);
   // Initialize the INCL particle table:
   G4INCL::ParticleTable::initialize(theConfig_);
+  {
+    const double pF = (fermiMomentum_ > 0.) ? fermiMomentum_ : G4INCL::PhysicalConstants::Pf;
+    const double mN = G4INCL::ParticleTable::getINCLMass(G4INCL::Proton);
+    LOG("INCLNucleus", pNOTICE) << "INCL ground state: p_F = " << pF << " MeV/c, T_F = "
+      << std::sqrt(pF*pF + mN*mN) - mN << " MeV, separation energies = " << separationEnergyString_
+      << ", data dir = " << INCLXXDataFilePath_;
+  }
   // Select the Coulomb-distortion algorithm:
   G4INCL::CoulombDistortion::initialize(theConfig_);
   // Select the clustering algorithm:

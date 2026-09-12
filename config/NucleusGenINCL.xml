@@ -47,6 +47,20 @@ hadronizationTime             double  yes        Hadronization time, in fm/c. Pa
 cluster-algorithm             string  yes        cluster-algorithm                                 intercomparison
                                                  - intercomparison
                                                  - none 
+inclxx-fermi-momentum         double  yes        constant Fermi momentum p_F [MeV/c] passed to     -1.0
+                                                 G4INCL::Config::setFermiMomentum; a value <= 0
+                                                 keeps INCL's constant 1.37 hbar c = 270.34 MeV/c
+                                                 (T_F = 38.17 MeV); the Fermi-momentum type stays
+                                                 constant. Changes V0 = T_F + S, the Fermi ball,
+                                                 the r-p floor p_min(r), the local energy and
+                                                 Pauli blocking, so each value needs its own spline.
+inclxx-separation-energies    string  yes        INCL separation-energy scheme; the well depth      INCL
+                                                 V0 = T_F + S and the emission Q-value both follow it
+                                                 - INCL        constant S = 6.83 MeV
+                                                 - real        S from walletlifetime.dat in inclxx-data-dir
+                                                               (C12: S_p = 15.96, S_n = 18.72 MeV)
+                                                 - real-light  real for light nuclei, INCL otherwise
+                                                 The QE cross section does not depend on it.
 
 
 .............................................................................................................
@@ -65,6 +79,8 @@ cluster-algorithm             string  yes        cluster-algorithm              
     <param type="string" name="local-energy-pi" > first-collision </param>
     <param type="double" name="hadronizationTime" > 0.0 </param>
     <param type="string" name="cluster-algorithm" > intercomparison </param>
+    <param type="double" name="inclxx-fermi-momentum" > -1.0 </param>
+    <param type="string" name="inclxx-separation-energies" > INCL </param>
   </param_set>
 
   <!-- complete set (GENIE param_sets do not inherit from Default): local energy
@@ -81,6 +97,8 @@ cluster-algorithm             string  yes        cluster-algorithm              
     <param type="string" name="local-energy-pi" > never </param>
     <param type="double" name="hadronizationTime" > 0.0 </param>
     <param type="string" name="cluster-algorithm" > intercomparison </param>
+    <param type="double" name="inclxx-fermi-momentum" > -1.0 </param>
+    <param type="string" name="inclxx-separation-energies" > INCL </param>
   </param_set>
 
   <param_set name="Never">

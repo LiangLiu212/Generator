@@ -113,6 +113,11 @@ namespace genie {
       void setClusterAlgorithmString(const std::string str){
         clusterAlgorithmString_ = str;
       }
+      // ground-state scan knobs (2026-09-12): constant Fermi momentum [MeV/c] and the
+      // separation-energy scheme, forwarded to G4INCL::Config in configure()
+      void setFermiMomentum(const double p) { fermiMomentum_ = p; }   // a value <= 0 keeps INCL's constant
+      void setSeparationEnergyType(const G4INCL::SeparationEnergyType s) { separationEnergyType_ = s; }
+      void setSeparationEnergyString(const std::string str) { separationEnergyString_ = str; }
 
 
       bool isRPValid(double r, double p);
@@ -159,6 +164,9 @@ namespace genie {
       double maxUniverseRadius_;
       double minRemnantSize_;
       double hadronizationTime_;
+      double fermiMomentum_ = -1.;                     // <= 0: G4INCL::PhysicalConstants::Pf = 270.34 MeV/c
+      G4INCL::SeparationEnergyType separationEnergyType_ = G4INCL::INCLSeparationEnergy;
+      std::string separationEnergyString_ = "INCL";
 
       std::string INCLXXDataFilePath_;
       std::string abla07DataFilePath_;
