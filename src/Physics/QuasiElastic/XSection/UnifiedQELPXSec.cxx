@@ -15,6 +15,8 @@
 //____________________________________________________________________________
 
 #include "TMath.h"
+#include "TH2D.h"
+#include "TRandom.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "Math/IFunction.h"
@@ -25,6 +27,7 @@
 #include "Physics/QuasiElastic/XSection/QELFormFactors.h"
 #include "Physics/QuasiElastic/XSection/QELFormFactorsModelI.h"
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
+#include "Physics/QuasiElastic/XSection/ELFormFactorsModelI.h"
 #include "Framework/Conventions/Constants.h"
 #include "Framework/Conventions/RefFrame.h"
 #include "Framework/Conventions/KineVar.h"
@@ -37,6 +40,10 @@
 #include "Framework/Utils/PrintUtils.h"
 #include "Physics/NuclearState/NuclearModelI.h"
 #include "Physics/NuclearState/NuclearUtils.h"
+#include "Physics/NuclearState/SpectralFunc.h"
+#include "Physics/NuclearState/FermiMomentumTablePool.h"
+#include "Physics/NuclearState/FermiMomentumTable.h"
+#include "Framework/Numerical/RandomGen.h"
 
 using namespace genie;
 using namespace genie::constants;
@@ -107,13 +114,22 @@ double UnifiedQELPXSec::XSec(const Interaction* interaction,
 
   xsec *= num_active;
 
+  // Spectator nucleons for the one-body / two-body current interference
+  // (EM only for now)
+  bool do_intf = fDoIntf && interaction->ProcInfo().IsEM();
+  std::vector<IAOneTwoBodyInterferenceTensor::Spectator> spectators;
+  if ( do_intf ) spectators = this->Spectators( target, p4Ni );
+  if ( spectators.empty() ) do_intf = false;
+
   // Do we need to rotate so that \vec{q} || \vec{z}?
   if (fDoqAlongZ) {
     std::vector<TLorentzVector> otherp4 {p4Ni, p4NiOnShell, p4Nf};
+    for ( const auto& sp : spectators ) otherp4.emplace_back( sp.p3, 0. );
     genie::utils::Rotate_qvec_alongZ(probeP4, lepP4, otherp4);
     p4Ni = otherp4[0];
     p4NiOnShell = otherp4[1];
     p4Nf = otherp4[2];
+    for ( size_t s = 0; s < spectators.size(); ++s ) spectators[s].p3 = otherp4[3 + s].Vect();
   }
 
   // Compute form factors using Q2tilde (the effective Q2 value after
@@ -163,10 +179,13 @@ double UnifiedQELPXSec::XSec(const Interaction* interaction,
   if ( qTildeP4.E() <= 0. && interaction->InitState().Tgt().IsNucleus()
     && !interaction->TestBit(kIAssumeFreeNucleon) ) return 0.;
 
-  // Set Q2 to Q2tilde while computing form factors
-  interaction->KinePtr()->SetQ2( Q2tilde );
+  // Set Q2 to Q2tilde (or keep the true Q2, see FormFactorsAtQ2Tilde) while
+  // computing form factors
+  double Q2ff = fFFAtQ2Tilde ? Q2tilde : Q2;
+  interaction->KinePtr()->SetQ2( Q2ff );
   // Evaluate the form factors
   fFormFactors.Calculate( interaction );
+  if ( do_intf ) fELFormFactors.Calculate( interaction );
 
   // Now that we've calculated them, store the true Q2 value
   interaction->KinePtr()->SetQ2( Q2 );
@@ -200,8 +219,45 @@ double UnifiedQELPXSec::XSec(const Interaction* interaction,
     LOG("UnifiedQE", pWARN) << "Tensor contraction has nonvanishing imaginary part!";
   }
   
+  double LA = contraction.real();
+
+  // Add the interference between the one-body and the two-body currents. It
+  // leads to the same single-nucleon knock-out final state, so it is simply
+  // part of the quasielastic cross section.
+  if ( do_intf ) {
+    genie::twobody_currents_sf::ModelParams par = fIntfPar;
+    par.xmn = xmn / genie::units::MeV;
+
+    // N-Delta transition and pion form factors (couplings are in the
+    // cross section prefactor, as for the one-body current)
+    genie::twobody_currents_sf::FormFactors ff;
+    ff.f1  = fFormFactors.F1V();
+    ff.f2  = fFormFactors.xiF2V();
+    ff.fa  = 0.;
+    ff.fap = 0.;
+    ff.fpiem = fELFormFactors.Gep() - fELFormFactors.Gen();
+    double dipole2 = std::pow(1. + Q2ff / fMV2, 2);
+    ff.cv3 = fCV3Norm / dipole2 / (1. + Q2ff / 4. / fMV2) * std::sqrt(1.5);
+    ff.cv4 = fCV4Norm / dipole2 / (1. + Q2ff / 4. / fMV2) * std::sqrt(1.5);
+    ff.cv5 = fCV5Norm / dipole2 / (1. + Q2ff / 0.776 / fMV2) * std::sqrt(1.5);
+    ff.ca5 = 0.;
+
+    IAOneTwoBodyInterferenceTensor A12_munu(par, ff, p4Ni, p4Nf, qP4,
+      hit_nuc_pdg, interaction->RecoilNucleonPdg(), spectators, false, false);
+    std::complex<double> contraction12 = L_munu * A12_munu;
+    LA += contraction12.real();
+
+    // The spectator sum is a Monte Carlo estimate, so an individual sample
+    // can (rarely) drive the total below zero
+    if ( LA < 0. ) {
+      LOG("UnifiedQE", pINFO) << "One-body + interference contraction is"
+        << " negative (" << LA << "), setting it to zero";
+      LA = 0.;
+    }
+  }
+
   // Apply the tensor contraction to the cross section
-  xsec *= contraction.real();
+  xsec *= LA;
   
   // Multiply by the analytic solution of the energy-conserving delta function
   // used by the kPSQELEvGen phase space. 
@@ -216,6 +272,105 @@ double UnifiedQELPXSec::XSec(const Interaction* interaction,
   }
 
   return xsec;
+}
+//____________________________________________________________________________
+const std::vector<IAOneTwoBodyInterferenceTensor::Spectator>&
+UnifiedQELPXSec::Spectators(const Target& target, const TLorentzVector& p4Ni) const
+{
+  int tgt_pdg = target.Pdg();
+  int hit_nuc_pdg = target.HitNucPdg();
+  if ( tgt_pdg == fCachedTgtPdg && hit_nuc_pdg == fCachedHitNucPdg
+    && p4Ni == fCachedP4Ni ) return fCachedSpectators;
+
+  fCachedTgtPdg = tgt_pdg;
+  fCachedHitNucPdg = hit_nuc_pdg;
+  fCachedP4Ni = p4Ni;
+  fCachedSpectators.clear();
+
+  // The interference needs the mean-field part of the spectral function
+  // of this nucleus. Without it there is no interference term.
+  std::string tgt_str = std::to_string( tgt_pdg );
+  const Registry& mf_config = fMFSpectralFunc->GetConfig();
+  if ( !mf_config.Exists("SpectFuncTable@Pdg=" + tgt_str + "_" + std::to_string(kPdgProton))
+    || !mf_config.Exists("SpectFuncTable@Pdg=" + tgt_str + "_" + std::to_string(kPdgNeutron)) )
+  {
+    return fCachedSpectators;
+  }
+
+  // The hit nucleon was sampled from the complete spectral function. Only
+  // its mean-field part contributes: weight by S_MF / S_tot at the sampled
+  // momentum and removal energy
+  double pNi = p4Ni.P();
+  double E_rmv = target.HitNucMass() - p4Ni.E();
+  if ( E_rmv < 0. ) return fCachedSpectators;
+  double prob_tot = fTotSpectralFunc->Prob( pNi, E_rmv, target );
+  double prob_mf  = fMFSpectralFunc->Prob( pNi, E_rmv, target );
+  if ( prob_tot <= 0. || prob_mf <= 0. ) return fCachedSpectators;
+  double mf_fraction = prob_mf / prob_tot;
+
+  // Inverse volume rho / A of nuclear matter at the Fermi momentum kF (MeV^3)
+  double kF = 0.;
+  RgKey kf_key = "TwoBodyIntf-FermiMomentum@Pdg=" + tgt_str;
+  if ( this->GetConfig().Exists(kf_key) ) this->GetParam( kf_key, kF );
+  else {
+    std::string kf_table_name;
+    this->GetParam( "FermiMomentumTable", kf_table_name );
+    const FermiMomentumTable* kf_table
+      = FermiMomentumTablePool::Instance()->GetTable( kf_table_name );
+    kF = kf_table->FindClosestKF( tgt_pdg, kPdgProton );
+  }
+  kF /= genie::units::MeV;
+  double rho_over_A = std::pow(kF, 3) / (1.5 * kPi2) / target.A();
+
+  // Temporarily replace ROOT's gRandom RNG with GENIE's, as SpectralFunc does
+  TRandom* old_gRandom = gRandom;
+  RandomGen* rnd = RandomGen::Instance();
+  gRandom = &rnd->RndGen();
+
+  // If protons and neutrons share their mean-field table, one spectator
+  // momentum serves both isospins (the two-body operators do not depend on
+  // the spectator isospin, so this halves the cost). Otherwise each isospin
+  // gets its own sample.
+  std::string mf_table_p = mf_config.GetString(
+    "SpectFuncTable@Pdg=" + tgt_str + "_" + std::to_string(kPdgProton) );
+  std::string mf_table_n = mf_config.GetString(
+    "SpectFuncTable@Pdg=" + tgt_str + "_" + std::to_string(kPdgNeutron) );
+  bool shared_table = ( mf_table_p == mf_table_n );
+
+  const int spect_pdgs[2] = { kPdgProton, kPdgNeutron };
+  double weights[2];
+  TH2D* sf_mf[2];
+  for ( int is = 0; is < 2; ++is ) {
+    Target spect_tgt( target );
+    spect_tgt.SetHitNucPdg( spect_pdgs[is] );
+    sf_mf[is] = fMFSpectralFunc->SelectSpectralFunction( spect_tgt );
+
+    // Number of mean-field nucleons of this species (the histogram is
+    // normalised to the mean-field fraction of one nucleon)
+    int num_nuc = pdg::IsProton( spect_pdgs[is] ) ? target.Z() : target.N();
+    double num_mf = num_nuc * sf_mf[is]->Integral();
+    weights[is] = mf_fraction * rho_over_A * num_mf / fNumSpectators;
+  }
+
+  for ( int is = 0; is < (shared_table ? 1 : 2); ++is ) {
+    for ( int s = 0; s < fNumSpectators; ++s ) {
+      double p2 = 0., E2_rmv = 0.;
+      sf_mf[is]->GetRandom2( p2, E2_rmv );
+      double costheta = -1. + 2. * rnd->RndGen().Rndm();
+      double sintheta = TMath::Sqrt(1. - costheta*costheta);
+      double phi = 2. * kPi * rnd->RndGen().Rndm();
+
+      IAOneTwoBodyInterferenceTensor::Spectator sp;
+      sp.p3.SetXYZ( p2*sintheta*TMath::Cos(phi), p2*sintheta*TMath::Sin(phi), p2*costheta );
+      sp.weight_p = ( shared_table || is == 0 ) ? weights[0] : 0.;
+      sp.weight_n = ( shared_table || is == 1 ) ? weights[1] : 0.;
+      fCachedSpectators.push_back( sp );
+    }
+  }
+
+  gRandom = old_gRandom;
+
+  return fCachedSpectators;
 }
 //____________________________________________________________________________
 double UnifiedQELPXSec::Integral(const Interaction* in) const
@@ -324,6 +479,60 @@ void UnifiedQELPXSec::LoadConfig(void)
   
   // Decide whether or not we rotate so that q is along z
   GetParamDef( "DoRotate_qAlong_z", fDoqAlongZ, false );
+
+  // Evaluate the form factors at Q2tilde (default) or at the true Q2
+  GetParamDef( "FormFactorsAtQ2Tilde", fFFAtQ2Tilde, true );
+
+  // Interference between the one-body and the two-body currents
+  GetParamDef( "IncludeOneTwoBodyInterference", fDoIntf, false );
+  fTotSpectralFunc = 0;
+  fMFSpectralFunc = 0;
+  fELFormFactorsModel = 0;
+  fCachedTgtPdg = 0;
+  fCachedHitNucPdg = 0;
+  fCachedSpectators.clear();
+  if ( fDoIntf ) {
+    fTotSpectralFunc = dynamic_cast<const SpectralFunc*>( fNuclModel );
+    fMFSpectralFunc = dynamic_cast<const SpectralFunc*>(
+      this->SubAlg("TwoBodyIntf-MeanFieldSpectralFunc") );
+    if ( !fTotSpectralFunc || !fMFSpectralFunc ) {
+      LOG("UnifiedQE", pFATAL) << "The one-body / two-body current interference"
+        << " needs genie::SpectralFunc algorithms for both IntegralNuclearModel"
+        << " and TwoBodyIntf-MeanFieldSpectralFunc";
+      exit(1);
+    }
+
+    fELFormFactorsModel = dynamic_cast<const ELFormFactorsModelI*>(
+      this->SubAlg("ElasticFormFactorsModel") );
+    assert( fELFormFactorsModel );
+    fELFormFactors.SetModel( fELFormFactorsModel );
+
+    // Couplings and cutoffs of the two-body currents. GENIE units (GeV) in
+    // the configuration, MeV in twobody_currents_sf.
+    double lpi, lpind;
+    GetParamDef( "TwoBodyIntf-fPiNDelta", fIntfPar.fpind, 0.54 );
+    GetParamDef( "TwoBodyIntf-fStar", fIntfPar.fstar, 2.13 );
+    GetParamDef( "TwoBodyIntf-fPiNN2", fIntfPar.fpinn2, 0.081 * 4. * kPi );
+    GetParamDef( "TwoBodyIntf-gA", fIntfPar.ga, 1.26 );
+    GetParamDef( "TwoBodyIntf-LambdaPi", lpi, 1.300 );
+    GetParamDef( "TwoBodyIntf-LambdaPiNDelta", lpind, 1.150 );
+    fIntfPar.lpi = lpi / genie::units::MeV;
+    fIntfPar.lpind = lpind / genie::units::MeV;
+
+    PDGLibrary* pdglib = PDGLibrary::Instance();
+    fIntfPar.xmd = pdglib->Find( kPdgP33m1232_DeltaP )->Mass() / genie::units::MeV;
+    fIntfPar.xmpi = kPionMass / genie::units::MeV;
+    fIntfPar.xmrho = pdglib->Find( kPdgRho0 )->Mass() / genie::units::MeV;
+    fIntfPar.xmn = kNucleonMass / genie::units::MeV; // reset per event
+
+    GetParamDef( "TwoBodyIntf-C3V", fCV3Norm, 2.13 );
+    GetParamDef( "TwoBodyIntf-C4V", fCV4Norm, -1.15 );
+    GetParamDef( "TwoBodyIntf-C5V", fCV5Norm, 0.48 );
+    GetParamDef( "TwoBodyIntf-MV2", fMV2, 0.71 );
+
+    GetParamDef( "TwoBodyIntf-NumSpectators", fNumSpectators, 1 );
+    GetParamDef( "TwoBodyIntf-AchillesC4VC5V", fIntfPar.c4c5_broadcast, false );
+  }
 
 }
 

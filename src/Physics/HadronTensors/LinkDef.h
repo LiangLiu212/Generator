@@ -21,6 +21,7 @@
 #pragma link C++ class genie::Rank2LorentzTensor;
 #pragma link C++ class genie::NucleonTensor;
 #pragma link C++ class genie::IASingleNucleonTensor;
+#pragma link C++ class genie::IAOneTwoBodyInterferenceTensor;
 
 
 #endif

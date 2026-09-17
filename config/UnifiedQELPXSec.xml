@@ -23,6 +23,31 @@ TensorModel          string   No         Type of hadron tensor           Noemi-h
 PauliBlockerAlg      alg      No         PauliBlocking algorithm
 DoPauliBlocking      bool     Yes        Do Pauli blocking               true
 DoRotate_qAlong_z    bool     Yes        Rotates system so q is along z
+FormFactorsAtQ2Tilde bool     Yes        Evaluate form factors at        true
+                                         Q2tilde (true) or the true Q2
+
+One-body / two-body current interference leading to single-nucleon knock-out
+(A. Lovato, N. Rocco, N. Steinberg, arXiv:2312.12545). EM only for now:
+IncludeOneTwoBodyInterference      bool   Yes  Add it to the QE tensor              false
+TwoBodyIntf-MeanFieldSpectralFunc  alg    (*)  Mean-field part of the spectral function
+ElasticFormFactorsModel            alg    (*)  For the pion EM form factor Gep - Gen   CommonParam[ElasticFF]
+FermiMomentumTable                 string (*)  kF of nuclei without an explicit value  CommonParam[FermiGas]
+TwoBodyIntf-FermiMomentum@Pdg=     double Yes  kF (GeV) defining the inverse volume
+                                               rho/A = kF^3/(1.5 pi^2)/A               FermiMomentumTable
+TwoBodyIntf-NumSpectators          int    Yes  Spectators sampled per hit nucleon
+                                               and spectator isospin                   1
+TwoBodyIntf-fPiNDelta              double Yes  pi-N-Delta coupling in the Delta width  0.54
+TwoBodyIntf-fStar                  double Yes  pi-N-Delta coupling f*                  2.13
+TwoBodyIntf-fPiNN2                 double Yes  f_piNN^2                                0.081*4pi
+TwoBodyIntf-gA                     double Yes  (axial pieces, unused for EM)           1.26
+TwoBodyIntf-LambdaPi               double Yes  pi-N-N cutoff (GeV)                     1.300
+TwoBodyIntf-LambdaPiNDelta         double Yes  pi-N-Delta cutoff (GeV)                 1.150
+TwoBodyIntf-C3V, -C4V, -C5V        double Yes  N-Delta vector form factors at Q2 = 0   2.13, -1.15, 0.48
+TwoBodyIntf-MV2                    double Yes  their dipole mass squared (GeV^2)       0.71
+TwoBodyIntf-AchillesC4VC5V         bool   Yes  Reproduce ACHILLES @ e02d266, which adds
+                                               the C4V/C5V vertex terms to every element
+                                               of the Dirac matrix. Validation only.   false
+(*) needed only if IncludeOneTwoBodyInterference is true
 
 
 .....................................................................................................
@@ -57,6 +82,16 @@ IntegralNucleonBindingMode           alg      No
 
   <param_set name="Dipole">
      <param type="alg"  name="CCFormFactorsAlg"> genie::LwlynSmithFFCC/Dipole </param>
+  </param_set>
+
+  <!-- Dipole + interference between the one-body and the two-body currents (EM only) -->
+  <param_set name="Dipole-OneTwoBodyIntf">
+     <param type="string" name="CommonParam"> CKM,ElasticFF,FermiGas </param>
+     <param type="alg"  name="CCFormFactorsAlg"> genie::LwlynSmithFFCC/Dipole </param>
+     <param type="bool" name="IncludeOneTwoBodyInterference"> true </param>
+     <param type="alg"  name="TwoBodyIntf-MeanFieldSpectralFunc"> genie::SpectralFunc/MeanField </param>
+     <!-- kF used with the CBF 12C spectral function in arXiv:2312.12545 -->
+     <param type="double" name="TwoBodyIntf-FermiMomentum@Pdg=1000060120"> 0.225 </param>
   </param_set>
 
 

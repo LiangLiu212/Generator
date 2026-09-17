@@ -34,4 +34,17 @@ FermiMomentumTable      string   No         Table of Fermi momentum (kF) constan
 
   </param_set>
 
+  <!-- Mean-field part only of the spectral function (the correlated part removed).
+       Needed by the one-body / two-body current interference of genie::UnifiedQELPXSec.
+       pke12_MF.data: CBF 12C mean-field spectral function (normalised to 5.135 of 6
+       nucleons) as distributed with ACHILLES (data/Spectral_Functions/pke12p_MF.data,
+       identical for protons and neutrons), in the header format of pke12_tot.data -->
+  <param_set name="MeanField">
+    <param type="string" name="CommonParam"> FermiGas </param>
+    <param type="string" name="DataPathType"> relative </param>
+    <param type="string" name="DataPath"> data/evgen/nucl/spectral_functions </param>
+    <param type="string" name="SpectFuncTable@Pdg=1000060120_2212"> pke12_MF.data </param>
+    <param type="string" name="SpectFuncTable@Pdg=1000060120_2112"> pke12_MF.data </param>
+  </param_set>
+
 </alg_conf>

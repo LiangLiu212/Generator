@@ -25,6 +25,7 @@
 
 #include <string>
 #include <complex>
+#include <vector>
 
 #include "Math/IFunction.h"
 
@@ -36,11 +37,16 @@
 #include "Physics/HadronTensors/Rank2LorentzTensor.h"
 #include "Physics/HadronTensors/NucleonTensor.h"
 #include "Physics/HadronTensors/IASingleNucleonTensor.h"
+#include "Physics/HadronTensors/IAOneTwoBodyInterferenceTensor.h"
+#include "Physics/QuasiElastic/XSection/ELFormFactors.h"
 #include "TVector3.h"
+#include "TLorentzVector.h"
 namespace genie {
 
 class QELFormFactorsModelI;
 class QELFormFactors;
+class ELFormFactorsModelI;
+class SpectralFunc;
 class XSecIntegratorI;
 
 class UnifiedQELPXSec : public XSecAlgorithmI {
@@ -63,7 +69,15 @@ public:
 
 private:
   void LoadConfig (void);
-  
+
+  /// Spectator nucleons (and their weights) used to evaluate the one-body /
+  /// two-body current interference for the current hit nucleon. The sample is
+  /// redrawn only when the hit nucleon changes, so that the cross section stays
+  /// a smooth function of the lepton angles for a fixed hit nucleon (as the
+  /// adaptive integration in genie::NewQELXSec requires).
+  const std::vector<IAOneTwoBodyInterferenceTensor::Spectator>&
+    Spectators(const Target& target, const TLorentzVector& p4Ni) const;
+
   const QELFormFactorsModelI* fCCFormFactorsModel;
   const QELFormFactorsModelI* fNCFormFactorsModel;
   const QELFormFactorsModelI* fEMFormFactorsModel;
@@ -77,6 +91,26 @@ private:
   bool fDoPauliBlocking;
   bool fDoqAlongZ;
   std::string fTensorModel;
+
+  /// Evaluate the form factors at Q2tilde (true) or at the true Q2 (false)
+  bool fFFAtQ2Tilde;
+
+  // One-body / two-body current interference leading to single-nucleon
+  // knock-out (arXiv:2312.12545). EM only for now.
+  bool fDoIntf;
+  const SpectralFunc* fTotSpectralFunc; ///< complete spectral function
+  const SpectralFunc* fMFSpectralFunc;  ///< its mean-field part
+  const ELFormFactorsModelI* fELFormFactorsModel;
+  mutable ELFormFactors fELFormFactors;
+  genie::twobody_currents_sf::ModelParams fIntfPar; ///< MeV
+  double fCV3Norm, fCV4Norm, fCV5Norm; ///< N-Delta vector form factors at Q2 = 0
+  double fMV2;                         ///< their dipole mass squared (GeV^2)
+  int fNumSpectators; ///< spectators sampled per hit nucleon and isospin
+
+  mutable TLorentzVector fCachedP4Ni;
+  mutable int fCachedTgtPdg;
+  mutable int fCachedHitNucPdg;
+  mutable std::vector<IAOneTwoBodyInterferenceTensor::Spectator> fCachedSpectators;
 };
 
 } // genie namespace
