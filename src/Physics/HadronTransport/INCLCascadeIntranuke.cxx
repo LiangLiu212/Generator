@@ -175,7 +175,7 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
   // setup INCL config 
   theConfig = incl_nucleus->getConfig();
   theConfig->setProjectileSpecies(theSpecies);
-  theConfig->setProjectileKineticEnergy((pprobe->E() - pprobe->Mass()) * units::MeV / units::GeV);
+  theConfig->setProjectileKineticEnergy((pprobe->E() - pprobe->Mass()) * units::GeV / units::MeV);
   theConfig->setTargetA(target->A());
   theConfig->setTargetZ(target->Z());
   theConfig->setTargetS(0);
