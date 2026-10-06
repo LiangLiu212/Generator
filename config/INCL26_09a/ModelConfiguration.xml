@@ -34,10 +34,10 @@ University of Liverpool
 
   <!--  <param type="alg"  name="NuclearModel">               genie::EffectiveSF/Default </param> -->
   <!-- <param type="alg"  name="NuclearModel">                genie::FGMBodekRitchie/Default </param> -->
-  <param type="alg"  name="NuclearModel">                     genie::LocalFGM/Default </param>
+  <param type="alg"  name="NuclearModel">                     genie::LocalFGM/SpectralFunctionLikeWithCorrelation </param>
 
   <!-- C12 ground state: 2024 Ankowski-Benhar-Sakuda spectral function (data: pke12_2024.table) -->
-  <param type="alg" name="NuclearModel@Pdg=1000060120">       genie::SpectralFunc/pke12_2024 </param>
+  <!-- param type="alg" name="NuclearModel@Pdg=1000060120">       genie::SpectralFunc/pke12_2024 </param -->
   <!-- Fe56 SF disabled 2026-07-07: NuclearModelMap keys NuclearModel@Pdg overrides by Z
        (not full isotope PDG), so this entry captured ALL iron isotopes and SpectralFunc
        std::exit(1)s on Fe54/57/58, which have no SpectFuncTable entries (killed the 3
@@ -45,6 +45,8 @@ University of Liverpool
        Details: genie-dev/.claude/plans/incl26_07a-xsec-spline-set.md
   <param type="alg" name="NuclearModel@Pdg=1000260560"> genie::SpectralFunc/Default </param>
   -->
+  <!-- param type="alg" name="NuclearModel@Pdg=1000080160"> genie::SpectralFunc/Default </param -->
+  <param type="alg" name="NuclearModel@Pdg=1000060120"> genie::SpectralFunc/Default </param>
   <param type="alg" name="NuclearModel@Pdg=1000080160"> genie::SpectralFunc/Default </param>
   <param type="alg" name="NuclearModel@Pdg=1000180400"> genie::SpectralFunc/Default </param>
 <!--  <param type="alg"  name="NuclearModel">                 genie::LocalFGM/Correlated </param>-->
