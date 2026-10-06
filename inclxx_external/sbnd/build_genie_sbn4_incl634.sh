@@ -23,9 +23,8 @@ enter_sl7 "${HERE}/$(basename "${BASH_SOURCE[0]}")" "$@"
 
 [ -d "$1/.upsfiles" ] || { echo "usage: $0 <product-dir>   (a UPS products area containing .upsfiles/)"; exit 1; }
 PROD="$(cd "$1" && pwd -P)"
-FQ=${PROD}/genie/${GENIE_VERSION}/Linux64bit+5.14-2.17-e26-incl634-prof
 
-echo "===== $(date) : genie ${GENIE_VERSION} -q ${GENIE_QUAL} build START ($(cat /etc/redhat-release)) ====="
+echo "===== $(date) : genie ${PKG_VERSION} -q ${PKG_QUAL} build START ($(cat /etc/redhat-release)) ====="
 setup_sbnd_no_genie
 export PRODUCTS=${PROD}:${PRODUCTS}
 echo "GENIE='${GENIE}' INCLXX_DIR='${INCLXX_DIR}' (empty=good)  gcc=$(which gcc)"
@@ -37,8 +36,8 @@ echo "===== $(date) : STEP 2/2 build_genie.sh ${PROD} e26:incl634 prof tar =====
 ./build_genie.sh ${PROD} e26:incl634 prof tar || { echo "===== $(date) : BUILD FAILED ====="; exit 4; }
 echo "===== $(date) : BUILD DONE rc=0 ====="
 
-FQ=$(ls -d ${PROD}/genie/${GENIE_VERSION}/Linux64bit+*-e26-incl634-prof)
+FQ=$(ls -d ${PROD}/genie/${PKG_VERSION}/Linux64bit+*-e26-incl634-prof)
 grep -n "GOPT_ENABLE_PYTHIA\|GOPT_ENABLE_INCL\|GOPT_WITH_INCL\|GOPT_WITH_BOOST" ${FQ}/GENIE-Generator/src/make/Make.config
 ls -d ${FQ}/inclxx/{bin,lib,include,share}
-ls -l ${PROD}/${GENIE_TARBALL}
-echo "inclxx files in the binary tarball: $(tar -tjf ${PROD}/${GENIE_TARBALL} | grep -c '/inclxx/')"
+ls -l ${PROD}/${PKG_TARBALL}
+echo "inclxx files in the binary tarball: $(tar -tjf ${PROD}/${PKG_TARBALL} | grep -c '/inclxx/')"

@@ -23,15 +23,15 @@ XSEC_PROD=${XSEC_PROD:-/exp/sbnd/app/users/liangliu/sbnd_genie/localProducts_lar
 XSEC_QUAL=${XSEC_QUAL:-INCL2609a00000:k250:e1000}
 NEV=${NEV:-20}
 
-echo "===== $(date) : relocation test of ${PROD}/${GENIE_TARBALL} in ${RELOC} ====="
-[ -f "${PROD}/${GENIE_TARBALL}" ] || fail "no ${PROD}/${GENIE_TARBALL}"
+echo "===== $(date) : relocation test of ${PROD}/${PKG_TARBALL} in ${RELOC} ====="
+[ -f "${PROD}/${PKG_TARBALL}" ] || fail "no ${PROD}/${PKG_TARBALL}"
 rm -rf "${RELOC}"; mkdir -p "${RELOC}/run" || fail "cannot create ${RELOC}"
 cp -a ${PROD}/.upsfiles "${RELOC}/" || fail "cannot copy .upsfiles"
-tar -xjf ${PROD}/${GENIE_TARBALL} -C "${RELOC}" || fail "cannot unpack the tarball"
+tar -xjf ${PROD}/${PKG_TARBALL} -C "${RELOC}" || fail "cannot unpack the tarball"
 
 setup_sbnd_no_genie
 export PRODUCTS=${RELOC}:${PRODUCTS}
-setup genie ${GENIE_VERSION} -q ${GENIE_QUAL} || fail "setup genie ${GENIE_VERSION} -q ${GENIE_QUAL}"
+setup genie ${PKG_VERSION} -q ${PKG_QUAL} || fail "setup genie ${PKG_VERSION} -q ${PKG_QUAL}"
 setup genie_xsec v3_06_00 -q ${XSEC_QUAL} -z ${XSEC_PROD} || fail "setup genie_xsec ${XSEC_QUAL} -z ${XSEC_PROD}"
 ups active | grep -E "^genie|^boost|^root |^pythia|^lhapdf"
 for v in GENIE GENIE_FQ_DIR INCLXX_DIR INCLXX_DATA_DIR GENIE_XSEC_TUNE; do echo "$v=${!v}"; done
