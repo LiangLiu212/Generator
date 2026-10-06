@@ -14,3 +14,12 @@ src/Framework/Conventions/GVersion.h
 *.rootmap
 *_ROOT_DICT_*
 *.swp
+tobeignored/
+subnpnh/
+originals/
+input-flux.root
+
+# INCL++ itself is NOT tracked (its licence forbids redistribution): build it locally into
+# inclxx_external/inclxx/ with inclxx_external/build_inclxx_external.sh, see inclxx_external/README.md
+/inclxx_external/inclxx/
+/inclxx_external/work/

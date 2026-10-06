@@ -1,0 +1,383 @@
+File    = table
+Product = genie
+
+# ---------------------------------------
+Group:
+
+  Flavor     = ANY
+  Qualifiers = "c14:prof"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c14-prof)
+
+  Action = ExtraSetup
+    setupRequired(root v6_28_12 -q +c14:+p3915:+prof)
+    setupRequired(lhapdf v6_5_5 -q +c14:+p3915:+prof)
+    setupRequired(pythia8 v8_3_15 -q +c14:+p3915:+prof)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +c14:+prof)
+   setupRequired(clang v14_0_6c)
+
+  Flavor     = ANY
+  Qualifiers = "c14:geant4:prof"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c14-geant4-prof)
+
+  Action = ExtraSetup
+    setupRequired(geant4 v4_10_6_p01g -q +c14:+prof)
+    setupRequired(root v6_28_12 -q +c14:+p3915:+prof)
+    setupRequired(lhapdf v6_5_5 -q +c14:+p3915:+prof)
+    setupRequired(pythia8 v8_3_15 -q +c14:+p3915:+prof)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +c14:+prof)
+    setupRequired(clang v14_0_6c)
+
+ Flavor     = ANY
+ Qualifiers = "c14:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c14-debug)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +c14:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +c14:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +c14:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +c14:+debug)
+   setupRequired(clang v14_0_6c)
+
+ Flavor     = ANY
+ Qualifiers = "c14:geant4:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c14-geant4-debug)
+
+ Action = ExtraSetup
+   setupRequired(geant4 v4_10_6_p01g -q +c14:+debug)
+   setupRequired(root v6_28_12 -q +c14:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +c14:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +c14:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +c14:+debug)
+   setupRequired(clang v14_0_6c)
+
+ Flavor     = ANY
+ Qualifiers = "e28:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-prof)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +e28:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+prof)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e28:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-debug)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +e28:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+debug)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e28:geant4:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-geant4-prof)
+
+ Action = ExtraSetup
+   setupRequired(geant4 v4_10_6_p01g -q +e28:+prof)
+   setupRequired(root v6_28_12 -q +e28:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+prof)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e28:geant4:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-geant4-debug)
+
+ Action = ExtraSetup
+   setupRequired(geant4 v4_10_6_p01g -q +e28:+debug)
+   setupRequired(root v6_28_12 -q +e28:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+debug)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e28:inclxx:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-inclxx-prof)
+
+ Action = ExtraSetup
+   setupRequired(inclxx v5_2_9_5g -q +e28:+prof)
+   setupRequired(boost v1_82_0 -q +e28:+prof)
+   setupRequired(root v6_28_12 -q +e28:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+prof)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e28:inclxx:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e28-inclxx-debug)
+
+ Action = ExtraSetup
+   setupRequired(inclxx v5_2_9_5g -q +e28:+debug)
+   setupRequired(boost v1_82_0 -q +e28:+debug)
+   setupRequired(root v6_28_12 -q +e28:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e28:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e28:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e28:+debug)
+   setupRequired(gcc v13_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-prof)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +e26:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+prof)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:geant4:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-geant4-prof)
+
+ Action = ExtraSetup
+   setupRequired(geant4 v4_10_6_p01g -q +e26:+prof)
+   setupRequired(root v6_28_12 -q +e26:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+prof)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:incl634:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-incl634-prof)
+
+ Action = ExtraSetup
+   setupRequired(boost v1_82_0 -q +e26:+prof)
+   setupRequired(root v6_28_12 -q +e26:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+prof)
+   setupRequired(gcc v12_1_0)
+   # INCL++ v6.34 is not a UPS product: its libraries, headers and data
+   # tables are shipped inside this product, in ${GENIE_FQ_DIR}/inclxx.
+   envSet(INCLXX_DIR, ${GENIE_FQ_DIR}/inclxx)
+   pathPrepend(PATH, ${INCLXX_DIR}/bin)
+   envPrepend(LD_LIBRARY_PATH, ${INCLXX_DIR}/lib)
+   # NucleusGenINCL.xml composes ${INCLXX_DATA_DIR}/data and
+   # ${INCLXX_DATA_DIR}/de-excitation/...
+   envSet(INCLXX_DATA_DIR, ${INCLXX_DIR}/share)
+
+ Flavor     = ANY
+ Qualifiers = "e26:inclxx:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-inclxx-prof)
+
+ Action = ExtraSetup
+   setupRequired(inclxx v5_2_9_5g -q +e26:+prof)
+   setupRequired(boost v1_82_0 -q +e26:+prof)
+   setupRequired(root v6_28_12 -q +e26:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+prof)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+prof)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-debug)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +e26:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+debug)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:geant4:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-geant4-debug)
+
+ Action = ExtraSetup
+   setupRequired(geant4 v4_10_6_p01g -q +e26:+debug)
+   setupRequired(root v6_28_12 -q +e26:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+debug)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e26:inclxx:debug"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e26-inclxx-debug)
+
+ Action = ExtraSetup
+   setupRequired(inclxx v5_2_9_5g -q +e26:+debug)
+   setupRequired(boost v1_82_0 -q +e26:+debug)
+   setupRequired(root v6_28_12 -q +e26:+p3915:+debug)
+   setupRequired(lhapdf v6_5_5 -q +e26:+p3915:+debug)
+   setupRequired(pythia8 v8_3_15 -q +e26:+p3915:+debug)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e26:+debug)
+   setupRequired(gcc v12_1_0)
+
+ Flavor     = ANY
+ Qualifiers = "e20:prof"
+
+ Action = defineFQ
+   envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-prof)
+
+ Action = ExtraSetup
+   setupRequired(root v6_28_12 -q +e20:+p3915:+prof)
+   setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+prof)
+   setupRequired(libxml2 v2_9_12)
+   setupRequired(log4cpp v1_1_3e -q +e20:+prof)
+   setupRequired(gcc v9_3_0)
+
+  Flavor     = ANY
+  Qualifiers = "e20:geant4:prof"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-geant4-prof)
+
+  Action = ExtraSetup
+    setupRequired(geant4 v4_10_6_p01g -q +e20:+prof)
+    setupRequired(root v6_28_12 -q +e20:+p3915:+prof)
+    setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+prof)
+    setupRequired(pythia8 v8_3_15 -q +e20:+p3915:+prof)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +e20:+prof)
+    setupRequired(gcc v9_3_0)
+
+  Flavor     = ANY
+  Qualifiers = "e20:inclxx:prof"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-inclxx-prof)
+
+  Action = ExtraSetup
+    setupRequired(inclxx v5_2_9_5g -q +e20:+prof)
+    setupRequired(boost v1_82_0 -q +e20:+prof)
+    setupRequired(root v6_28_12 -q +e20:+p3915:+prof)
+    setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+prof)
+    setupRequired(pythia8 v8_3_15 -q +e20:+p3915:+prof)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +e20:+prof)
+    setupRequired(gcc v9_3_0)
+
+  Flavor     = ANY
+  Qualifiers = "e20:debug"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-debug)
+
+  Action = ExtraSetup
+    setupRequired(root v6_28_12 -q +e20:+p3915:+debug)
+    setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+debug)
+    setupRequired(pythia8 v8_3_15 -q +e20:+p3915:+debug)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +e20:+debug)
+    setupRequired(gcc v9_3_0)
+
+  Flavor     = ANY
+  Qualifiers = "e20:geant4:debug"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-geant4-debug)
+
+  Action = ExtraSetup
+    setupRequired(geant4 v4_10_6_p01g -q +e20:+debug)
+    setupRequired(root v6_28_12 -q +e20:+p3915:+debug)
+    setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+debug)
+    setupRequired(pythia8 v8_3_15 -q +e20:+p3915:+debug)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +e20:+debug)
+    setupRequired(gcc v9_3_0)
+
+  Flavor     = ANY
+  Qualifiers = "e20:inclxx:debug"
+
+  Action = defineFQ
+    envSet(GENIE_FQ_DIR, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-inclxx-debug)
+
+  Action = ExtraSetup
+    setupRequired(inclxx v5_2_9_5g -q +e20:+debug)
+    setupRequired(boost v1_82_0 -q +e20:+debug)
+    setupRequired(root v6_28_12 -q +e20:+p3915:+debug)
+    setupRequired(lhapdf v6_5_5 -q +e20:+p3915:+debug)
+    setupRequired(pythia8 v8_3_15 -q +e20:+p3915:+debug)
+    setupRequired(libxml2 v2_9_12)
+    setupRequired(log4cpp v1_1_3e -q +e20:+debug)
+    setupRequired(gcc v9_3_0)
+
+Common:
+  Action = setup
+    setupEnv()
+    prodDir()
+    exeActionRequired(defineFQ)
+    envSet(GENIE, ${GENIE_FQ_DIR}/GENIE-Generator)
+    envSet(GENIE_REWEIGHT, ${GENIE_FQ_DIR}/GENIE-Reweight)
+    envSet(GENIE_VERSION, ${UPS_PROD_VERSION})
+    # look for the include subdirectory
+    envSet(GENIE_INC, ${GENIE_FQ_DIR}/include)
+    # look for the lib subdirectory
+    envSet(GENIE_LIB, ${GENIE_FQ_DIR}/lib)
+    if ( test `uname` = "Darwin" )
+      envPrepend(DYLD_LIBRARY_PATH, ${GENIE_FQ_DIR}/lib)
+    else()
+      envPrepend(LD_LIBRARY_PATH, ${GENIE_FQ_DIR}/lib)
+    endif ( test `uname` = "Darwin" )
+    # add the bin directory to the path
+    pathPrepend(PATH, ${GENIE_FQ_DIR}/bin )
+    # useful variables
+    envPrepend(ROOT_INCLUDE_PATH, ${GENIE_INC} )
+    envPrepend(ROOT_INCLUDE_PATH, ${GENIE_INC}/GENIE )
+    envPrepend(CMAKE_PREFIX_PATH, ${GENIE_FQ_DIR} )
+    envPrepend(PKG_CONFIG_PATH, ${GENIE_FQ_DIR} )
+
+    exeActionRequired(ExtraSetup)
+End:
