@@ -1,0 +1,30 @@
+The data files in this directory are provided to make simulations with INCL/ABLA++:
+table_radius_hfb.dat - HFB density profile parameters to define the nuclei in INCL
+ 	    defo.dat - ground state deformations
+	 flalpha.dat - alpha ground state deformation
+	   frldm.dat - ground state shell corr. frldm for a spherical g.s.  
+	 mmfrldm.dat - macroscopic-microscopic finite-range liquid-drop model fission barriers
+ 	   vgsld.dat - difference between deformed g.s. and ldm value
+   	   pace2.dat - default mass for A, Z nucleus
+  	     rms.dat - Parameters for the calculation of particle emission barriers
+	mass2003.dat - Experimental mass evaluation AME2003
+	mass2012.dat - Experimental mass evaluation AME2012
+	mass2016.dat - Experimental mass evaluation AME2016
+	mass2020.dat - Experimental mass evaluation AME2020
+
+
+The data in this directory is meant to be used for INCL/ABLA++ models
+source/processes/hadronic/models/incl
+
+ACKNOWLEDGEMENTS
+
+These data files are provided with INCL++ and ABLA++.
+
+DISCLAIMER
+
+ Neither the Geant4 collaboration nor any person acting either on
+ behalf of any of them or otherwise in furtherance of the activities
+ of Geant4 as a person assumes any liabilities with respect to the use
+ of, or for damage resulting from the use of, any information, method
+ or process disclosed in the distributed material.
+

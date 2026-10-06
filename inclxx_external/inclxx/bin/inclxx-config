@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# -*- sh-indentation: 3 -*-
+#
+# This script returns the machine dependent compile options needed
+# to compile and link applications using the inclxx libraries.
+#
+# based on same concept as root-config
+#
+
+
+# we want values that are similar to what is in:
+#    build/CMakeFiles/INCLCascade.dir/flags.make
+
+CMAKE_CXX_FLAGS=" -fPIC -W -Wall -pedantic -Wno-non-virtual-dtor -Wno-long-long -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-variadic-macros -Wshadow -pipe -pthread -std=c++17 -fsigned-char"
+# CMAKE_CXX_FLAGS doesn't pick up the -O2 -g -DNDEBUG
+
+CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG"
+CMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG"
+
+INCL_COMPILE_DEFINITIONS="HAS_BOOST_DATE_TIME;HAS_BOOST_PROGRAM_OPTIONS;INCL_ROOT_USE;INCL_DEBUG_LOG;INCL_AVATAR_SEARCH_MinElement;INCL_CACHING_CLUSTERING_MODEL_INTERCOMPARISON_Set;G4ThreadLocal=;HAVE_WORDEXP;INCL_DEEXCITATION_FERMI_BREAKUP;INCL_DEEXCITATION_ABLA07;INCL_DEEXCITATION_ABLAXX;INCL_DEEXCITATION_GEMINIXX;INCL_DEEXCITATION_SMM;ABLA07_USE_USER_RNG;GEMINIXX_USE_USER_RNG;SMM_USE_USER_RNG"
+# CMake will give this as a semicolon separated list (without leading -D)
+# convert it to a set of -D flags
+INCL_DFLAGS=""
+for f in `echo ${INCL_COMPILE_DEFINITIONS} | tr ";" " "` ; do
+  # deal with trailing = --> =""
+  f2=${f/%=/=\"\"}
+  INCL_DFLAGS="${INCL_DFLAGS} -D${f2}"
+done
+#echo "converted INCL_DFLAGS=\"${INCL_DFLAGS}\""
+
+out=""
+
+# there's no CMake variable with the explicit link libraries
+# construct one base on what is enabled
+DEEXCITATION_LIBS=""
+if [ "ON" == "ON" ]; then
+  DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lDeExcitation"
+
+  if [ "ON" == "ON" ]; then
+    DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lABLA07"
+  fi
+  if [ "ON" == "ON" ]; then
+    DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lABLAXX"
+  fi
+  if [ "ON" == "ON" ]; then
+    DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lFERMI_BREAKUP"
+  fi
+  if [ "ON" == "ON" ]; then
+    DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lGEMINIXX"
+  fi
+  if [ "ON" == "ON" ]; then
+    DEEXCITATION_LIBS="${DEEXCITATION_LIBS} -lSMM"
+  fi
+
+  if [ -n "${DEEXCITATION_LIBS}" ]; then
+    DEEXECITATION_LIBS="-Wl,--start-group ${DEEXCITATION_LIBS} -Wl,--end-group"
+  fi
+fi
+
+INCL_LIBRARIES=" -lINCL_IO  -lINCL_Physics -lINCL_Utils ${DEEXECITATION_LIBS}"
+
+### Usage
+usage="\
+Usage: inclxx-config [--cflags] [--dflags] [--libs]\
+ [--help]"
+
+if test $# -eq 0; then
+   echo "${usage}" 1>&2
+   exit 1
+fi
+
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *)    optarg= ;;
+  esac
+
+  case $1 in
+    --cflags)
+      out="$out ${CMAKE_CXX_FLAGS}"
+      ;;
+    --dflags)
+      out="$out ${INCL_DFLAGS}"
+      ;;
+    --libs)
+      out="$out ${INCL_LIBRARIES}"
+      ;;
+    --help)
+      echo "${usage}" 1>&2
+      exit 1
+      ;;
+    *)
+      ### Give an error
+      echo "Unknown argument \"$1\"!" 1>&2
+      echo "${usage}" 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# output the chosen result
+echo $out
+
+# end-of-script

@@ -1,0 +1,604 @@
+/*
+ * G4INCLNucleus.hh
+ *
+ *  \date Jun 5, 2009
+ * \author Pekka Kaitaniemi
+ */
+
+#ifndef G4INCLNUCLEUS_HH_
+#define G4INCLNUCLEUS_HH_
+
+#include <list>
+#include <string>
+
+#include "G4INCLParticle.hh"
+#include "G4INCLEventInfo.hh"
+#include "G4INCLCluster.hh"
+#include "G4INCLFinalState.hh"
+#include "G4INCLStore.hh"
+#include "G4INCLGlobals.hh"
+#include "G4INCLParticleTable.hh"
+#include "G4INCLConfig.hh"
+#include "G4INCLConfigEnums.hh"
+#include "G4INCLCluster.hh"
+#include "G4INCLProjectileRemnant.hh"
+
+namespace G4INCL {
+
+  enum AnnihilationType {Def=0, PType, NType, PTypeInFlight, NTypeInFlight, NbarPTypeInFlight, NbarNTypeInFlight, DNbarNPbarPType, DNbarNPbarNType, DNbarPPbarPType, DNbarPPbarNType};
+
+  class Nucleus : public Cluster {
+  public:
+    Nucleus(int mass, int charge, int strangess, Config const * const conf, const double universeRadius=-1., AnnihilationType AType=Def);
+    virtual ~Nucleus();
+
+    /// \brief Dummy copy constructor to silence Coverity warning
+    Nucleus(const Nucleus &rhs);
+
+    /// \brief Dummy assignment operator to silence Coverity warning
+    Nucleus &operator=(const Nucleus &rhs);
+
+    AnnihilationType getAType() const;
+    void setAType(AnnihilationType type);
+
+    /**
+     * Call the Cluster method to generate the initial distribution of
+     * particles. At the beginning all particles are assigned as spectators.
+     */
+    void initializeParticles();
+
+    /// \brief Insert a new particle (e.g. a projectile) in the nucleus.
+    void insertParticle(Particle *p) {
+      theZ += p->getZ();
+      theA += p->getA();
+      theS += p->getS();
+      theStore->particleHasEntered(p);
+      if(p->isNucleon()) {
+        theNpInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
+        theNnInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+      }
+      if(p->isLambda())
+        theNlInitial++;
+      if(p->getType() == SigmaPlus)
+        theNSpInitial++;
+      if(p->getType() == SigmaZero)
+        theNSzInitial++;
+      if(p->getType() == SigmaMinus)
+        theNSmInitial++;
+
+      if(p->isPion()) {
+        theNpionplusInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
+        theNpionminusInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+      }
+      if(p->isKaon() || p->isAntiKaon()) {
+        theNkaonplusInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
+        theNkaonminusInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+      }
+      if(p->isAntiNucleon()) {
+        if (p->getZ()<0) theNantiprotonInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+        else theNantineutronInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
+      }
+      if(!p->isTargetSpectator()) theStore->getBook().incrementCascading();
+    };
+
+    /**
+     * Apply reaction final state information to the nucleus.
+     */
+    void applyFinalState(FinalState *);
+
+    int getInitialA() const { return theInitialA; };
+    int getInitialZ() const { return theInitialZ; };
+    int getInitialS() const { return theInitialS; };
+
+    /**
+     * Propagate the particles one time step.
+     *
+     * @param step length of the time step
+     */
+    void propagateParticles(double step);
+
+    int getNumberOfEnteringProtons() const { return theNpInitial; };
+    int getNumberOfEnteringNeutrons() const { return theNnInitial; };
+    int getNumberOfEnteringPions() const { return theNpionplusInitial+theNpionminusInitial; };
+    int getNumberOfEnteringKaons() const { return theNkaonplusInitial+theNkaonminusInitial; };
+    int getNumberOfEnteringantiProtons() const { return theNantiprotonInitial; };
+    int getNumberOfEnteringantiNeutrons() const { return theNantineutronInitial; };
+
+    /** \brief Outgoing - incoming separation energies.
+     *
+     * Used by CDPP.
+     */
+    double computeSeparationEnergyBalance() const {
+      double S = 0.0;
+      ParticleList const &outgoing = theStore->getOutgoingParticles();
+      for(ParticleIter i=outgoing.begin(), e=outgoing.end(); i!=e; ++i) {
+        const ParticleType t = (*i)->getType();
+        switch(t) {
+          case Proton:
+          case Neutron:
+          case DeltaPlusPlus:
+          case DeltaPlus:
+          case DeltaZero:
+          case DeltaMinus:
+          case Lambda:
+          case PiPlus:
+          case PiMinus:
+          case KPlus:
+          case KMinus:
+          case KZero:
+          case KZeroBar:
+          case KShort:
+          case KLong:
+          case SigmaPlus:
+          case SigmaZero:
+          case SigmaMinus:
+            S += thePotential->getSeparationEnergy(*i);
+            break;
+          case antiSigmaPlus:
+          case antiSigmaZero:
+          case antiSigmaMinus:
+          case antiLambda:
+          case antiProton:
+          case antiNeutron:
+            S -= thePotential->getSeparationEnergy(*i);
+            break;
+          case Composite:
+            S += (*i)->getZ() * thePotential->getSeparationEnergy(Proton)
+              + ((*i)->getA() + (*i)->getS() - (*i)->getZ()) * thePotential->getSeparationEnergy(Neutron) 
+              - (*i)->getS() * thePotential->getSeparationEnergy(Lambda);
+            break;
+          case antiComposite:
+            S -= (*i)->getZ() * thePotential->getSeparationEnergy(antiProton)
+              + ((*i)->getA() + (*i)->getS() - (*i)->getZ()) * thePotential->getSeparationEnergy(antiNeutron);
+            break;
+          default:
+            break;
+        }
+      }
+
+      S -= theNpInitial * thePotential->getSeparationEnergy(Proton);
+      S -= theNnInitial * thePotential->getSeparationEnergy(Neutron);
+      S -= theNlInitial * thePotential->getSeparationEnergy(Lambda);
+      S -= theNSpInitial * thePotential->getSeparationEnergy(SigmaPlus);
+      S -= theNSzInitial * thePotential->getSeparationEnergy(SigmaZero);
+      S -= theNSmInitial * thePotential->getSeparationEnergy(SigmaMinus);
+      S -= theNpionplusInitial*thePotential->getSeparationEnergy(PiPlus);;
+      S -= theNkaonplusInitial*thePotential->getSeparationEnergy(KPlus);
+      S -= theNpionminusInitial*thePotential->getSeparationEnergy(PiMinus);
+      S -= theNkaonminusInitial*thePotential->getSeparationEnergy(KMinus);
+      S += theNantiprotonInitial*thePotential->getSeparationEnergy(antiProton);
+      S += theNantineutronInitial*thePotential->getSeparationEnergy(antiNeutron);
+
+      return S;
+    }
+
+    /** \brief Force the decay of outgoing deltas.
+     *
+     * \return true if any delta was forced to decay.
+     */
+    bool decayOutgoingDeltas();
+
+    /** \brief Force the decay of deltas inside the nucleus.
+     *
+     * \return true if any delta was forced to decay.
+     */
+    bool decayInsideDeltas();
+    
+    /** \brief Force the transformation of strange particles into a Lambda;
+     * 
+     *  \return true if any strange particles was forced to absorb.
+     */
+    bool decayInsideStrangeParticles();
+      
+    /** \brief Force the decay of outgoing PionResonances (eta/omega).
+     *
+     * \return true if any eta was forced to decay.
+     */
+    bool decayOutgoingPionResonances(double timeThreshold);
+      
+    /** \brief Force the decay of outgoing Neutral Sigma.
+     *
+     * \return true if any Sigma was forced to decay.
+     */
+    bool decayOutgoingSigmaZero(double timeThreshold);
+      
+    /** \brief Force the transformation of outgoing Neutral Kaon into propation eigenstate.
+     *
+     * \return true if any kaon was forced to decay.
+     */
+    bool decayOutgoingNeutralKaon();
+            
+    /** \brief Force the decay of unstable outgoing clusters.
+     *
+     * \return true if any cluster was forced to decay.
+     */
+    bool decayOutgoingClusters();
+
+    /** \brief Force the phase-space decay of the Nucleus.
+     *
+     * Only applied if Z==0 or N==0.
+     *
+     * \return true if the nucleus was forced to decay.
+     */
+    bool decayMe();
+
+    /// \brief Force emission of all pions inside the nucleus.
+    void emitInsidePions();
+    
+    /// \brief Force emission of all strange particles inside the nucleus.
+    void emitInsideStrangeParticles();
+    
+    /// \brief Force emission of all Lambda (desexitation code with strangeness not implanted yet)
+    int emitInsideLambda();
+
+    /// \brief Force emission of all Antilambda
+    int emitInsideAntilambda();
+    
+    /// \brief Force emission of all Kaon inside the nucleus
+    bool emitInsideKaon();
+
+    /// \brief Force emission of all Antinucleon inside the nucleus
+    bool emitInsideAnnihilationProducts();
+
+    /** \brief Compute the recoil momentum and spin of the nucleus. */
+    void computeRecoilKinematics();
+
+    /** \brief Compute the current center-of-mass position.
+     *
+     * \return the center-of-mass position vector [fm].
+     */
+    ThreeVector computeCenterOfMass() const;
+
+    /** \brief Compute the current total energy.
+     *
+     * \return the total energy [MeV]
+     */
+    double computeTotalEnergy() const;
+
+    /** \brief Compute the current excitation energy.
+     *
+     * \return the excitation energy [MeV]
+     */
+    double computeExcitationEnergy() const;
+
+    /** \brief Set the incoming angular-momentum vector. */
+    void setIncomingAngularMomentum(const ThreeVector &j) {
+      incomingAngularMomentum = j;
+    }
+
+    /** \brief Get the incoming angular-momentum vector. */
+    const ThreeVector &getIncomingAngularMomentum() const { return incomingAngularMomentum; }
+
+    /** \brief Set the incoming momentum vector. */
+    void setIncomingMomentum(const ThreeVector &p) {
+      incomingMomentum = p;
+    }
+
+    /** \brief Get the incoming momentum vector. */
+    const ThreeVector &getIncomingMomentum() const {
+      return incomingMomentum;
+    }
+
+    /** \brief Set the initial energy. */
+    void setInitialEnergy(const double e) { initialEnergy = e; }
+
+    /** \brief Get the initial energy. */
+    double getInitialEnergy() const { return initialEnergy; }
+
+    /** \brief Get the excitation energy of the nucleus.
+     *
+     * Method computeRecoilKinematics() should be called first.
+     */
+    double getExcitationEnergy() const { return theExcitationEnergy; }
+
+    ///\brief Returns true if the nucleus contains any deltas.
+    inline bool containsDeltas() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isDelta()) return true;
+      return false;
+    }
+    
+    ///\brief Returns true if the nucleus contains any anti Kaons.
+    inline bool containsAntiKaon() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isAntiKaon()) return true;
+      return false;
+    }
+    
+    ///\brief Returns true if the nucleus contains any Lambda.
+    inline bool containsLambda() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isLambda()) return true;
+      return false;
+    }
+
+    ///\brief Returns true if the nucleus contains any Antilambda.
+    inline bool containsAntilambda() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isAntiLambda()) return true;
+      return false;
+    }
+    
+    ///\brief Returns true if the nucleus contains any Sigma.
+    inline bool containsSigma() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isSigma()) return true;
+      return false;
+    }
+    
+    ///\brief Returns true if the nucleus contains any Kaons.
+    inline bool containsKaon() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isKaon()) return true;
+      return false;
+    }
+
+    ///\brief Returns true if the nucleus contains any Antinucleons.
+    inline bool containsAntinucleon() {
+    ParticleList const &inside = theStore->getParticles();
+    for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+      if((*i)->isAntiNucleon()) return true;
+    return false;
+    }
+      
+      ///\brief Returns true if the nucleus contains any etas.
+      inline bool containsEtas() {
+          ParticleList const &inside = theStore->getParticles();
+          for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+              if((*i)->isEta()) return true;
+          return false;
+      }
+      
+      ///\brief Returns true if the nucleus contains any omegas.
+      inline bool containsOmegas() {
+          ParticleList const &inside = theStore->getParticles();
+          for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+              if((*i)->isOmega()) return true;
+          return false;
+      }
+
+      ///\brief Resets the src partners.
+      inline void resetSrc(){
+          ParticleList const &inside = theStore->getParticles();
+          for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+              (*i)->resetSrcPartner();
+      }
+      
+      inline void setSrcInternalEnergy(double value){
+      
+      srcInternalEnergy = value;
+          
+      }
+      
+      inline void updateInternalEnergy(double value){
+      
+      initialInternalEnergy += value;
+          
+      }
+      
+      double getSrcInternalEnergy() const {
+      
+      return srcInternalEnergy;
+          
+      }      
+
+      
+    /**
+     * Print the nucleus info
+     */
+    std::string print();
+
+    Store* getStore() const {return theStore; };
+    void setStore(Store *str) {
+      delete theStore;
+      theStore = str;
+    };
+
+    double getInitialInternalEnergy() const { return initialInternalEnergy; };
+
+    /** \brief Is the event transparent?
+     *
+     * To be called at the end of the cascade.
+     **/
+    bool isEventTransparent() const;
+
+    /** \brief Does the nucleus give a cascade remnant?
+     *
+     * To be called after computeRecoilKinematics().
+     **/
+    bool hasRemnant() const { return remnant; }
+
+    /**
+     * Fill the event info which contains INCL output data
+     */
+    void fillEventInfo(EventInfo *eventInfo);
+
+    bool getTryCompoundNucleus() { return tryCN; }
+
+    /// \brief Get the transmission barrier
+    double getTransmissionBarrier(Particle const * const p) {
+      const double theTransmissionRadius = theDensity->getTransmissionRadius(p);
+      const double theParticleZ = p->getZ();
+      return PhysicalConstants::eSquared*(theZ-theParticleZ)*theParticleZ/theTransmissionRadius;
+    }
+
+    /// \brief Struct for conservation laws
+    struct ConservationBalance {
+      ThreeVector momentum;
+      double energy;
+      int Z, A, S;
+    };
+    
+    void restoreSrcPartner(Particle *particle, ThreeVector m);
+
+    /// \brief Compute charge, mass, energy and momentum balance
+    ConservationBalance getConservationBalance(EventInfo const &theEventInfo, const bool afterRecoil) const;
+
+    /// \brief Adjust the kinematics for complete-fusion events
+    void useFusionKinematics();
+
+    /** \brief Get the maximum allowed radius for a given particle.
+     *
+     * Calls the NuclearDensity::getMaxRFromP() method for nucleons and deltas,
+     * and the NuclearDensity::getTrasmissionRadius() method for pions.
+     *
+     * \param particle pointer to a particle
+     * \return surface radius
+     */
+    double getSurfaceRadius(Particle const * const particle) const {
+      if(particle->isNucleon() || particle->isLambda() || particle->isResonance()){
+        const double pr = particle->getReflectionMomentum()/thePotential->getFermiMomentum(particle);
+        if(pr>=1.)
+          return getUniverseRadius();
+        else
+          return theDensity->getMaxRFromP(particle->getType(), pr);
+	    }
+      else {
+        // Temporarily set RPION = RMAX
+        return getUniverseRadius();
+        //return 0.5*(theDensity->getTransmissionRadius(particle)+getUniverseRadius());
+      }
+    }
+
+    /// \brief Getter for theUniverseRadius.
+    double getUniverseRadius() const { return theUniverseRadius; }
+
+    /// \brief Setter for theUniverseRadius.
+    void setUniverseRadius(const double universeRadius) { theUniverseRadius=universeRadius; }
+
+    /// \brief Is it a nucleus-nucleus collision?
+    bool isNucleusNucleusCollision() const { return isNucleusNucleus; }
+
+    /// \brief Set a nucleus-nucleus collision
+    void setNucleusNucleusCollision() { isNucleusNucleus=true; }
+
+    /// \brief Set a particle-nucleus collision
+    void setParticleNucleusCollision() { isNucleusNucleus=false; }
+
+    /// \brief Set the projectile remnant
+    void setProjectileRemnant(ProjectileRemnant * const c) {
+      delete theProjectileRemnant;
+      theProjectileRemnant = c;
+    }
+
+    /// \brief Get the projectile remnant
+    ProjectileRemnant *getProjectileRemnant() const { return theProjectileRemnant; }
+
+    /// \brief Delete the projectile remnant
+    void deleteProjectileRemnant() {
+      delete theProjectileRemnant;
+      theProjectileRemnant = NULL;
+    }
+
+    /** \brief Finalise the projectile remnant
+     *
+     * Complete the treatment of the projectile remnant. If it contains
+     * nucleons, assign its excitation energy and spin. Move stuff to the
+     * outgoing list, if appropriate.
+     *
+     * \param emissionTime the emission time of the projectile remnant
+     */
+    void finalizeProjectileRemnant(const double emissionTime);
+
+    /// \brief Update the particle potential energy.
+    inline void updatePotentialEnergy(Particle *p) const {
+      p->setPotentialEnergy(thePotential->computePotentialEnergy(p));
+    }
+
+    /// \brief Setter for theDensity
+    void setDensity(NuclearDensity const * const d) {
+      theDensity=d;
+      if(theParticleSampler)
+        theParticleSampler->setDensity(theDensity);
+    };
+
+    /// \brief Getter for theDensity
+    NuclearDensity const *getDensity() const { return theDensity; };
+
+    /// \brief Getter for thePotential
+    NuclearPotential::INuclearPotential const *getPotential() const { return thePotential; };
+
+    /// \brief Getter for theAnnihilationType
+    AnnihilationType getAnnihilationType() const { return theAType; }; //D
+
+    /// \brief Setter for theAnnihilationType
+    void setAnnihilationType(const AnnihilationType at){
+      theAType = at;
+    }; //D
+
+  private:
+    /** \brief Compute the recoil kinematics for a 1-nucleon remnant.
+     *
+     * Puts the remnant nucleon on mass shell and tries to enforce approximate
+     * energy conservation by modifying the masses of the outgoing particles.
+     */
+    void computeOneNucleonRecoilKinematics();
+
+  private:
+
+    int theInitialZ, theInitialA, theInitialS;
+    /// \brief The number of entering protons
+    int theNpInitial;
+    /// \brief The number of entering neutrons
+    int theNnInitial;
+    /// \brief The number of entering hyperons
+    int theNlInitial;
+    int theNSpInitial;
+    int theNSzInitial;
+    int theNSmInitial;
+    /// \brief The number of entering pions
+    int theNpionplusInitial;
+    int theNpionminusInitial;
+    /// \brief The number of entering kaons
+    int theNkaonplusInitial;
+    int theNkaonminusInitial;
+    /// \brief The number of entering antiprotons
+    int theNantiprotonInitial;
+    /// \brief The number of entering antineutrons
+    int theNantineutronInitial;
+    
+    double initialInternalEnergy;
+    double srcInternalEnergy;
+    ThreeVector incomingAngularMomentum, incomingMomentum;
+    ThreeVector initialCenterOfMass;
+    bool remnant;
+
+    double initialEnergy;
+    Store *theStore;
+    bool tryCN;
+  
+    /// \brief The radius of the universe
+    double theUniverseRadius;
+
+    /** \brief true if running a nucleus-nucleus collision
+     *
+     * Tells INCL whether to make a projectile-like pre-fragment or not.
+     */
+    bool isNucleusNucleus;
+
+    /** \brief Pointer to the quasi-projectile
+     *
+     * Owned by the Nucleus object.
+     */
+    ProjectileRemnant *theProjectileRemnant;
+
+    /// \brief Pointer to the NuclearDensity object
+    NuclearDensity const *theDensity;
+
+    /// \brief Pointer to the NuclearPotential object
+    NuclearPotential::INuclearPotential const *thePotential;
+
+    AnnihilationType theAType; //D same order as in the cc
+
+    INCL_DECLARE_ALLOCATION_POOL(Nucleus)
+  };
+
+}
+
+#endif /* G4INCLNUCLEUS_HH_ */

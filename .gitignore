@@ -18,3 +18,8 @@ tobeignored/
 subnpnh/
 originals/
 input-flux.root
+
+# INCL++ binary external (inclxx_external/README.md): its bin/ and lib/ ARE tracked
+!/inclxx_external/inclxx/bin/
+!/inclxx_external/inclxx/lib/
+/inclxx_external/work/
