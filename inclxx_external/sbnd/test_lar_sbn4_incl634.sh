@@ -26,10 +26,10 @@ XSEC_QUAL=${XSEC_QUAL:-INCL2609a00000:k250:e1000}
 FCL=${FCL:-/exp/sbnd/data/users/liangliu/genie_incl_package/prodgenie_incl26_rockbox_sbnd.fcl}
 NEV=${NEV:-1}
 
-echo "===== $(date) : lar test of genie ${GENIE_VERSION} -q ${GENIE_QUAL} from ${PROD} ====="
+echo "===== $(date) : lar test of genie ${PKG_VERSION} -q ${PKG_QUAL} from ${PROD} ====="
 setup_sbnd_no_genie
 export PRODUCTS=${PROD}:${PRODUCTS}
-setup genie ${GENIE_VERSION} -q ${GENIE_QUAL} || fail "setup genie"
+setup genie ${PKG_VERSION} -q ${PKG_QUAL} || fail "setup genie"
 setup genie_xsec v3_06_00 -q ${XSEC_QUAL} -z ${XSEC_PROD} || fail "setup genie_xsec"
 ups active | grep -E "^genie|^sbndcode|^nugen|^geant4 "
 echo "GENIE=${GENIE}"; echo "INCLXX_DIR=${INCLXX_DIR}"; echo "GENIE_XSEC_TUNE=${GENIE_XSEC_TUNE}"
@@ -52,4 +52,4 @@ echo "    $(date) : lar rc=${rc}"
 grep -E "Tune configured|HadronTransp-Model|TrigReport Events total|Art has completed" lar.log | sort | uniq -c | sort -rn | head -8
 [ ${rc} = 0 ] || { tail -30 lar.log; fail "lar rc=${rc} (see ${RUN}/lar.log)"; }
 ls -lh *.root
-echo "RESULT: PASS -- lar GENIEGen job ran with genie ${GENIE_VERSION} -q ${GENIE_QUAL}"
+echo "RESULT: PASS -- lar GENIEGen job ran with genie ${PKG_VERSION} -q ${PKG_QUAL}"

@@ -5,9 +5,10 @@
 #   SL7_IMAGE         SL7 container image
 SBNDCODE_VERSION=${SBNDCODE_VERSION:-v10_14_02_05}
 SL7_IMAGE=${SL7_IMAGE:-/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-dev-sl7:jsl}
-GENIE_VERSION=v3_06_02_sbn4
-GENIE_QUAL=e26:incl634:prof
-GENIE_TARBALL=genie-3.06.02.sbn4-sl7-x86_64-e26-incl634-prof.tar.bz2
+# (not GENIE_VERSION etc.: 'unsetup genie' unsets the variables of genie.table)
+PKG_VERSION=v3_06_02_sbn4
+PKG_QUAL=e26:incl634:prof
+PKG_TARBALL=genie-3.06.02.sbn4-sl7-x86_64-e26-incl634-prof.tar.bz2
 
 fail() { echo "RESULT: FAIL -- $*"; exit 1; }
 
