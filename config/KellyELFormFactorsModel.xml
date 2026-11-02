@@ -5,7 +5,6 @@
 <!--
 Configuration for the Kelly elastic form factors model
 
-Form factors based on J.J. Kelly, Phys.Rev.C 70 (2004) 068202
     Form factors based on J.J. Kelly, Phys.Rev.C 70 (2004) 068202
 
     G(Q^2) \propto \frac{\sum_{k=0}^{n} a_k \tau^k}{1 + \sum_{k=1}^{n+2} b_k \tau^k}
@@ -16,9 +15,8 @@ Form factors based on J.J. Kelly, Phys.Rev.C 70 (2004) 068202
 
 Configurable Parameters:
 .........................................................................................
-Name        Type    Optional   Comment                      Default
-.........................................................................................
-.........................................................................................
+Name         Type    Optional   Comment                      Default
+    .........................................................................................
 Kelly-Gep-a0 double  No         coefficient                  -
 Kelly-Gep-a1 double  No         coefficient                  -
 Kelly-Gep-a2 double  No         coefficient                  -
