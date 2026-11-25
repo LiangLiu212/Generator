@@ -256,7 +256,11 @@ void INCLNucleus::reset(const Target * tgt){
   // initialize the target
   // reset the nucleus
   if(propagationModel_){
+    // StandardPropagationModel owns the nucleus set via setNucleus() and deletes it
+    // in its destructor: forget nucleus_ so initialize() does not delete it again.
     delete propagationModel_;
+    propagationModel_ = nullptr;
+    nucleus_ = nullptr;
   }
   this->initialize(tgt);
 
