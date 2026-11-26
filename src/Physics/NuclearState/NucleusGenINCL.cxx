@@ -460,15 +460,26 @@ void NucleusGenINCL::LoadConfig(void)
   LOG("NucleusGenINCL", pINFO) << this->expandEnvironmentPath(geminixxpath);
 
   std::string deExType;
-  G4INCL::DeExcitationType deExcitationType = G4INCL::DeExcitationABLA07;
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  // The INCL++ inside Geant4 is built without de-excitation: its G4INCL::DeExcitationType has
+  // no ABLA07 / ABLAXX / GEMINIXX enumerators. The code is identified by its name instead and
+  // run through the INCLXXDeEx external (see INCLNucleus::setDeExcitationModel).
+  typedef std::string DeExcitationChoice;
+  const DeExcitationChoice kDeExABLA07 = "ABLA07", kDeExABLAXX = "ABLAXX", kDeExGEMINIXX = "GEMINIXX";
+#else
+  typedef G4INCL::DeExcitationType DeExcitationChoice;
+  const DeExcitationChoice kDeExABLA07 = G4INCL::DeExcitationABLA07, kDeExABLAXX = G4INCL::DeExcitationABLAXX,
+                           kDeExGEMINIXX = G4INCL::DeExcitationGEMINIXX;
+#endif
+  DeExcitationChoice deExcitationType = kDeExABLA07;
   GetParamDef( "inclxx-de-excitation", deExType, std::string(""));
   LOG("NucleusGenINCL", pINFO) << "inclxx-de-excitation : " << deExType;
   if(!deExType.compare("ABLA07")){
-    deExcitationType = G4INCL::DeExcitationABLA07;
+    deExcitationType = kDeExABLA07;
   } else if(!deExType.compare("ABLAXX")) {
-    deExcitationType = G4INCL::DeExcitationABLAXX;
+    deExcitationType = kDeExABLAXX;
   } else if(!deExType.compare("GEMINIXX")) {
-    deExcitationType = G4INCL::DeExcitationGEMINIXX;
+    deExcitationType = kDeExGEMINIXX;
   } else {
     std::stringstream ss;
     ss<< "########################################################\n"
@@ -574,7 +585,11 @@ void NucleusGenINCL::LoadConfig(void)
   incl_nucleus->setABLAXXDataFilePath(this->expandEnvironmentPath(ablaxxpath));
   incl_nucleus->setABLA07DataFilePath(this->expandEnvironmentPath(abla07path));
   incl_nucleus->setGEMINIXXDataFilePath(this->expandEnvironmentPath(geminixxpath));
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  incl_nucleus->setDeExcitationModel(deExcitationType);
+#else
   incl_nucleus->setDeExcitationType(deExcitationType);
+#endif
   incl_nucleus->setPotentialType(potentialType);
   incl_nucleus->setPauliType(pauliType);
   incl_nucleus->setPauliString(pauliString);

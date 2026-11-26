@@ -73,6 +73,10 @@
 #include "G4INCLParticleTable.hh"
 #include "G4INCLKinematicsUtils.hh"
 
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
+// The headers in this block exist only in INCL++ standalone (signal handling, event output,
+// de-excitation interface); the INCL++ shipped with Geant4 has none of them.
+
 // signal handler (for Linux and GCC)
 #include "G4INCLSignalHandling.hh"
 
@@ -83,12 +87,15 @@
 #include "INCLTree.hh"
 #include "ROOTWriter.hh"
 #include "HDF5Writer.hh"
+#endif
 
 // For configuration
 #include "G4INCLConfig.hh"
 
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
 // Generic de-excitation interface
 #include "G4INCLIDeExcitation.hh"
+#endif
 
 // ABLA v3p de-excitation
 #ifdef INCL_DEEXCITATION_ABLAXX
@@ -117,6 +124,26 @@
 
 // INCL++
 #include "G4INCLConfigEnums.hh"
+
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+// INCL++ from Geant4: Pauli blockers (installed directly, see installPauliBlocker) and the
+// Geant4 services INCL++ uses in that case (particle and ion tables, random engine, data sets)
+#include "G4INCLPauliStrictStandard.hh"
+#include "G4INCLPauliStandard.hh"
+#include "G4INCLPauliStrict.hh"
+#include "G4INCLPauliGlobal.hh"
+#include "G4LeptonConstructor.hh"
+#include "G4MesonConstructor.hh"
+#include "G4BaryonConstructor.hh"
+#include "G4BosonConstructor.hh"
+#include "G4IonConstructor.hh"
+#include "G4ShortLivedConstructor.hh"
+#include "G4ParticleTable.hh"
+#include "G4GenericIon.hh"
+#include "G4EnvironmentUtils.hh"   // G4FindDataDir
+#include "Randomize.hh"
+#include <stdexcept>
+#endif
 
 
 using std::cout;
@@ -160,20 +187,41 @@ INCLNucleus * INCLNucleus::Instance()
 
 void INCLNucleus::configure(){
 
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  // Particle tables, random numbers and data sets of Geant4, before INCL++ is initialised below
+  this->initGeant4();
+#endif
+
   theConfig_->init();
   theConfig_->setINCLXXDataFilePath(INCLXXDataFilePath_);
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  // Geant4's G4INCL::Config has no de-excitation members: these settings go to the INCLXXDeEx
+  // external. Everything not set here keeps the default of INCL++ standalone (ABLA++
+  // parameters, Fermi break-up limits).
+  deExcitationSettings_ = inclxxdeex::Settings();
+  deExcitationSettings_.ablaxxDataFilePath   = ablaxxDataFilePath_;
+  deExcitationSettings_.abla07DataFilePath   = abla07DataFilePath_;
+  deExcitationSettings_.geminixxDataFilePath = geminixxDataFilePath_;
+#else
   theConfig_->setABLAXXDataFilePath(ablaxxDataFilePath_);
   theConfig_->setcABLA07DataFilePath(abla07DataFilePath_);
   theConfig_->setGEMINIXXDataFilePath(geminixxDataFilePath_);
   theConfig_->setDeExcitationType(deExcitationType_);
+#endif
   theConfig_->setPotentialType(potentialType_);
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
+  // (no such setters in Geant4's Config: the Pauli type is applied by installPauliBlocker()
+  //  below, and the two strings are labels that no INCL++ code reads)
   theConfig_->setPauliType(pauliType_);
   theConfig_->setPauliString(pauliString_);
+#endif
   theConfig_->setLocalEnergyBBType(localEnergyTypeBB_);
   theConfig_->setLocalEnergyPiType(localEnergyTypePi_);
   theConfig_->setHadronizationTime(hadronizationTime_);
   theConfig_->setClusterAlgorithm(clusterAlgorithmType_);
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
   theConfig_->setClusterAlgorithmString(clusterAlgorithmString_);
+#endif
   //theConfig_->setsrcPairConfig(true);
   std::cout << "DEBUG: " << __FILE__ << ":" << __LINE__ << " clasuter algorithm: " <<  clusterAlgorithmString_ << "  " << clusterAlgorithmType_ << std::endl;
 
@@ -186,6 +234,9 @@ void INCLNucleus::configure(){
   G4INCL::Random::initialize(theConfig_);
   // Select the Pauli and CDPP blocking algorithms
   G4INCL::Pauli::initialize(theConfig_);
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  this->installPauliBlocker();
+#endif
   // Set the cross-section set
   G4INCL::CrossSections::initialize(theConfig_);
   // Set the phase-space generator
@@ -203,6 +254,77 @@ void INCLNucleus::configure(){
 
 
 }
+
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+//____________________________________________________________________________
+void INCLNucleus::initGeant4(){
+  // The INCL++ inside Geant4 takes particle masses from Geant4's particle table, nuclear masses
+  // from its ion table, random numbers from its engine and its own tables from the G4INCL
+  // data set. None of this needs a G4RunManager; it is set up once.
+  static bool initialised = false;
+  if(initialised) return;
+  initialised = true;
+
+  if(!G4FindDataDir("G4INCLDATA")){
+    LOG("INCLNucleus", pFATAL)
+      << "Geant4's INCL++ data set (G4INCL) was not found: neither G4INCLDATA nor GEANT4_DATA_DIR "
+      << "points to it (source <Geant4 prefix>/bin/geant4.sh before running GENIE)";
+    exit(1);
+  }
+
+  G4LeptonConstructor::ConstructParticle();
+  G4MesonConstructor::ConstructParticle();
+  G4BaryonConstructor::ConstructParticle();
+  G4BosonConstructor::ConstructParticle();
+  G4IonConstructor::ConstructParticle();
+  // INCL++ looks up the omega meson, which Geant4 creates with its short-lived particles
+  G4ShortLivedConstructor shortLived;
+  shortLived.ConstructParticle();
+  G4ParticleTable::GetParticleTable()->SetReadiness(true);
+  G4GenericIon::Definition();
+
+  // In Geant4, INCL++ and the de-excitation codes draw their random numbers from Geant4's
+  // engine; tie that stream to the GENIE seed.
+  const long seed = RandomGen::Instance()->GetSeed();
+  G4Random::setTheSeed(seed);
+  LOG("INCLNucleus", pNOTICE)
+    << "INCL++ from Geant4: particle tables constructed, Geant4 random engine seeded with the GENIE seed " << seed
+    << "; de-excitation through INCLXXDeEx " << inclxxdeex::version()
+    << " (INCL++ source: " << inclxxdeex::inclxxSourceId() << ")";
+}
+//____________________________________________________________________________
+void INCLNucleus::setDeExcitationModel(const std::string & name){
+  inclxxdeex::Model model = inclxxdeex::Model::None;
+  try {
+    model = inclxxdeex::modelFromName(name);
+  }
+  catch(const std::invalid_argument & e){
+    LOG("INCLNucleus", pFATAL) << e.what();
+    exit(1);
+  }
+  if(!inclxxdeex::isAvailable(model)){
+    LOG("INCLNucleus", pFATAL)
+      << "The de-excitation code " << name << " was not built into the INCLXXDeEx library in use";
+    exit(1);
+  }
+  deExcitationModel_ = model;
+}
+//____________________________________________________________________________
+void INCLNucleus::installPauliBlocker(){
+  // G4INCL::Pauli::initialize(config) installs the blocker of config->getPauliType(), which
+  // in Geant4's Config cannot be changed from its default. Replace it, when the GENIE
+  // configuration asks for another type, by the same choice Pauli::initialize would make.
+  if(pauliType_ == theConfig_->getPauliType()) return;
+  delete G4INCL::Pauli::getBlocker();
+  switch(pauliType_){
+    case G4INCL::StrictStatisticalPauli: G4INCL::Pauli::setBlocker(new G4INCL::PauliStrictStandard); break;
+    case G4INCL::StatisticalPauli:       G4INCL::Pauli::setBlocker(new G4INCL::PauliStandard);       break;
+    case G4INCL::StrictPauli:            G4INCL::Pauli::setBlocker(new G4INCL::PauliStrict);         break;
+    case G4INCL::GlobalPauli:            G4INCL::Pauli::setBlocker(new G4INCL::PauliGlobal);         break;
+    case G4INCL::NoPauli:                G4INCL::Pauli::setBlocker(NULL);                            break;
+  }
+}
+#endif
 
 void INCLNucleus::initialize(const Target * tgt){
 

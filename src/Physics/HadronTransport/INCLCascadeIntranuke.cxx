@@ -18,8 +18,10 @@
 #include "G4INCLCascade.hh"
 #include "G4INCLConfigEnums.hh"
 #include "G4INCLParticle.hh"
-// signal handler (for Linux and GCC)
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
+// signal handler (for Linux and GCC); INCL++ standalone only
 #include "G4INCLSignalHandling.hh"
+#endif
 
 
 #include "G4INCLPauliBlocking.hh"
@@ -43,8 +45,13 @@
 #include "Framework/ParticleData/PDGLibrary.h"
 #include "Physics/NuclearState/NucleusGenI.h"
 
+// With INCL++ from Geant4 (__GENIE_INCL_GEANT4_ENABLED__) the de-excitation codes are reached
+// through the INCLXXDeEx external (header included by INCLNucleus.h); the INCL++ standalone
+// interface classes below do not exist there.
+#ifndef __GENIE_INCL_GEANT4_ENABLED__
 // Generic de-excitation interface
 #include "G4INCLIDeExcitation.hh"
+#endif
 
 // ABLA v3p de-excitation
 #ifdef INCL_DEEXCITATION_ABLAXX
@@ -183,6 +190,10 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 
   // initialize INCL model
   theINCLModel = new G4INCL::INCL(theConfig);
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  // the INCL constructor runs G4INCL::Pauli::initialize(theConfig) again
+  incl_nucleus->installPauliBlocker();
+#endif
   G4INCL::EventInfo result;
   // process INCL event
   result = theINCLModel->processEvent();
@@ -229,6 +240,19 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
 
     // running de-excitation model
 
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+    // INCL++ from Geant4: the same INCL++ standalone codes, through the INCLXXDeEx external.
+    // As below, one object per event: the codes read the target from the Config when built.
+    if(incl_nucleus->getDeExcitationModel() == inclxxdeex::Model::None){
+      LOG("INCLCascadeIntranuke", pERROR) << "No set up for de-excitation after INCL FSI!!!";
+      exit(1);
+    }
+    {
+      inclxxdeex::DeExcitation theDeExcitation(incl_nucleus->getDeExcitationModel(), *theConfig,
+                                               incl_nucleus->getDeExcitationSettings());
+      theDeExcitation.deExcite(&result);
+    }
+#else
     switch(theConfig->getDeExcitationType()){
       case G4INCL::DeExcitationABLAXX:
         {
@@ -254,6 +278,7 @@ int INCLCascadeIntranuke::doCascade(GHepRecord * evrec) const {
           exit(1);
         }
     }
+#endif
 
     // add final states from de-excitation to GHEP Event Record
     for(int i=n_outgoing; i<result.nParticles; ++i) {
@@ -411,6 +436,19 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
 
 
   // processing the deexcitation
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+  // INCL++ from Geant4: the same INCL++ standalone codes, through the INCLXXDeEx external.
+  // As below, one object per event: the codes read the target from the Config when built.
+  if(incl_nucleus->getDeExcitationModel() == inclxxdeex::Model::None){
+    LOG("INCLCascadeIntranuke", pERROR) << "No set up for de-excitation after INCL FSI!!!";
+    exit(1);
+  }
+  {
+    inclxxdeex::DeExcitation theDeExcitation(incl_nucleus->getDeExcitationModel(), *theConfig,
+                                             incl_nucleus->getDeExcitationSettings());
+    theDeExcitation.deExcite(&theEventInfo);
+  }
+#else
   switch(theConfig->getDeExcitationType()){
     case G4INCL::DeExcitationABLAXX:
       {
@@ -436,6 +474,7 @@ void INCLCascadeIntranuke::ProcessEventRecord(GHepRecord * evrec)  const {
         exit(1);
       }
   }
+#endif
 
   // particle from de-excitation
   const int remnant_id = evrec->GetEntries() - 1;

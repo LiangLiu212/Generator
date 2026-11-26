@@ -128,6 +128,13 @@ if(@nret>0)
       { print GBLD   "#define __GENIE_INCL_ENABLED__\n"; }
 else  { print GBLD "//#define __GENIE_INCL_ENABLED__\n"; }
 
+# INCL++ taken from Geant4 (with the INCL++ de-excitation codes from the INCLXXDeEx external)?
+#
+@nret = `grep 'GOPT_ENABLE_INCL_GEANT4=YES' $GCONF_FILE`;
+if(@nret>0)
+      { print GBLD   "#define __GENIE_INCL_GEANT4_ENABLED__\n"; }
+else  { print GBLD "//#define __GENIE_INCL_GEANT4_ENABLED__\n"; }
+
 # Geant4 enabled?
 #
 @nret = `grep 'GOPT_ENABLE_GEANT4_INTERFACE=YES' $GCONF_FILE`;

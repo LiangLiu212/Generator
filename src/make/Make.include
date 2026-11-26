@@ -175,6 +175,22 @@ INCL_LIBRARIES =
 INCL_INCLUDES  =
 
 ifeq ($(strip $(GOPT_ENABLE_INCL)),YES)
+ifeq ($(strip $(GOPT_ENABLE_INCL_GEANT4)),YES)
+
+# INCL++ as shipped inside Geant4 (--enable-incl-geant4). The INCL++ headers are Geant4's and
+# must be compiled exactly as Geant4 compiled them: none of the INCL++ standalone switches
+# (INCL_ROOT_USE, INCL_DEEXCITATION_*, ...) may be defined, they change the layout of
+# G4INCL::Config. The INCL++ de-excitation codes come from the INCLXXDeEx external.
+INCL_G4CONFIG  := $(GOPT_WITH_GEANT4_LIB)/../bin/geant4-config
+INCL_G4CFLAGS  := $(shell $(INCL_G4CONFIG) --cflags-without-gui )
+INCL_INCLUDES  := $(shell $(GOPT_WITH_INCL_DEEX)/bin/inclxx-deex-config --cflags ) $(filter -I%,$(INCL_G4CFLAGS))
+INCL_DFLAGS    := $(filter -D%,$(INCL_G4CFLAGS))
+# geant4-config lists every Geant4 library; --as-needed keeps only the ones actually used
+# (the one holding INCL++, particles, global, CLHEP) as dependencies of the GENIE libraries.
+INCL_LIBRARIES := $(shell $(GOPT_WITH_INCL_DEEX)/bin/inclxx-deex-config --libs ) \
+                  -Wl,--as-needed $(shell $(INCL_G4CONFIG) --libs-without-gui ) -Wl,--no-as-needed
+
+else
 
 INCL_INCLUDES  = -I$(GOPT_WITH_INCL_INC) -I$(GOPT_WITH_BOOST_INC)
 INCL_DFLAGS    = $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --dflags )
@@ -183,6 +199,7 @@ INCL_LIBRARIES = -L$(GOPT_WITH_INCL_LIB)  $(shell $(GOPT_WITH_INCL_LIB)/../bin/i
 BOOST_LIBRARIES = -L$(GOPT_WITH_BOOST_LIB) -lboost_program_options -lboost_timer -lboost_date_time
 INCL_LIBRARIES := $(BOOST_LIBRARIES) $(FORT_LIBRARIES) $(INCL_LIBRARIES)
 
+endif
 endif
 
 #-------------------------------------------------------------------

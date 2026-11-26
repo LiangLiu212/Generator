@@ -21,6 +21,7 @@ if(($match = grep(/--help/i, @ARGV)) > 0) {
   print "    pythia8              Use the PYTHIA8 MC generator                                default: enabled  \n";
   print "    rw-2018              Use INTRANUKE 2018 for reweighting instead of 2025          default: enabled  \n";
   print "    incl                 Interface with INCL++ for nuclear transport                 default: disabled \n";
+  print "    incl-geant4          Take INCL++ from Geant4 (implies incl; needs incl-deex)     default: disabled \n";
   print "    geant4               Interface with Geant4 for nuclear transport                 default: disabled \n";
   print "    lhapdf5              Use the LHAPDF5 parton density function library             default: enabled  \n";
   print "    lhapdf6              Use the LHAPDF6 parton density function library             default: disabled \n";
@@ -61,8 +62,9 @@ if(($match = grep(/--help/i, @ARGV)) > 0) {
   print "    pythia8-lib       PYTHIA8 libraries path       needed if you --enable-pythia8      (if unset: checks for a \$PYTHIA8_LIB env.var.. then tries to auto-detect it) \n";
   print "    incl-inc          INCL++ includes path         needed if you --enable-incl         (if unset: tries to auto-detect it) \n";
   print "    incl-lib          INCL++ library path          needed if you --enable-incl         (if unset: tries to auto-detect it) \n";
+  print "    incl-deex         INCLXXDeEx install prefix    needed if you --enable-incl-geant4  (the INCL++ de-excitation codes; has bin/inclxx-deex-config) \n";
   print "    geant4-inc        Geant4 includes path         needed if you --enable-geant4       (if unset: checks for a \$GEANT4_INC env.var.. then tries to auto-detect it) \n";
-  print "    geant4-lib        Geant4 library path          needed if you --enable-geant4       (if unset: checks for a \$GEANT4_LIB env.var.. then tries to auto-detect it) \n";
+  print "    geant4-lib        Geant4 library path          needed if you --enable-geant4 or --enable-incl-geant4 (if unset: checks for a \$GEANT4_LIB env.var.. then tries to auto-detect it) \n";
   print "    lhapdf5-inc       LHAPDF5 includes path        needed if you --enable-lhapdf5      (if unset: checks for a \$LHAPDF5_INC env.var., then tries to auto-detect it) \n";
   print "    lhapdf5-lib       LHAPDF5 libraries path       needed if you --enable-lhapdf5      (if unset: checks for a \$LHAPDF5_LIB env.var.. then tries to auto-detect it) \n";
   print "    lhapdf6-inc       LHAPDF6 includes path        needed if you --enable-lhapdf6      (if unset: checks for a \$LHAPDF6_INC env.var., then tries to auto-detect it) \n";
@@ -173,6 +175,7 @@ my $gopt_enable_hnl_validation       = "NO";
 my $gopt_enable_dark_neutrino        = "NO";
 my $gopt_enable_evtlib               = "NO";
 my $gopt_enable_incl                 = "NO";
+my $gopt_enable_incl_geant4          = "NO";
 my $gopt_enable_geant4_interface     = "NO";
 my $gopt_enable_masterclass          = "NO";
 my $gopt_enable_test                 = "NO";
@@ -214,6 +217,8 @@ if(($match = grep(/--enable-hnl-validation/i,       @ARGV)) > 0) { $gopt_enable_
 if(($match = grep(/--enable-dark-neutrino/i,        @ARGV)) > 0) { $gopt_enable_dark_neutrino        = "YES"; }
 if(($match = grep(/--enable-event-library/i,        @ARGV)) > 0) { $gopt_enable_evtlib               = "YES"; }
 if(($match = grep(/--enable-incl/i,                 @ARGV)) > 0) { $gopt_enable_incl                 = "YES"; }
+# INCL++ as shipped inside Geant4, with the INCL++ de-excitation codes from the INCLXXDeEx external
+if(($match = grep(/--enable-incl-geant4/i,          @ARGV)) > 0) { $gopt_enable_incl_geant4          = "YES"; $gopt_enable_incl = "YES"; }
 if(($match = grep(/--enable-geant4/i,               @ARGV)) > 0) { $gopt_enable_geant4_interface     = "YES"; }
 if(($match = grep(/--enable-masterclass/i,          @ARGV)) > 0) { $gopt_enable_masterclass          = "YES"; }
 if(($match = grep(/--enable-test/i,                 @ARGV)) > 0) { $gopt_enable_test                 = "YES"; }
@@ -761,8 +766,9 @@ if(! -d $gopt_with_log4cpp_lib) {
 # ------------------------------------------------
 
 # If --enable-incl was set then the full path to the INCL library must be specified
+# (INCL++ standalone; with --enable-incl-geant4 INCL++ comes from Geant4, see below)
 my $gopt_with_incl_lib = "";
-if($gopt_enable_incl eq "YES") {
+if($gopt_enable_incl eq "YES" && $gopt_enable_incl_geant4 ne "YES") {
   if(($match = grep(/--with-incl-lib/i, @ARGV)) > 0) {
     $options=~m/--with-incl-lib=(\S*)/i;
     $gopt_with_incl_lib = $1;
@@ -788,7 +794,7 @@ if($gopt_enable_incl eq "YES") {
 
 # If --enable-incl was set then the full path to the INCL includes must be specified
 my $gopt_with_incl_inc = "";
-if($gopt_enable_incl eq "YES") {
+if($gopt_enable_incl eq "YES" && $gopt_enable_incl_geant4 ne "YES") {
   if(($match = grep(/--with-incl-inc/i, @ARGV)) > 0) {
     $options=~m/--with-incl-inc=(\S*)/i;
     $gopt_with_incl_inc = $1;
@@ -817,7 +823,7 @@ if($gopt_enable_incl eq "YES") {
 
 # If --enable-incl was set then the full path to the boost library must also be specified
 my $gopt_with_boost_lib = "";
-if($gopt_enable_incl eq "YES") {
+if($gopt_enable_incl eq "YES" && $gopt_enable_incl_geant4 ne "YES") {
   if(($match = grep(/--with-boost-lib/i, @ARGV)) > 0) {
     $options=~m/--with-boost-lib=(\S*)/i;
     $gopt_with_boost_lib = $1;
@@ -843,7 +849,7 @@ if($gopt_enable_incl eq "YES") {
 
 # If --enable-incl was set then the full path to the boost includes must also be specified
 my $gopt_with_boost_inc = "";
-if($gopt_enable_incl eq "YES") {
+if($gopt_enable_incl eq "YES" && $gopt_enable_incl_geant4 ne "YES") {
   if(($match = grep(/--with-boost-inc/i, @ARGV)) > 0) {
     $options=~m/--with-boost-inc=(\S*)/i;
     $gopt_with_boost_inc = $1;
@@ -873,7 +879,7 @@ if($gopt_enable_incl eq "YES") {
 # If --enable-geant4 was set then the full path to the Geant4 libraries must be specified
 #
 my $gopt_with_geant4_lib = "";
-if($gopt_enable_geant4_interface eq "YES") {
+if($gopt_enable_geant4_interface eq "YES" || $gopt_enable_incl_geant4 eq "YES") {
   if(($match = grep(/--with-geant4-lib/i, @ARGV)) > 0) {
     $options=~m/--with-geant4-lib=(\S*)/i;
     $gopt_with_geant4_lib = $1;
@@ -904,6 +910,39 @@ if($gopt_enable_geant4_interface eq "YES") {
   if(! -e $file10so && ! -e $file10dylib && ! -e $file11so && ! -e $file11dylib) {
      print "*** Error *** You need to specify the path to GEANT4 library using --with-geant4-lib=/some/path/\n";
      print "*** Error *** Otherwise, you should --disable-geant4\n\n";
+     exit 1;
+  }
+}
+
+# If --enable-incl-geant4 was set: INCL++ is the one inside Geant4 (found through geant4-config
+# next to the Geant4 libraries) and the INCL++ de-excitation codes come from the INCLXXDeEx
+# external, whose install prefix must be given.
+#
+my $gopt_with_incl_deex = "";
+if($gopt_enable_incl_geant4 eq "YES") {
+  if(($match = grep(/--with-incl-deex/i, @ARGV)) > 0) {
+    $options=~m/--with-incl-deex=(\S*)/i;
+    $gopt_with_incl_deex = $1;
+  }
+  # if it was not set, try to pick it up from the environment
+  if($gopt_with_incl_deex eq "" && defined $ENV{'INCLXX_DEEX_DIR'}) {
+     $gopt_with_incl_deex = $ENV{'INCLXX_DEEX_DIR'};
+     print "The \$INCLXX_DEEX_DIR env var is defined. I will pick that and use --with-incl-deex=$gopt_with_incl_deex\n";
+  }
+  # check
+  if(! -x "$gopt_with_incl_deex/bin/inclxx-deex-config") {
+     print "*** Error *** You need to specify the INCLXXDeEx install prefix using --with-incl-deex=/some/path/\n";
+     print "*** Error *** (the directory that contains bin/inclxx-deex-config). Otherwise, do not --enable-incl-geant4\n\n";
+     exit 1;
+  }
+  if(! -x "$gopt_with_geant4_lib/../bin/geant4-config") {
+     print "*** Error *** --enable-incl-geant4 needs geant4-config next to the Geant4 libraries ($gopt_with_geant4_lib/../bin/geant4-config)\n\n";
+     exit 1;
+  }
+  my $g4incl = `$gopt_with_geant4_lib/../bin/geant4-config --prefix`;
+  chomp($g4incl);
+  if(! -e "$g4incl/include/Geant4/G4INCLCascade.hh") {
+     print "*** Error *** No INCL++ headers (G4INCLCascade.hh) in $g4incl/include/Geant4\n\n";
      exit 1;
   }
 }
@@ -1011,6 +1050,7 @@ print MKCONF "GOPT_ENABLE_PYTHIA6=$gopt_enable_pythia6\n";
 print MKCONF "GOPT_ENABLE_PYTHIA8=$gopt_enable_pythia8\n";
 print MKCONF "GOPT_ENABLE_RW2018=$gopt_enable_rw2018\n";
 print MKCONF "GOPT_ENABLE_INCL=$gopt_enable_incl\n";
+print MKCONF "GOPT_ENABLE_INCL_GEANT4=$gopt_enable_incl_geant4\n";
 print MKCONF "GOPT_ENABLE_GEANT4_INTERFACE=$gopt_enable_geant4_interface\n";
 print MKCONF "GOPT_ENABLE_LHAPDF5=$gopt_enable_lhapdf5\n";
 print MKCONF "GOPT_ENABLE_LHAPDF6=$gopt_enable_lhapdf6\n";
@@ -1058,6 +1098,7 @@ print MKCONF "GOPT_WITH_LOG4CPP_INC=$gopt_with_log4cpp_inc\n";
 print MKCONF "GOPT_WITH_LOG4CPP_LIB=$gopt_with_log4cpp_lib\n";
 print MKCONF "GOPT_WITH_INCL_INC=$gopt_with_incl_inc\n";
 print MKCONF "GOPT_WITH_INCL_LIB=$gopt_with_incl_lib\n";
+print MKCONF "GOPT_WITH_INCL_DEEX=$gopt_with_incl_deex\n";
 print MKCONF "GOPT_WITH_BOOST_INC=$gopt_with_boost_inc\n";
 print MKCONF "GOPT_WITH_BOOST_LIB=$gopt_with_boost_lib\n";
 print MKCONF "GOPT_WITH_GEANT4_INC=$gopt_with_geant4_inc\n";

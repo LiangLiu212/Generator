@@ -34,6 +34,34 @@ using std::count;
 using std::ostringstream;
 
 using namespace genie;
+
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+//___________________________________________________________________________
+// Can INCL++ propagate a particle with this PDG code?
+// With INCL++ standalone the question is asked through G4INCL::ParticleSpecies(int pdg), a
+// constructor added by the GENIE fork of INCL++; the INCL++ inside Geant4 does not have it.
+// This is the same list of codes as in that constructor.
+static bool INCLKnowsPdgCode(int pdg)
+{
+  switch(pdg) {
+    case 2212: case 2112:                                   // p, n
+    case 2224: case 2214: case 2114: case 1114:             // Delta++, Delta+, Delta0, Delta-
+    case 211:  case 111:  case -211:                        // pi+, pi0, pi-
+    case 221:  case 223:  case 331:  case 22:               // eta, omega, eta', photon
+    case 3122: case 3222: case 3212: case 3112:             // Lambda, Sigma+, Sigma0, Sigma-
+    case -2212: case -2112:                                 // pbar, nbar
+    case 3312: case 3322:                                   // Xi-, Xi0
+    case -3122: case -3222: case -3212: case -3112:         // anti-Lambda, anti-Sigmas
+    case -3312: case -3322:                                 // anti-Xi-, anti-Xi0
+    case 321:  case 311:  case -311: case 310: case 130: case -321:   // K+, K0, K0bar, K0S, K0L, K-
+      return true;
+    default:
+      break;
+  }
+  return (pdg >= 1000000000 || pdg <= -1000000000);         // nuclei and anti-nuclei
+}
+#endif
+
 //___________________________________________________________________________
 Decayer::Decayer() :
 EventRecordVisitorI()
@@ -119,8 +147,12 @@ bool Decayer::IsUnstable(int pdg_code) const
       //                              -> force-decay before INCL.
       //   3. Fundamental particle (|pdg|<100), ion, or user-disabled
       //                              -> leave alone.
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+      bool incl_can_propagate  = INCLKnowsPdgCode(pdg_code);
+#else
       G4INCL::ParticleSpecies pSpec(pdg_code);
       bool incl_can_propagate  = (pSpec.theType != G4INCL::UnknownParticle);
+#endif
       bool is_fundamental      = std::abs(pdg_code) < 100;  // leptons, gauge bosons, etc.
       bool is_ion              = pdg::IsIon(pdg_code);
       bool user_disabled_decay = fParticlesNotToDecay.ExistsInPDGCodeList(pdg_code);

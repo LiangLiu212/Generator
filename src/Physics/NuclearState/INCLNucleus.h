@@ -51,6 +51,11 @@
 #include "G4INCLRootFinder.hh"
 #include "G4INCLParticleTable.hh"
 
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+// INCL++ from Geant4: the INCL++ de-excitation codes come from the INCLXXDeEx external
+#include "INCLXXDeEx/DeExcitation.hh"
+#endif
+
 
 namespace genie {
 
@@ -88,6 +93,17 @@ namespace genie {
       void setABLA07DataFilePath(std::string str){ abla07DataFilePath_ = str; }
       void setGEMINIXXDataFilePath(std::string str){ geminixxDataFilePath_ = str; }
       void setDeExcitationType(G4INCL::DeExcitationType deExType){ deExcitationType_ = deExType; }
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+      // The INCL++ inside Geant4 is built without de-excitation: its G4INCL::DeExcitationType
+      // only knows "none" and its Config has no de-excitation settings. The code is therefore
+      // chosen by name ("ABLAXX", "ABLA07", "GEMINIXX") and run through the INCLXXDeEx external.
+      void setDeExcitationModel(const std::string & name);
+      // Geant4's Config has no setter for the Pauli type: install the blocker asked for in the
+      // GENIE configuration directly (to be called after every G4INCL::Pauli::initialize).
+      void installPauliBlocker();
+      inclxxdeex::Model getDeExcitationModel() const { return deExcitationModel_; }
+      const inclxxdeex::Settings & getDeExcitationSettings() const { return deExcitationSettings_; }
+#endif
       void setPotentialType(G4INCL::PotentialType type) { potentialType_ = type; }
       void setPauliType(G4INCL::PauliType type) { pauliType_ = type; }
       void setPauliString(std::string str) {pauliString_ = str;}
@@ -121,6 +137,9 @@ namespace genie {
       ~INCLNucleus();
       void initialize(const Target * tgt);
       void initUniverseRadius(const int A, const int Z);
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+      void initGeant4();   // particle tables and random numbers Geant4's INCL++ relies on
+#endif
       G4INCL::Particle* getNucleon(const int pdg);
       std::shared_ptr<G4INCL::Cluster> getNNCluster(const int pdg1, const int pdg2);
       static INCLNucleus *fInstance;
@@ -154,6 +173,10 @@ namespace genie {
       std::string geminixxDataFilePath_;
 
       G4INCL::DeExcitationType deExcitationType_;
+#ifdef __GENIE_INCL_GEANT4_ENABLED__
+      inclxxdeex::Model    deExcitationModel_ = inclxxdeex::Model::None;
+      inclxxdeex::Settings deExcitationSettings_;
+#endif
       G4INCL::PotentialType potentialType_;
       G4INCL::PauliType pauliType_;
       std::string pauliString_;
