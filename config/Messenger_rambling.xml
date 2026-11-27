@@ -138,7 +138,6 @@
   <priority msgstream="INukeUtils">            NOTICE </priority> <!-- notice-->
   <priority msgstream="INukeUtils2018">        NOTICE </priority> <!-- notice-->
   <priority msgstream="INukeUtils2025">        NOTICE </priority> <!-- notice-->
-  <priority msgstream="HINCLCascadeIntranuke"> NOTICE </priority>
   <priority msgstream="HG4BertCascIntranuke">  NOTICE </priority>
   <priority msgstream="INukeNucleonCorr">      NOTICE </priority>
   <priority msgstream="ISApp">                 INFO   </priority>
